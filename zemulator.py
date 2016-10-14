@@ -7,10 +7,19 @@ import os
 
 zlogger = logging.getLogger(__name__)
 
-with open(os.path.dirname(os.path.realpath(__file__))+os.sep+"init.txt", encoding="utf8") as f:
-    ZJSN_DATA = json.load(f)
+with open(os.path.dirname(os.path.realpath(__file__)) + os.sep + "init.txt", encoding="utf8") as f:
+    __ZJSN_DATA = json.load(f)
 
-shipCard = ZJSN_DATA["shipCard"]
+shipCard = {i['cid']: i for i in __ZJSN_DATA["shipCard"]}
+errorCode = __ZJSN_DATA['errorCode']
+
+
+class ZjsnError(Exception):
+    """docstring for ZjsnError"""
+    def __init__(self, message, eid=0):
+        super(ZjsnError, self).__init__(message)
+        self.eid = eid
+
 
 class ZjsnApi(object):
     """docstring for ZjsnApi"""
@@ -19,7 +28,8 @@ class ZjsnApi(object):
         super(ZjsnApi, self).__init__()
         self.login = "/index/login/"
         self.init = "/api/initGame/"
-        self.Explore = "/explore/start/"
+        self.explore = "/explore/start/"   #10003/'
+        self.cancel_explore = '/explore/cancel/'   #10003/'
         self.getExploreResult = "/explore/getResult/"
         self.repair = "/boat/repair/"
         self.repairComplete = "/boat/repairComplete/"
@@ -30,7 +40,8 @@ class ZjsnApi(object):
         self.instantRepairShips = "/boat/instantRepairShips/"
         self.getAward = "/task/getAward/"  # 2201632/ 完成任务
         self.strengthen = "/boat/strengthen/"  # 6744/[31814,31799,31796,31779] 强化
-        self.lock = " /boat/lock/"  # 126/  锁船
+        self.lock = "/boat/lock/"  # 126/  锁船
+        self.skip = '/pve/SkipWar/'
 
 
 class ZjsnUserShip(dict):
@@ -39,22 +50,37 @@ class ZjsnUserShip(dict):
     def __init__(self, *args, **kwargs):
         super(ZjsnUserShip, self).__init__(*args, **kwargs)
 
-    def update(self, E=None, **F):
-        if "id" in E:
-            super(ZjsnUserShip, self).__init__({E['id']:ZjsnShip(E)}, **F)
-        else:
-            for ship in E:
-                super(ZjsnUserShip, self).__init__({ship['id']: ZjsnShip(ship)}, **F)
-
     def __getitem__(self, item):
-        if type(item) == dict:
+        if type(item) == ZjsnShip:
             return item
+        elif type(item) == dict:
+            return ZjsnShip(item)
         else:
             try:
                 return super(ZjsnUserShip, self).__getitem__(item)
             except KeyError:
                 raise KeyError("no such ship with id" + str(item))
 
+    def __iter__(self):
+        return iter(self.values())
+
+    def update(self, E=None, **F):
+        if "id" in E:
+            super(ZjsnUserShip, self).__init__({E['id']: ZjsnShip(E)}, **F)
+        else:
+            for ship in E:
+                super(ZjsnUserShip, self).__init__({ship['id']: ZjsnShip(ship)}, **F)
+
+
+    def broken_ships(self, broken_level=0):
+        """broken level 0 : 擦伤, 1 : 中破,  2 : 大破"""
+        broken_ships = []
+        for ship in self:
+            if ship.should_be_repair(broken_level):
+                broken_ships.append(ship.id)
+                zlogger.debug(
+                    "{}(id={}) is broken".format(ship.name, ship.id))
+        return broken_ships
 
 
 class ZjsnShip(dict):
@@ -62,6 +88,24 @@ class ZjsnShip(dict):
 
     def __init__(self, *args, **kwargs):
         super(ZjsnShip, self).__init__(*args, **kwargs)
+        self.type_list = ['全部',
+                          '航母',
+                          '轻母',
+                          '装母',
+                          '战列',
+                          '航战',
+                          '战巡',
+                          '重巡',
+                          '航巡',
+                          '雷巡',
+                          '轻巡',
+                          '重炮',
+                          '驱逐',
+                          '潜母',
+                          '潜艇',
+                          '炮潜',
+                          '补给',
+                          '其他',]
 
     @property
     def id(self):
@@ -77,11 +121,58 @@ class ZjsnShip(dict):
 
     @property
     def name(self):
-        return shipCard[str(self.cid)]['title']
+        return shipCard[self.cid]['title']
 
     @property
     def type(self):
-        return shipCard[str(self.cid)]['type']
+        return self.type_list[shipCard[self.cid]['type']]
+
+    @property
+    def level(self):
+        return self['level']
+
+    @property
+    def strength_exp(self):
+        current_attribute = list(collections.OrderedDict(sorted(self['strengthenAttribute'].items())).values())
+        max_attribute = list(
+            collections.OrderedDict(sorted(shipCard[self.cid]['strengthenTop'].items())).values())
+        tmp = [m - c for m, c in zip(max_attribute, current_attribute)]
+        result = [tmp[1], tmp[3], tmp[2], tmp[0]]
+        return result
+
+    @property
+    def status(self):
+        return self['status']
+
+    @property
+    def can_evo(self):
+        return shipCard[self.cid]['canEvo']
+
+    @property
+    def evolved(self):
+        return shipCard[self.cid]['evoClass']
+
+    @property
+    def fleet_id(self):
+        return self["fleetId"]
+
+
+    def should_be_repair(self, broken_level=0):
+        """broken level 0 : 擦伤, 1 : 中破,  2 : 大破"""
+        conditions = [self.status != 2,  # 没有被维修
+                      # ship["fleetId"] == 0 or ship["fleetId"] == 1, #
+                      # 不在除了第一舰队之外的任何舰队中
+                      ]
+        if broken_level == 0:
+            conditions.append(
+                self["battleProps"]["hp"] < self["battlePropsMax"]["hp"])
+        elif broken_level == 1:
+            conditions.append(
+                self["battleProps"]["hp"] * 2 < self["battlePropsMax"]["hp"])
+        elif broken_level == 2:
+            conditions.append(
+                self["battleProps"]["hp"] * 4 < self["battlePropsMax"]["hp"])
+        return all(conditions)
 
 
 class ZjsnEmulator(object):
@@ -91,13 +182,13 @@ class ZjsnEmulator(object):
         super(ZjsnEmulator, self).__init__()
         self.s = requests.Session()
         self.repairDock = [{}]
-        self.userShip = [{}]
+        self.userShip = ZjsnUserShip()
         self.pveExplore = [{}]
         self.fleet = [{}]
         self.unlockShip = []
 
-        with open("shipCard.json", encoding="utf8") as f:
-            self.shipCard = json.load(f)
+        # with open("shipCard.json", encoding="utf8") as f:
+        #     self.shipCard = json.load(f)
 
         self.initGame = ""
 
@@ -107,12 +198,14 @@ class ZjsnEmulator(object):
         self.url_passport_hm = "http://login.jr.moefantasy.com/index/passportLogin"
         self.url_server = 'http://s2.jr.moefantasy.com'
 
+        self.working_fleet = 1
+
         self.api = ZjsnApi()
 
         self.common_lag = 25  # 远征和修理收取的延迟秒数
         self.operation_lag = 1  # 每次操作的延迟秒数
 
-        self.next_node = 0
+        self.node = 0
 
         self.mission_flag = ""
 
@@ -125,99 +218,100 @@ class ZjsnEmulator(object):
         self.FLAG_EXPLORE = "远征中,无法出击"
         self.FLAG_EXIT = "退出"
 
-    def get_award(self):
-        for task_cid in self.award_list:
-            self.get(
-                self.url_server + self.api.getAward + "{}/".format(task_cid))
-        self.award_list = []
-
-    def change_ships(self, broken_level=1):
-        for i, ship_id in enumerate(self.fleet[0]["ships"]):
-            ship = self.get_ship(ship_id)
-            if type(broken_level) == list:
-                b_level = broken_level[i]
-            else:
-                b_level = broken_level
-            if self.should_be_repair(ship, b_level):
-                new_ship = self.get_substitue(i, ship_id)
-                self.fleet[0]["ships"][i] = new_ship
-                zlogger.debug("{}上场了".format(self.ship_name(new_ship)))
-                self.instant_fleet(self.fleet[0]["ships"])
-
-    def get_ship(self, ship_id):
-        if type(ship_id) == dict:
-            return ship_id
-        else:
-            for ship in self.userShip:
-                if ship["id"] == ship_id:
-                    return ship
-            raise KeyError("no such ship")
-
-    def get_substitue(self, location, broken_ship_id):
-        for i, ship_id in enumerate(self.ship_groups[location]):
-            ship = self.get_ship(ship_id)
-            repair_flag = self.should_be_repair(ship)
-            if ship["status"] != 2 and not repair_flag:
-                self.ship_groups[location][i] = broken_ship_id
-                return ship_id
-        raise KeyError("no ship to use in location {}".format(location))
-
-    def get(self, url, error_count=0, sleep_flag=True, **kwargs):
+    def get(self, url, error_count=0, sleep_flag=True, method='GET',**kwargs):
         """kwargs: sleep=True"""
         if error_count > 3:
             raise ConnectionError("lost connection")
         error_count += 1
 
         try:
-            r = self.s.get(url, **kwargs)
+            r = self.s.request(method, url, **kwargs)
         except requests.exceptions.ConnectionError:
-            return self.get(url, error_count, sleep_flag, **kwargs)
+            return self.get(url, error_count, sleep_flag, method, **kwargs)
         if sleep_flag:
             time.sleep(self.operation_lag)
 
         if r.status_code != 200:
-            return self.get(url, error_count, sleep_flag, **kwargs)
+            return self.get(url, error_count, sleep_flag, method, **kwargs)
         elif "eid" in r.json():
             eid = r.json()["eid"]
             if eid == -1:  # 操作太快
                 time.sleep(self.operation_lag * 2)
-                return self.get(url, error_count, sleep_flag, **kwargs)
+                return self.get(url, error_count, sleep_flag, method, **kwargs)
             else:
-                raise KeyError(r.json()["eid"])
+                raise ZjsnError(errorCode[str(eid)], r.json()["eid"])
         else:
             if "updateTaskVo" in r.json():
                 for task in r.json()["updateTaskVo"]:
                     if all([c["totalAmount"] == c["finishedAmount"] for c in task["condition"]]):
                         self.award_list.append(task["taskCid"])
                         zlogger.debug("task {} finish".format(task["taskCid"]))
-            return r
-
-    def post(self, url, **kwargs):
-        r = self.s.post(url, **kwargs)
-        time.sleep(self.operation_lag)
-        if "eid" in r.json():
-            raise KeyError(r.json()["eid"])
-        else:
-            return r
+            return r.json()
 
     def login(self):
         self.s = requests.Session()
-        r1 = self.s.post("http://login.jr.moefantasy.com/index/passportLogin/",
-                         data={"username": self.username,
-                               "pwd": self.password})
+        r1 = self.get(self.url_passport_hm, method='POST',
+                      sleep_flag=False,
+                      data={"username": self.username,
+                            "pwd": self.password})
         self.s.cookies = requests.utils.cookiejar_from_dict(dict(r1.cookies))
         # 亲测userID没有作用，决定登陆哪个账号的是cookie
-        self.get(self.url_server + self.api.login + r1.json()["userId"], sleep_flag=False)
+        self.get(self.url_server + self.api.login + r1["userId"], sleep_flag=False)
         self.initGame = self.get(self.url_server + self.api.init, sleep_flag=False)
         self.get(self.url_server + "/pve/getPveData/", sleep_flag=False)
         self.get(self.url_server + "/pevent/getPveData/", sleep_flag=False)
 
-        j = self.initGame.json()
-        self.userShip = j["userShipVO"]
+        j = self.initGame
+        self.userShip.update(j["userShipVO"])
         self.pveExplore = j["pveExploreVo"]["levels"]
         self.repairDock = j["repairDockVo"]
         self.fleet = j["fleetVo"]
         self.unlockShip = j["unlockShip"]
+
+    def get_award(self):
+        for task_cid in self.award_list:
+            self.get(
+                self.url_server + self.api.getAward + "{}/".format(task_cid))
+        self.award_list = []
+
+    def change_ships(self):
+        for i, ship_id in enumerate(self.fleet[self.working_fleet - 1]["ships"]):
+            ship = self.userShip[ship_id]
+            ship_group, b_level, instant_flag = self.ship_groups[i]
+            changed_flag = False
+            if ship.should_be_repair(b_level):
+                if len(ship_group) > 0:
+                    new_ship = ship_group.pop()
+                    self.fleet[self.working_fleet - 1]["ships"][i] = new_ship
+                    zlogger.debug("{}上场了".format(ZjsnShip(new_ship).name))
+                    changed_flag = True
+                elif instant_flag == True:
+                    self.repair(ship.id, 0, instant=True)
+                else:
+                    KeyError("no ship to use in location {}".format(i))
+
+                if changed_flag:
+                    self.instant_fleet(self.fleet[self.working_fleet - 1]["ships"])
+
+    # def get_ship(self, ship_id):
+    #     if type(ship_id) == dict:
+    #         return ship_id
+    #     else:
+    #         for ship in self.userShip:
+    #             if ship["id"] == ship_id:
+    #                 return ship
+    #         raise KeyError("no such ship")
+
+    # def get_substitue(self, location, broken_ship_id):
+    #     for i, ship_id in enumerate(self.ship_groups[location]):
+    #         ship = self.userShip[ship_id]
+    #         repair_flag = ship.should_be_repair()
+    #         if ship["status"] != 2 and not repair_flag:
+    #             self.ship_groups[location][i] = broken_ship_id
+    #             return ship_id
+    #     raise KeyError("no ship to use in location {}".format(location))
+
+
 
     def go_home(self):
         r_sl = self.get(self.url_server + "/active/getUserData/", sleep_flag=False)
@@ -226,9 +320,9 @@ class ZjsnEmulator(object):
         self.get_award()
 
     def instant_fleet(self, ships_id):
-        r = self.get(self.url_server + self.api.instantFleet +
-                     "1/" + str(ships_id).replace(" ", ""))
-        self.fleet[0] = r.json()["fleetVo"][0]
+        r = self.get(self.url_server + self.api.instantFleet + str(self.working_fleet) +
+                     "/" + str(ships_id).replace(" ", ""))
+        self.fleet[self.working_fleet - 1] = r["fleetVo"][0]
         return r
 
     def dismantle(self, throw_equipment=0):
@@ -240,46 +334,45 @@ class ZjsnEmulator(object):
                               10009911,  # ,空想
                               10008211,  # ,萤火虫
                               10013512],  # 紫石英
-                          self.ship_type(ship) in [12,  # DD
-                                                   10,  # 轻巡
-                                                   7,  # 重巡
-                                                   2]]  # 轻母
+                          ship.type in [12,  # DD
+                                        10,  # 轻巡
+                                        7,  # 重巡
+                                        2]]  # 轻母
             if all(conditions):
                 ships_dismantle.append(ship["id"])
         if len(ships_dismantle) > 0:
             r = self.get(self.url_server + self.api.dismantleBoat +
                          str(ships_dismantle).replace(" ", "") + "/{}/".format(throw_equipment))
-            del_ships = r.json()['delShips']
-            self.userShip = [
-                i for i in self.userShip if i['id'] not in del_ships]
+            del_ships = r['delShips']
+            for ship_id in del_ships:
+                self.userShip.pop(ship_id, None)
         else:
             r = 0
         return r
 
     def auto_strengthen(self):
-        cid_table = [ship['shipCid'] for ship in self.userShip]
-        for ship in sorted(self.userShip, key=lambda x: x["level"], reverse=True):
-            card = self.shipCard[str(ship['shipCid'])]
+        cid_table = [ship.cid for ship in self.userShip]
+        for ship in sorted(self.userShip, key=lambda x: (bool(x.evolved), int(x.level)), reverse=True):
             conditions = [
-                ship["isLocked"] == 1,
-                cid_table.count(ship['shipCid']) == 1,
-                card['canEvo'] == '0' or "evoClass" == 1, # 不能改造或者已经改造
-                ship["fleetId"] in [0, 1], # 不在远征舰队中
-                any(self.strengthen_exp_remain(ship)),
-                ]
+                ship.locked == 1,
+                cid_table.count(ship.cid) == 1,
+                ship.can_evo == '0' or ship.evolved == 1,  # 不能改造或者已经改造
+                ship.fleet_id in [0, 1],  # 不在远征舰队中
+                any(ship.strength_exp),
+            ]
             if all(conditions):
                 r = self.strengthen(ship)
                 if r == 0:
                     break
 
     def strengthen(self, ship_in, target_attribute=None):
-        ship_in = self.get_ship(ship_in)
+        ship_in = self.userShip[ship_in]
         if not target_attribute:
             target_attribute = [1, 2, 3, 4]
         ships_strengthen = []
         ship_types = []
-        food_type = [None,12,12,10]
-        for attribute_id, exp_remain in enumerate(self.strengthen_exp_remain(ship_in)):
+        food_type = [None, 12, 12, 10]
+        for attribute_id, exp_remain in enumerate(ship_in.strength_exp):
             if attribute_id in target_attribute and exp_remain > 0:
                 ship_types.append(food_type[attribute_id])
 
@@ -293,58 +386,58 @@ class ZjsnEmulator(object):
                               10009911,  # ,空想
                               10008211,  # ,萤火虫
                               10013512],  # 紫石英
-                          self.ship_type(ship) in ship_types]
+                          ship.type in ship_types]
             if all(conditions):
                 ships_strengthen.append(ship["id"])
         if len(ships_strengthen) > 0:
             r = self.get(self.url_server + self.api.strengthen + str(ship_in['id']) + "/" +
                          str(ships_strengthen).replace(" ", ""))
-            del_ships = r.json()['delShips']
-            self.userShip = [
-                i for i in self.userShip if i['id'] not in del_ships]
-            self.update_userShip(r.json()['shipVO'])
+            del_ships = r['delShips']
+            for ship_id in del_ships:
+                self.userShip.pop(ship_id, None)
         else:
             r = 0  # 没船强化
         return r
 
-    def strengthen_exp_remain(self, ship_id):
-        ship = self.get_ship(ship_id)
-        current_attribute = list(collections.OrderedDict(sorted(ship['strengthenAttribute'].items())).values())
-        max_attribute = list(collections.OrderedDict(sorted(self.shipCard[str(ship['shipCid'])]['strengthenTop'].items())).values())
-        tmp = [m - c for m, c in zip(max_attribute, current_attribute)]
-        result = [tmp[1], tmp[3], tmp[2], tmp[0]]
-        return result
+    # def strengthen_exp_remain(self, ship_id):
+    #     ship = self.userShip[ship_id]
+    #     current_attribute = list(collections.OrderedDict(sorted(ship['strengthenAttribute'].items())).values())
+    #     max_attribute = list(
+    #         collections.OrderedDict(sorted(shipCard[ship.cid]['strengthenTop'].items())).values())
+    #     tmp = [m - c for m, c in zip(max_attribute, current_attribute)]
+    #     result = [tmp[1], tmp[3], tmp[2], tmp[0]]
+    #     return result
 
-    def ship_name(self, ship_id):
-        try:
-            ship = self.get_ship(ship_id)
-            name = self.shipCard[str(ship["shipCid"])]["title"]
-        except KeyError as ke:
-            name = "unknown ship with cid".format(
-                self.get_ship(ship_id)["shipCid"])
-        return name
+    # def ship_name(self, ship_id):
+    #     try:
+    #         ship = self.userShip[ship_id]
+    #         name = self.shipCard[str(ship["shipCid"])]["title"]
+    #     except KeyError as ke:
+    #         name = "unknown ship with cid".format(
+    #             self.userShip[ship_id]["shipCid"])
+    #     return name
 
-    def ship_type(self, ship_id):
-        try:
-            if type(ship_id) == dict:
-                ship_type = self.shipCard[str(ship_id["shipCid"])]["type"]
-            else:
-                ship_type = self.shipCard[
-                    str(self.get_ship(ship_id)["shipCid"])]["type"]
-        except KeyError as ke:
-            ship_type = "unknown ship with cid".format(
-                self.get_ship(ship_id)["shipCid"])
-        return ship_type
+    # def ship_type(self, ship_id):
+    #     try:
+    #         if type(ship_id) == dict:
+    #             ship_type = self.shipCard[str(ship_id["shipCid"])]["type"]
+    #         else:
+    #             ship_type = self.shipCard[
+    #                 str(self.userShip[ship_id]["shipCid"])]["type"]
+    #     except KeyError as ke:
+    #         ship_type = "unknown ship with cid".format(
+    #             self.userShip[ship_id]["shipCid"])
+    #     return ship_type
 
     def explore(self, fleet_id, explore_id):
         r = self.get(
-            self.url_server + self.api.Explore + str(fleet_id) + "/" + str(explore_id))
-        self.pveExplore = r.json()["pveExploreVo"]["levels"]
+            self.url_server + self.api.explore + str(fleet_id) + "/" + str(explore_id))
+        self.pveExplore = r["pveExploreVo"]["levels"]
 
     def explore_result(self, explore_id):
         r = self.get(
             self.url_server + self.api.getExploreResult + str(explore_id))
-        self.pveExplore = r.json()["pveExploreVo"]["levels"]
+        self.pveExplore = r["pveExploreVo"]["levels"]
         return r
 
     def auto_explore(self):
@@ -355,25 +448,33 @@ class ZjsnEmulator(object):
                 self.explore_result(explore_id)
                 self.explore(fleet_id, explore_id)
 
-    def update_ship_info(self, new_ship):
-        for i, ship in enumerate(self.userShip):
-            if ship["id"] == new_ship["id"]:
-                self.userShip[i] = new_ship.copy()
-                return
-        self.userShip.append(new_ship)
+    def get_explore(self):
+        for ex in self.pveExplore:
+            if ex["endTime"] + self.common_lag < time.time():
+                fleet_id = ex["fleetId"]
+                explore_id = ex["exploreId"]
+                self.explore_result(explore_id)
+                return fleet_id
 
-    def update_userShip(self, userShip):
-        if "id" in userShip:
-            self.update_ship_info(userShip)
-        else:
-            for ship in userShip:
-                self.update_ship_info(ship)
+    # def update_ship_info(self, new_ship):
+    #     for i, ship in enumerate(self.userShip):
+    #         if ship["id"] == new_ship["id"]:
+    #             self.userShip[i] = new_ship.copy()
+    #             return
+    #     self.userShip.append(new_ship)
+
+    # def update_userShip(self, userShip):
+    #     if "id" in userShip:
+    #         self.update_ship_info(userShip)
+    #     else:
+    #         for ship in userShip:
+    #             self.update_ship_info(ship)
 
     def repair_all(self, broken_level=0, instant=False):
         """broken level 0 : 擦伤, 1 : 中破,  2 : 大破
         不会修理第一舰队的船"""
-        ships = [i for i in self.broken_ships(
-            broken_level) if i not in self.fleet[0]["ships"]]
+        ships = [i for i in self.userShip.broken_ships(
+            broken_level) if i not in self.fleet[self.working_fleet - 1]["ships"]]
         for dock_index, dock in enumerate(self.repairDock):
             if "endTime" in dock:
                 if dock["endTime"] + self.common_lag < time.time():
@@ -383,109 +484,109 @@ class ZjsnEmulator(object):
 
     def repair_instant(self, broken_level=1):
         """对第一舰队用快修修理"""
-        for ship_id in self.fleet[0]["ships"]:
-            if self.should_be_repair(self.get_ship(ship_id), broken_level):
+        broken_ships = []
+        for ship_id in self.fleet[self.working_fleet - 1]["ships"]:
+            if self.userShip[ship_id].should_be_repair(broken_level):
                 self.repair(ship_id, 0, instant=True)
+                broken_ships.append(self.userShip[ship_id].name)
                 zlogger.debug(
-                    "instant repair {}".format(self.ship_name(ship_id)))
+                    "instant repair {}".format(self.userShip[ship_id].name))
+        return broken_ships
 
     def repair(self, ship_id, dock_id, instant=False):
         if not instant:
             r = self.get(
                 self.url_server + self.api.repair + str(ship_id) + "/" + str(dock_id + 1))
-            self.repairDock = r.json()["repairDockVo"]
-            self.update_userShip(r.json()["shipVO"])
+            self.repairDock = r["repairDockVo"]
+            self.userShip.update(r["shipVO"])
         else:
             r = self.get(
                 self.url_server + self.api.instantRepairShips + "/[" + str(ship_id) + "]/")
-            self.update_userShip(r.json()["shipVOs"])
+            self.userShip.update(r["shipVOs"])
 
     def repair_complete(self, ship_id, dock_id):
         r = self.get(self.url_server + self.api.repairComplete +
                      str(dock_id + 1) + "/" + str(ship_id))
-        self.repairDock = r.json()["repairDockVo"]
-        self.update_userShip(r.json()["shipVO"])
-
-    def broken_ships(self, broken_level=0):
-        """broken level 0 : 擦伤, 1 : 中破,  2 : 大破"""
-        broken_ships = []
-        for ship in self.userShip:
-            if self.should_be_repair(ship, broken_level):
-                broken_ships.append(ship["id"])
-                zlogger.debug(
-                    "{}(id={}) is broken".format(self.ship_name(ship["id"]), ship["id"]))
-        return broken_ships
-
-    def should_be_repair(self, ship, broken_level=0):
-        """broken level 0 : 擦伤, 1 : 中破,  2 : 大破"""
-        conditions = [ship["status"] != 2,  # 没有被维修
-                      # ship["fleetId"] == 0 or ship["fleetId"] == 1, #
-                      # 不在除了第一舰队之外的任何舰队中
-                      ]
-        if broken_level == 0:
-            conditions.append(
-                ship["battleProps"]["hp"] < ship["battlePropsMax"]["hp"])
-        elif broken_level == 1:
-            conditions.append(
-                ship["battleProps"]["hp"] * 2 < ship["battlePropsMax"]["hp"])
-        elif broken_level == 2:
-            conditions.append(
-                ship["battleProps"]["hp"] * 4 < ship["battlePropsMax"]["hp"])
-        return all(conditions)
+        self.repairDock = r["repairDockVo"]
+        self.userShip.update(r["shipVO"])
 
     def go_out(self, map_code):
-        try:
-            r = self.get(
-                self.url_server + "/pve/cha11enge/{0}/1/0/".format(map_code))
-            self.next_point()
-        except KeyError as ke:
-            if -215 in ke.args:  # 船满了
-                self.mission_flag = self.FLAG_FULL
-            elif -413 in ke.args:  # 有船在修
-                self.mission_flag = self.FLAG_REPAIR
-            elif -412 in ke.args:
-                self.mission_flag = self.FLAG_EXPLORE
-            else:
-                raise ke
-            r = ke.args[0]
-        return r
+        # try:
+        r = self.get(
+            self.url_server + "/pve/cha11enge/{0}/{1}/0/".format(map_code, self.working_fleet))
+            # self.go_next()
+        # except ZjsnError as ke:
+        #     if -215 in ke.args:  # 船满了
+        #         self.mission_flag = self.FLAG_FULL
+        #     elif -413 in ke.args:  # 有船在修
+        #         self.mission_flag = self.FLAG_REPAIR
+        #     elif -412 in ke.args:
+        #         self.mission_flag = self.FLAG_EXPLORE
+        #     else:
+        #         raise ke
+        #     r = ke.args[0]
+        # return r
 
-    def next_point(self, big_broken_protect=True):
-        if [i for i in self.broken_ships(2) if i in self.fleet[0]["ships"]] and big_broken_protect:
-            raise KeyError("big broken")
+    def go_next(self):
+        # todo 确认旗舰大破的eid
+        # if self.fleet[self.working_fleet - 1]["ships"][0] in self.userShip.broken_ships(2):
+        #     raise KeyError("flagship big broken")
         r = self.get(self.url_server + "/pve/newNext/")
-        self.next_node = r.json()["node"]
-        return self.next_node
+        self.node = r["node"]
+        return self.node
 
     def spy(self):
         r = self.get(self.url_server + "/pve/spy/")
         return r
 
-    def deal(self, formation_code):
+    def deal(self, formation_code, big_broken_protect=True):
+        if [i for i in self.userShip.broken_ships(2) if i in self.fleet[self.working_fleet - 1]["ships"]] and big_broken_protect:
+            raise ZjsnError("big broken")
         """阵型编号 1 单纵 2 复纵 3 轮型 4 梯形 5 单横"""
-        node = self.next_node
+        node = self.node
         r = self.get(
-            self.url_server + "/pve/deal/{0}/1/{1}".format(node, formation_code))
+            self.url_server + "/pve/deal/{0}/{1}/{2}".format(node,self.working_fleet, formation_code))
+        return r
+
+    def lock(self, ship_id):
+        r = self.get(self.url_server + self.api.lock + str(ship_id) + '/')
         return r
 
     def getWarResult(self, night_flag=0):
         """0 不夜战, 1 夜战"""
         r = self.get(self.url_server + "/pve/getWarResult/" + str(night_flag))
-        self.update_userShip(r.json()["shipVO"])
-        if "newShipVO" in r.json():
-            self.update_userShip(r.json()["newShipVO"])
-            ship_cid = str(r.json()["newShipVO"][0]["shipCid"])
-            zlogger.debug(
-                "get ship: {}".format(self.shipCard[ship_cid]["title"]))
+        self.userShip.update(r["shipVO"])
+        if "newShipVO" in r:
+            new_ships = r["newShipVO"]
+            self.userShip.update(new_ships)
+            for new_ship in new_ships:
+                ship = ZjsnShip(new_ship)
+                zlogger.debug(
+                "get ship: {}".format(ship.name))
+                if ship.cid not in self.unlockShip:
+                    self.lock(ship.id)
+                    self.unlockShip.append(ship.cid)
         else:
             zlogger.debug("get no ship")
-
         return r
 
     def supply(self):
-        r = self.get(self.url_server + "/boat/supplyFleet/1/")
+        r = self.get(self.url_server + "/boat/supplyFleet/{}/".format(self.working_fleet))
         return r
+
+    def skip(self):
+        r = self.get(self.url_server + self.api.skip)
+        return r['isSuccess']
+
+    def war_report(self):
+        pass
 
 
 if __name__ == '__main__':
     e = ZjsnEmulator()
+    # e.username = 'paleneutron1'
+    # e.url_server = 'http://s13.jr.moefantasy.com'
+    e.login()
+    for ship in e.userShip:
+        print(ship.name, ship.level, ship.id, ship.cid, ship.type, ship.locked, ship.strength_exp)
+    e.auto_strengthen()
