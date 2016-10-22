@@ -1,4 +1,5 @@
 import requests
+import requests.exceptions
 import time
 import logging
 import json
@@ -6,7 +7,7 @@ import collections
 import os
 import datetime
 
-zlogger = logging.getLogger(__name__)
+zlogger = logging.getLogger('zjsn.zrobot.zemulator')
 
 with open(os.path.dirname(os.path.realpath(__file__)) + os.sep + "init.txt", encoding="utf8") as f:
     __ZJSN_DATA = json.load(f)
@@ -46,6 +47,14 @@ class ZjsnApi(object):
         self.lock = "/boat/lock/"  # 126/  锁船
         self.skip = '/pve/SkipWar/'
         self.dismantleEquipment = '/dock/dismantleEquipment/'  # 用post方法发送content={"10001921":3}
+        self.skillLevelUp = '/boat/skillLevelUp/'     # 13674/ 升级技能
+        self.loginAward = '/active/getLoginAward/'
+        self.buildBoat = '/dock/buildBoat/' # 1/400/500/130/400 第一项是船坞ID，后面是油，弹，钢，铝
+        self.buildEquipment = '/dock/buildEquipment/' # 1/10/90/90/30 第一项是船坞ID，后面是油，弹，钢，铝
+
+        self.campaignSpy = '/campaign/spy/' # 402/ 4代表航母战役 02代表难度是困难
+        self.campaignDeal = '/campaign/challenge/' # 402/2/ 4代表航母战役 02代表难度是困难 最后的2代表阵型
+        self.campaignResult = '/campaign/getWarResult/' # 1/ 最后的1代表进行夜战
 
 
 class ZjsnUserShip(dict):
@@ -125,6 +134,10 @@ class ZjsnShip(dict):
     def locked(self):
         return self["isLocked"]
 
+    @locked.setter
+    def locked(self, value):
+        self["isLocked"] = value
+
     @property
     def name(self):
         return shipCard[self.cid]['title']
@@ -162,22 +175,22 @@ class ZjsnShip(dict):
     def fleet_id(self):
         return self["fleetId"]
 
+    @property
+    def speed(self):
+        return float(self["battleProps"]["speed"])
+
     def should_be_repair(self, broken_level=0):
         """broken level 0 : 擦伤, 1 : 中破,  2 : 大破"""
-        conditions = [self.status != 2,  # 没有被维修
-                      # ship["fleetId"] == 0 or ship["fleetId"] == 1, #
-                      # 不在除了第一舰队之外的任何舰队中
-                      ]
+        conditions = False
         if broken_level == 0:
-            conditions.append(
-                self["battleProps"]["hp"] < self["battlePropsMax"]["hp"])
+            conditions = self["battleProps"]["hp"] < self["battlePropsMax"]["hp"]
         elif broken_level == 1:
-            conditions.append(
-                self["battleProps"]["hp"] * 2 < self["battlePropsMax"]["hp"])
+            conditions = self["battleProps"]["hp"] * 2 < self["battlePropsMax"]["hp"]
         elif broken_level == 2:
-            conditions.append(
-                self["battleProps"]["hp"] * 4 < self["battlePropsMax"]["hp"])
-        return all(conditions)
+            conditions = self["battleProps"]["hp"] * 4 < self["battlePropsMax"]["hp"]
+        elif 0 < broken_level < 1:
+            conditions = self["battleProps"]["hp"] < self["battlePropsMax"]["hp"] * broken_level
+        return self.status != 2 and conditions
 
 
 class ZjsnEmulator(object):
@@ -204,18 +217,19 @@ class ZjsnEmulator(object):
         self.url_server = 'http://s2.jr.moefantasy.com'
 
         self.working_fleet = 1
+        self.drop500 = False
 
         self.api = ZjsnApi()
 
         self.common_lag = 25  # 远征和修理收取的延迟秒数
-        self.operation_lag = 1  # 每次操作的延迟秒数
+        self.operation_lag = 0.5  # 每次操作的延迟秒数
 
         self.node = 0
 
         self.mission_flag = ""
         self.login_time = 0
 
-        self.ship_groups = [[]] * 6
+        self.ship_groups = [([], 1, False)] * 6
         # ship_groups item is (ship_group, broken_level, instant_flag)
         self.award_list = []
 
@@ -286,20 +300,31 @@ class ZjsnEmulator(object):
         self.unlockShip = j["unlockShip"]
         self.equipment = j['equipmentVo']
 
+        if j['marketingData']['continueLoginAward']['canGetDay'] != -1:
+            self.get(self.url_server + self.api.loginAward)
         self.login_time = datetime.datetime.today()
 
     def get_award(self):
+        # todo 5200432是日常建造任务的ID  5200332是日常开发的
         for task_cid in self.award_list:
-            self.get(
+            r = self.get(
                 self.url_server + self.api.getAward + "{}/".format(task_cid))
-        self.award_list = []
+            if 'taskVo' in r:
+                for t in  r['taskVo']:
+                    if 'nextCid' in t:
+                        next_cid = t['nextCid']
+                        if next_cid == 5200432:
+                            pass
+                        elif next_cid == 5200332:
+                            pass
+            self.award_list = []
 
     def change_ships(self):
-        changed_flag = False
+        tmp_fleet_ships_id = self.working_ships_id[:]
         for i, g in enumerate(self.ship_groups):
             ship_group, b_level, instant_flag = g
-            if len(self.working_ships_id) > i:
-                ship_id = self.working_ships_id[i]
+            if len(tmp_fleet_ships_id) > i:
+                ship_id = tmp_fleet_ships_id[i]
             else:
                 ship_id = 0
             if ship_id:
@@ -309,19 +334,17 @@ class ZjsnEmulator(object):
                 conditions = [True]
 
             if any(conditions):
-                changed_flag = self.get_substitue(i)
+                tmp_fleet_ships_id = self.get_substitue(i, tmp_fleet_ships_id)
 
-        if changed_flag:
-            new_fleet = self.working_ships_id[:len(self.ship_groups)]
-            zlogger.debug('编队 {}'.format([self.userShip[i].name for i in new_fleet]))
+        if tmp_fleet_ships_id != self.working_ships_id:
+            new_fleet = tmp_fleet_ships_id[:len(self.ship_groups)]
             self.instant_fleet(new_fleet)
 
-    def get_substitue(self, location):
-        working_ships = self.working_ships_id
+    def get_substitue(self, location, tmp_fleet_ships_id):
+        working_ships = tmp_fleet_ships_id[:]
         if len(self.ship_groups) > len(working_ships):
             working_ships += (len(self.ship_groups) - len(working_ships)) * [0]
         new_ship_id = None
-        changed_flag = False
         b_level = self.ship_groups[location][1]
         instant_flag = self.ship_groups[location][2]
         if not self.ship_groups[location][0]:
@@ -340,16 +363,13 @@ class ZjsnEmulator(object):
                 break
         if new_ship_id:
             working_ships[location] = new_ship_id
-            # zlogger.debug("{}上场了".format(self.userShip[new_ship_id].name))
-            changed_flag = True
         elif instant_flag:
             if working_ships[location] != self.ship_groups[location][0][0]:
-                changed_flag = True
                 working_ships[location] = self.ship_groups[location][0][0]
             self.repair(working_ships[location], 0, instant=True)
         else:
             raise ZjsnError("no ship to use in location {}".format(location))
-        return changed_flag
+        return working_ships
 
     def go_home(self):
         self.relogin()
@@ -362,12 +382,14 @@ class ZjsnEmulator(object):
         now = datetime.datetime.today()
         if self.login_time < now.replace(hour=4) < now:
             self.login()
+
             return True
 
     def instant_fleet(self, ships_id):
         r = self.get(self.url_server + self.api.instantFleet + str(self.working_fleet) +
                      "/" + str(ships_id).replace(" ", ""))
         self.fleet[int(self.working_fleet) - 1] = r["fleetVo"][0]
+        zlogger.debug('编队 {}'.format([self.userShip[i].name for i in ships_id]))
         return r
 
     def dismantle(self, throw_equipment=0):
@@ -413,6 +435,7 @@ class ZjsnEmulator(object):
                     break
 
     def strengthen(self, ship_in, target_attribute=None):
+        # todo 让强化更智能，自动分辨狗粮价值
         ship_in = self.userShip[ship_in]
         if not target_attribute:
             target_attribute = [1, 2, 3, 4]
@@ -454,8 +477,10 @@ class ZjsnEmulator(object):
                       10008521]
 
         black_list = [10001021,
+                      10009021,
                       10001621,
                       10001821,
+                      10005521,
                       10001921]
 
         for i in self.equipment:
@@ -624,6 +649,9 @@ class ZjsnEmulator(object):
         """0 不夜战, 1 夜战"""
         r = self.get(self.url_server + "/pve/getWarResult/" + str(night_flag))
         self.userShip.update(r["shipVO"])
+        if "drop500" in r:
+            self.drop500 = True
+            zlogger.warning('今日500船已满')
         if "newShipVO" in r:
             new_ships = r["newShipVO"]
             self.userShip.update(new_ships)
@@ -632,14 +660,16 @@ class ZjsnEmulator(object):
                 if ship.cid not in self.unlockShip:
                     self.lock(ship.id)
                     self.unlockShip.append(ship.cid)
+                    ship.locked = 1
                     zlogger.info("get new ship {}".format(ship.name))
                 else:
                     zlogger.debug("get {}".format(ship.name))
         return r
 
     def supply(self):
-        r = self.get(self.url_server + "/boat/supplyFleet/{}/".format(self.working_fleet))
-        return r
+        if any([s["battlePropsMax"]["oil"] - s["battleProps"]["oil"] for s in self.working_ships]):
+            r = self.get(self.url_server + "/boat/supplyFleet/{}/".format(self.working_fleet))
+            return r
 
     def skip(self):
         r = self.get(self.url_server + self.api.skip)
