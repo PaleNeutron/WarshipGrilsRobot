@@ -457,7 +457,7 @@ class Challenge(Mission):
         super(Challenge, self).__init__('challenge', 0, ze)
         self.ze = ze
         self.available = True
-        self.battle_fleet = [44420, 13708, 42093, 2914, 5240, 13598]
+        self.battle_fleet = [7860, 50367, 42093, 13708, 927, 13598]
         self.friends = [2593850, 74851, 2827412]
         self.old_fleet = []
         self.challenge_list = {}
