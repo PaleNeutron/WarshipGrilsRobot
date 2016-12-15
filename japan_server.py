@@ -351,33 +351,33 @@ class Japan_Mission_1_5(zrobot.Mission):
     def postprocessing(self):
         pass
 
-class JapanTask(zrobot.Mission):
-    """日常任务"""
-    def __init__(self, ze: zemulator.ZjsnEmulator):
-        super().__init__('Task', 0, ze)
-        self.task_solution = {2200132: Japan_Mission_1_1,
-                               2200232: Japan_Mission_1_5,
-                               2200332: Japan_Mission_1_1,}
-        for key in self.task_solution:
-            self.task_solution[key] = self.task_solution[key](self.ze)
-        self.task_mission = None
-    def _prepare(self):
-        task_id = next(filter(lambda x: x in self.ze.task, self.task_solution), None)
-        if task_id:
-            self.task_mission = self.task_solution[task_id]
-            self.task_mission._prepare()
-            self.available = self.task_mission.available
-        else:
-            self.available = False
-        return
-    def prepare(self):
-        pass
-
-    def set_first_nodes(self):
-        pass
-
-    def start(self):
-        self.task_mission.start()
+# class JapanTask(zrobot.Mission):
+#     """日常任务"""
+#     def __init__(self, ze: zemulator.ZjsnEmulator):
+#         super().__init__('Task', 0, ze)
+#         self.task_solution = {2200132: Japan_Mission_1_1,
+#                                2200232: Japan_Mission_1_5,
+#                                2200332: Japan_Mission_1_1,}
+#         for key in self.task_solution:
+#             self.task_solution[key] = self.task_solution[key](self.ze)
+#         self.task_mission = None
+#     def _prepare(self):
+#         task_id = next(filter(lambda x: x in self.ze.task, self.task_solution), None)
+#         if task_id:
+#             self.task_mission = self.task_solution[task_id]
+#             self.task_mission._prepare()
+#             self.available = self.task_mission.available
+#         else:
+#             self.available = False
+#         return
+#     def prepare(self):
+#         passs
+#
+#     def set_first_nodes(self):
+#         pass
+#
+#     def start(self):
+#         self.task_mission.start()
 
 
 class Japan_Mission_5_2_C(zrobot.Mission):
@@ -422,18 +422,15 @@ class JapanRobot(zrobot.Robot):
         self.campaign.mission_code = 302
         self.campaign.formation_code = 5
 
-    def add_transitions(self):
+    def set_missions(self):
         # self.m1_4a = Mission1_4(self.ze)
         # self.machine.add_states(self.m1_4a.state)
         # self.machine.add_transition(**self.m1_4a.trigger)
 
-        self.challenge = JapanChallenge(self.ze)
-        self.machine.add_states(self.challenge.state)
-        self.machine.add_transition(**self.challenge.trigger)
-
-        self.task_mission = JapanTask(self.ze)
-        self.machine.add_states(self.task_mission.state)
-        self.machine.add_transition(**self.task_mission.trigger)
+        self.add_mission(JapanChallenge)
+        # self.challenge = JapanChallenge(self.ze)
+        # self.machine.add_states(self.challenge.state)
+        # self.machine.add_transition(**self.challenge.trigger)
 
         # self.m3_4 = Mission3_4(self.ze)
         # self.machine.add_states(self.m3_4.state)
