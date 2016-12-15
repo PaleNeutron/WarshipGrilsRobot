@@ -427,7 +427,7 @@ class JapanRobot(zrobot.Robot):
         # self.machine.add_states(self.m1_4a.state)
         # self.machine.add_transition(**self.m1_4a.trigger)
 
-        self.add_mission(JapanChallenge)
+        self.add_mission(JapanChallenge(self.ze))
         # self.challenge = JapanChallenge(self.ze)
         # self.machine.add_states(self.challenge.state)
         # self.machine.add_transition(**self.challenge.trigger)
@@ -436,9 +436,7 @@ class JapanRobot(zrobot.Robot):
         # self.machine.add_states(self.m3_4.state)
         # self.machine.add_transition(**self.m3_4.trigger)
 
-        # self.m3_4_a = Mission3_4_A(self.ze)
-        # self.machine.add_states(self.m3_4_a.state)
-        # self.machine.add_transition(**self.m3_4_a.trigger)
+        # self.add_mission(Mission3_4_A(self.ze))
 
         # self.m3_2 = Mission3_2(self.ze)
         # self.machine.add_states(self.m3_2.state)
