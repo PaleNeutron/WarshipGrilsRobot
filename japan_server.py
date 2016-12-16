@@ -409,6 +409,8 @@ class JapanRobot(zrobot.Robot):
     def __init__(self):
         super().__init__()
 
+        self.ze.username = 'junhongbill'
+        self.ze.password = 'ouzhoutiduzjsn'
         self.ze.url_passport_hm = self.ze.url_passport_japan
         self.ze.common_lag = 50
         self.ze.equipment_formula = [20, 50, 10, 130]

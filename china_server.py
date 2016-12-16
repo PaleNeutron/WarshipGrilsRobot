@@ -30,14 +30,14 @@ class Mission_6_1_A(zrobot.Mission):
             "dd_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in dd_ships]))
 
         # boss_ship = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
-        # boss_ships = [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 50]
-        boss_ships = [20936]
+        boss_ships = [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 50]
+        # boss_ships = [self.ze.userShip.name('赤城').id]
         boss_ships.sort(key=lambda x: self.ze.userShip[x].level)
         zrobot._logger.debug("boss_ships:{}".format(
             [self.ze.userShip[ship_id].name for ship_id in boss_ships]))
 
         # self.ze.ship_groups[0] = (dd_ships, 1, False)
-        self.ze.ship_groups[0] = (boss_ships, 1, False)
+        self.ze.ship_groups[0] = (boss_ships, 2, True)
 
         for i in range(1, 5):
             self.ze.ship_groups[i] = (dd_ships, 1, False)
@@ -559,6 +559,8 @@ class ChinaRobot(zrobot.Robot):
     def __init__(self):
         super().__init__()
 
+        self.ze.username = 'junhongbill'
+        self.ze.password = 'ouzhoutiduzjsn'
         self.ze.equipment_formula = [200, 30, 200, 30]
         self.ze.boat_formula = [20, 50, 10, 100]
         self.explore.explore_table = (
@@ -576,7 +578,8 @@ class ChinaRobot(zrobot.Robot):
         challenge.ninghai = 1215
         challenge.friends = [2593850, 74851, 2827412]
         self.add_mission(challenge)
-        # self.add_mission(Mission_6_1_A(self.ze))
+        self.add_mission(Mission_6_3(self.ze))
+        self.add_mission(Mission_6_1_A(self.ze))
         # self.add_mission(Mission_5_2_C(self.ze))
         # self.add_mission(Mission_2_5_mid(self.ze))
         # self.add_mission(Mission_2_5_down(self.ze))
@@ -587,7 +590,6 @@ class ChinaRobot(zrobot.Robot):
         # self.add_mission(Mission_2_2(self.ze))
         # self.add_mission(Mission_5_5_B(self.ze))
         # self.add_mission(Mission_6_4(self.ze))
-        self.add_mission(Mission_6_3(self.ze))
 
 
 if __name__ == '__main__':

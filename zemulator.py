@@ -397,8 +397,8 @@ class ZjsnEmulator(object):
 
         self.initGame = ""
 
-        self.username = "junhongbill"
-        self.password = "ouzhoutiduzjsn"
+        self.username = "your username"
+        self.password = "your password"
 
         self.url_passport_hm = "http://login.jr.moefantasy.com/index/passportLogin"
         self.url_passport_japan = 'http://loginand.jp.warshipgirls.com/index/passportLogin'
