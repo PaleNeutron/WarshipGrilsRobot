@@ -554,6 +554,44 @@ class Mission_6_4(zrobot.Mission):
             return False
         return True
 
+class Mission_Event_2(zrobot.Mission):
+    def __init__(self, ze: zemulator.ZjsnEmulator):
+        super().__init__('E3', 9934, ze)
+        self.battle_fleet = [16523,370,478,13692,115,43707]
+
+    def set_first_nodes(self):
+        self.node_a = zrobot.Node('a')
+        self.node_d = zrobot.Node('d', node_type='skip')
+        self.node_g = zrobot.Node('g', node_type='skip')
+        self.node_h = zrobot.Node('h')
+        self.node_j = zrobot.Node('j', node_type='skip')
+        self.node_l = zrobot.Node('l', formation=1, night_flag=1)
+
+        self.node_a.add_next(self.node_d)
+        self.node_d.add_next(self.node_g)
+        self.node_g.add_next(self.node_h)
+        self.node_h.add_next(self.node_j)
+        self.node_j.add_next(self.node_l)
+
+        return self.node_a
+
+    def prepare(self):
+        if self.boss_hp == 0:
+            return False
+
+        # fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet]
+        fleet = self.battle_fleet
+        fleet_group = [([i], 0.85, True) for i in fleet]
+        self.ze.ship_groups = fleet_group
+        try:
+            self.ze.change_ships()
+        except zemulator.ZjsnError:
+            return False
+        return True
+
+    def summery(self):
+        super().summery()
+        zrobot._logger.debug("boss hp={}".format(self.boss_hp))
 
 class ChinaRobot(zrobot.Robot):
     def __init__(self):
@@ -578,6 +616,7 @@ class ChinaRobot(zrobot.Robot):
         challenge.ninghai = 1215
         challenge.friends = [2593850, 74851, 2827412]
         self.add_mission(challenge)
+        # self.add_mission(Mission_Event_2(self.ze))
         self.add_mission(Mission_6_3(self.ze))
         # self.add_mission(Mission_6_1_A(self.ze))
         # self.add_mission(Mission_5_2_C(self.ze))

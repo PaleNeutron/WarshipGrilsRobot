@@ -399,7 +399,7 @@ class Challenge(Mission):
         self.last_friend_time = datetime.fromtimestamp(0)
 
         self.start_point = 0
-        self.ninghai = 1215
+        self.ninghai = None
 
     def prepare(self):
         pass
@@ -492,13 +492,14 @@ class Challenge(Mission):
         night_flag = 1
         n = self.start_point
         _logger.debug(enemy_uid)
-        ninghai_fleet = [self.ninghai]
-        self.ze.instant_fleet(ninghai_fleet)
-        r1 = self.ze.get(
-            self.ze.url_server + "/{}/spy/{}/{}".format(api, enemy_uid, self.ze.working_fleet))
-        _logger.debug('enemy level: {}'.format([s['level'] for s in r1['enemyVO']['enemyShips']]))
-        r2 = self.ze.get(
-            self.ze.url_server + "/{}/challenge/{}/{}/1/".format(api, enemy_uid, self.ze.working_fleet))
+        if self.ninghai:
+            ninghai_fleet = [self.ninghai]
+            self.ze.instant_fleet(ninghai_fleet)
+            r1 = self.ze.get(
+                self.ze.url_server + "/{}/spy/{}/{}".format(api, enemy_uid, self.ze.working_fleet))
+            _logger.debug('enemy level: {}'.format([s['level'] for s in r1['enemyVO']['enemyShips']]))
+            r2 = self.ze.get(
+                self.ze.url_server + "/{}/challenge/{}/{}/1/".format(api, enemy_uid, self.ze.working_fleet))
 
         self.ze.go_home()
         if friend:

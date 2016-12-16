@@ -141,7 +141,7 @@ class ZjsnUserShip(dict):
             return ZjsnShip(item)
         else:
             try:
-                return super(ZjsnUserShip, self).__getitem__(item)
+                return super(ZjsnUserShip, self).__getitem__(int(item))
             except KeyError:
                 raise KeyError("no such ship with id {}".format(item))
 
