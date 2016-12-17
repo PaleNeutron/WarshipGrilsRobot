@@ -5,6 +5,7 @@ import logging
 import threading
 import collections
 from datetime import datetime
+from typing import List
 
 from transitions import State
 from transitions import Machine
@@ -237,6 +238,13 @@ class Mission(object):
     def set_first_nodes(self):
         raise NotImplementedError()
 
+    def node_chain(self, nodes: List[Node]):
+        last_node = nodes[0]
+        for node in nodes[1:]:
+            last_node.add_next(node)
+            last_node = node
+        return nodes[0]
+
     def start(self):
         self.success = False
         first_node_name = Node('0')._node_name(self.ze.go_next())
@@ -433,15 +441,8 @@ class Challenge(Mission):
             if i["resultLevel"] == 0:
                 _logger.debug(i["uid"])
                 enemy_ships = [zemulator.ZjsnShip(s) for s in i["shipInfos"]]
-                staff = "\n".join(
-                    [str([s.name, s.level]) for s in enemy_ships])
-                ships_type = [s.type for s in enemy_ships]
-                fish_num = ships_type.count('潜艇') + ships_type.count('炮潜')
-                if fish_num:
-                    _logger.debug("****有鱼****")
-                self.challenge_list.update({i['uid']: fish_num})
+                self.challenge_list.update({i['uid']: enemy_ships})
 
-                _logger.debug("\n" + staff)
 
         r_f = self.ze.get(
             self.ze.url_server + '/friend/visitorFriend/' + str(self.friends[0]))
@@ -490,6 +491,7 @@ class Challenge(Mission):
         else:
             api = 'pvp'
         night_flag = 1
+
         n = self.start_point
         _logger.debug(enemy_uid)
         if self.ninghai:
@@ -497,7 +499,7 @@ class Challenge(Mission):
             self.ze.instant_fleet(ninghai_fleet)
             r1 = self.ze.get(
                 self.ze.url_server + "/{}/spy/{}/{}".format(api, enemy_uid, self.ze.working_fleet))
-            _logger.debug('enemy level: {}'.format([s['level'] for s in r1['enemyVO']['enemyShips']]))
+            # _logger.debug('enemy level: {}'.format([s['level'] for s in r1['enemyVO']['enemyShips']]))
             r2 = self.ze.get(
                 self.ze.url_server + "/{}/challenge/{}/{}/1/".format(api, enemy_uid, self.ze.working_fleet))
 
@@ -505,7 +507,14 @@ class Challenge(Mission):
         if friend:
             fish_num = 0
         else:
-            fish_num = self.challenge_list[enemy_uid]
+            enemy_ships = self.challenge_list[enemy_uid]
+            staff = "\n".join(
+                [str([s.name, s.level]) for s in enemy_ships])
+            ships_type = [s.type for s in enemy_ships]
+            fish_num = ships_type.count('潜艇') + ships_type.count('炮潜')
+            if fish_num:
+                _logger.debug("****有鱼****")
+            _logger.debug("\n" + staff)
         if fish_num == 0:
             self.ze.instant_fleet(self.battle_fleet)
         else:

@@ -95,7 +95,7 @@ class Mission3_2(zrobot.Mission):
 class Mission3_4_A(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__('3-4A', 304, ze)
-        self.battle_fleet = [782, 103, 174, 172, 118, 798]
+        self.battle_fleet = [1612, 103, 174, 172, 118, 798]
 
     def set_first_nodes(self):
         self.node_a = zrobot.Node('A', enemy_avoid=zemulator.ZjsnShip.type_id('战巡'))
@@ -293,7 +293,6 @@ class JapanChallenge(zrobot.Challenge):
         self.friends = [22876, 21892, 18869]
         self.battle_fleet = [1612, 1254, 669, 782, 147, 798]
         self.start_point = 100
-        self.ninghai = 1
 
     def formation_for_fish(self, fish_num):
         self.ze.instant_fleet(self.battle_fleet)
