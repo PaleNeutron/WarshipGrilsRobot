@@ -556,15 +556,15 @@ class Mission_6_4(zrobot.Mission):
 
 class MissionEvent2(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super().__init__('E4', 9935, ze)
+        super().__init__('E6', 9937, ze)
         self.battle_fleet = [229, 13692, 830, 1410, 115, 43707]
 
     def set_first_nodes(self):
-        self.node_a = self.node_chain([zrobot.Node('a', enemy_avoid='潜艇'),
-                                       zrobot.Node('f'),
-                                       zrobot.Node('i'),
-                                       zrobot.Node('k', node_type='resource'),
-                                       zrobot.Node('m', formation=1, night_flag=1),
+        self.node_a = self.node_chain([zrobot.Node('a'),
+                                       zrobot.Node('b'),
+                                       zrobot.Node('c'),
+                                       zrobot.Node('d'),
+                                       # zrobot.Node('m', formation=1, night_flag=1),
                                        ])
 
         return self.node_a
@@ -611,8 +611,8 @@ class ChinaRobot(zrobot.Robot):
         challenge.friends = [2593850, 74851, 2827412]
         self.add_mission(challenge)
         self.add_mission(Mission_6_3(self.ze))
-        self.add_mission(MissionEvent2(self.ze))
-        self.add_mission(Mission_6_1_A(self.ze))
+        # self.add_mission(MissionEvent2(self.ze))
+        # self.add_mission(Mission_6_1_A(self.ze))
         # self.add_mission(Mission_5_2_C(self.ze))
         # self.add_mission(Mission_2_5_mid(self.ze))
         # self.add_mission(Mission_2_5_down(self.ze))
