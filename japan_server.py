@@ -115,7 +115,7 @@ class Mission3_4_A(zrobot.Mission):
                           ]
             if all(conditions):
                 dd_ships.append(ship.id)
-        self.ze.ship_groups[0] = [[669], 1, False]
+        self.ze.ship_groups[0] = [[1612], 1, False]
         for i in range(1,5):
             self.ze.ship_groups[i] = [dd_ships, 1, False]
         _logger.debug(
@@ -291,7 +291,7 @@ class JapanChallenge(zrobot.Challenge):
     def __init__(self, ze:zemulator.ZjsnEmulator):
         super().__init__(ze)
         self.friends = [22876, 21892, 18869]
-        self.battle_fleet = [1612, 1254, 669, 782, 147, 798]
+        self.battle_fleet = [1612, 1632, 669, 782, 147, 798]
         self.start_point = 100
 
     def formation_for_fish(self, fish_num):

@@ -439,7 +439,6 @@ class Challenge(Mission):
 
         for i in r1["list"]:
             if i["resultLevel"] == 0:
-                _logger.debug(i["uid"])
                 enemy_ships = [zemulator.ZjsnShip(s) for s in i["shipInfos"]]
                 self.challenge_list.update({i['uid']: enemy_ships})
 
