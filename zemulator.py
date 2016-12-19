@@ -745,7 +745,9 @@ class ZjsnEmulator(object):
             if all([not any(ship.strength_exp),
                     int(ship['skillLevel']) != 3,
                     ship.type != '补给',
+                    ship["skillType"] != 97, #干TM的塔菲3
                     ]):
+                zlogger.info('{} skill level up to {}'.format(ship.name, ship['skillLevel']+1))
                 r = self.get(self.api.skillLevelUp(ship.id))
                 self.userShip.update(r['shipVO'])
                 return r
