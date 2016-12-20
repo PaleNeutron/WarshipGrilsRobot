@@ -104,7 +104,6 @@ class Node(object):
     def deal(self, mission: 'Mission'):
         ze = mission.ze
         _logger.info('进入 {} 点'.format(self._node_name(ze.node)))
-
         if self.node_type == 'resource':
             if ze.working_ships[0].should_be_repair(2):
                 return 0
@@ -167,6 +166,8 @@ class Node(object):
                     #         _logger.debug('get: {}'.format(new_ship.name))
                 else:
                     return 0
+            else:
+                return 0
 
         if self.next_nodes:
             next_node_id = ze.go_next()
