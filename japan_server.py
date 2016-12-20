@@ -1,6 +1,8 @@
-import zrobot
 import logging
+
 import zemulator
+import zrobot
+
 
 class Mission1_4(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -116,7 +118,7 @@ class Mission3_4_A(zrobot.Mission):
             if all(conditions):
                 dd_ships.append(ship.id)
         self.ze.ship_groups[0] = [[1612], 1, False]
-        for i in range(1,5):
+        for i in range(1, 5):
             self.ze.ship_groups[i] = [dd_ships, 1, False]
         _logger.debug(
             "dd_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in dd_ships]))
@@ -127,10 +129,11 @@ class Mission3_4_A(zrobot.Mission):
             return False
         return True
 
-    # def postprocessing(self):
-    #     self.ze.strengthen(self.ze.userShip.name('胡德'))
-    #     for i in self.battle_fleet:
-    #         self.ze.strengthen(i)
+        # def postprocessing(self):
+        #     self.ze.strengthen(self.ze.userShip.name('胡德'))
+        #     for i in self.battle_fleet:
+        #         self.ze.strengthen(i)
+
 
 class Mission3_4(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -169,13 +172,14 @@ class Mission3_4(zrobot.Mission):
         for i in self.battle_fleet:
             self.ze.strengthen(i)
 
+
 class Mission_3_4_Boss(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__('3-4 3点', 304, ze)
         self.battle_fleet = ['声望', '纳尔逊', '提尔比茨', '罗德尼', '萨拉托加', '列克星敦']
 
     def set_first_nodes(self):
-        self.node_a = zrobot.Node('A', enemy_avoid= zemulator.ZjsnShip.type_id('战巡'))
+        self.node_a = zrobot.Node('A', enemy_avoid=zemulator.ZjsnShip.type_id('战巡'))
         self.node_c = zrobot.Node('c')
         self.node_e = zrobot.Node('e', node_type='resource')
         self.node_i = zrobot.Node('i')
@@ -285,10 +289,11 @@ class Mission_Event(zrobot.Mission):
         super().summery()
         _logger.debug("boss hp={}".format(self.boss_hp))
 
+
 class JapanChallenge(zrobot.Challenge):
     """docstring for JapanChallenge"""
 
-    def __init__(self, ze:zemulator.ZjsnEmulator):
+    def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(ze)
         self.friends = [22876, 21892, 18869]
         self.battle_fleet = [1612, 1632, 669, 782, 147, 798]
@@ -299,7 +304,6 @@ class JapanChallenge(zrobot.Challenge):
 
 
 class Japan_Mission_1_1(zrobot.Mission):
-
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(Japan_Mission_1_1, self).__init__('1-1A', 101, ze)
 
@@ -323,7 +327,6 @@ class Japan_Mission_1_1(zrobot.Mission):
 
 
 class Japan_Mission_1_5(zrobot.Mission):
-
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(Japan_Mission_1_5, self).__init__('1-5', 105, ze)
 
@@ -349,6 +352,7 @@ class Japan_Mission_1_5(zrobot.Mission):
 
     def postprocessing(self):
         pass
+
 
 # class JapanTask(zrobot.Mission):
 #     """日常任务"""
@@ -381,6 +385,7 @@ class Japan_Mission_1_5(zrobot.Mission):
 
 class Japan_Mission_5_2_C(zrobot.Mission):
     """5-2 C 炸鱼"""
+
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(Japan_Mission_5_2_C, self).__init__('5-2C', 502, ze)
         self.battle_fleet = [782, 932, 293, 572, 302, 172]
@@ -401,6 +406,7 @@ class Japan_Mission_5_2_C(zrobot.Mission):
 
     def postprocessing(self):
         pass
+
 
 class JapanRobot(zrobot.Robot):
     """docstring for Robot"""

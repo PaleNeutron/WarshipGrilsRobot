@@ -1,13 +1,14 @@
-import requests
-import requests.exceptions
-import time
-import logging
-import json
 import collections
-import os
 import datetime
 import itertools
+import json
+import logging
 import math
+import os
+import time
+
+import requests
+import requests.exceptions
 
 zlogger = logging.getLogger('zjsn.zrobot.zemulator')
 
@@ -30,17 +31,17 @@ class ZjsnError(Exception):
 class ZjsnApi(object):
     """docstring for ZjsnApi"""
 
-
     def __init__(self, host):
         super(ZjsnApi, self).__init__()
         self.host = host
+
     def login(self, user_id):
         return self.host + "/index/login/{}".format(user_id)
 
     def init(self):
         return self.host + "/api/initGame/"
 
-    def explore(self,fleet_id, explore_id):
+    def explore(self, fleet_id, explore_id):
         return self.host + "/explore/start/{fleet_id}/{explore_id}/".format(fleet_id=fleet_id, explore_id=explore_id)
 
     def cancel_explore(self, explore_id):
@@ -62,23 +63,22 @@ class ZjsnApi(object):
     # 1/[1096,1020,106,433] 快速编队
     def instantFleet(self, fleet_id, ships_id):
         return self.host + "/boat/instantFleet/{fleet_id}/{ships_id}".format(
-            fleet_id=fleet_id, ships_id= str(ships_id).replace(" ", ""))
+            fleet_id=fleet_id, ships_id=str(ships_id).replace(" ", ""))
 
     # [1096]/ 快速修理
     def instantRepairShips(self, ships_id):
         return self.host + "/boat/instantRepairShips/{}/".format(str(ships_id).replace(" ", ""))
 
-
     def supplyBoats(self, ships_id):
-    # 后面的/0/0我也不知道什么意思
-        return self.host + '/boat/supplyBoats/{ships_id}/0/0'.format(ships_id= str(ships_id).replace(" ", ""))
+        # 后面的/0/0我也不知道什么意思
+        return self.host + '/boat/supplyBoats/{ships_id}/0/0'.format(ships_id=str(ships_id).replace(" ", ""))
 
     def getAward(self, task_cid):
         return self.host + "/task/getAward/{task_cid}/".format(task_cid=task_cid)  # 完成任务
 
     def strengthen(self, ship_in, ships_id):
         return self.host + "/boat/strengthen/{ship_in}/{ships_id}".format(
-            ship_in=ship_in, ships_id= str(ships_id).replace(" ", ""))  # 6744/[31814,31799,31796,31779] 强化
+            ship_in=ship_in, ships_id=str(ships_id).replace(" ", ""))  # 6744/[31814,31799,31796,31779] 强化
 
     def lock(self, ship_id):
         return self.host + "/boat/lock/{ship_id}/".format(ship_id=ship_id)  # 126/  锁船.format()
@@ -96,20 +96,21 @@ class ZjsnApi(object):
         return self.host + '/active/getLoginAward/'
 
     def buildBoat(self, dock_id, oil, ammo, steel, aluminum):
-        return self.host + '/dock/buildBoat/{}/{}/{}/{}/{}'.format(dock_id, oil, steel, ammo, aluminum)  # 1/400/500/130/400 第一项是船坞ID，后面是油，钢，弹，铝.format()
+        return self.host + '/dock/buildBoat/{}/{}/{}/{}/{}'.format(dock_id, oil, steel, ammo,
+                                                                   aluminum)  # 1/400/500/130/400 第一项是船坞ID，后面是油，钢，弹，铝.format()
 
     def buildEquipment(self, dock_id, oil, ammo, steel, aluminum):
-        return self.host + '/dock/buildEquipment/{}/{}/{}/{}/{}'.format(dock_id, oil, steel, ammo, aluminum)  # 1/10/90/90/30 第一项是船坞ID，后面是油，钢，弹，铝.format()
+        return self.host + '/dock/buildEquipment/{}/{}/{}/{}/{}'.format(dock_id, oil, steel, ammo,
+                                                                        aluminum)  # 1/10/90/90/30 第一项是船坞ID，后面是油，钢，弹，铝.format()
 
     def getBoat(self, dock_id):
-        return self.host + '/dock/getBoat/{}'.format(dock_id) # 2 最后一位是船坞号.format()
+        return self.host + '/dock/getBoat/{}'.format(dock_id)  # 2 最后一位是船坞号.format()
 
     def getEquipment(self, dock_id):
         return self.host + '/dock/getEquipment/{}'.format(dock_id)  # 2 最后一位是船坞号.format()
 
-
     def campaignGetFleet(self, mission_code):
-        return self.host + '/campaign/getFleet/{}/'.format(mission_code)     #   202/  202是战役编号.format()
+        return self.host + '/campaign/getFleet/{}/'.format(mission_code)  # 202/  202是战役编号.format()
 
     def campaignChangeFleet(self, mission_code, ship_id, position):
         return self.host + '/campaign/changeFleet/{mission_code}/{ship_id}/{position}/'.format(
@@ -120,11 +121,11 @@ class ZjsnApi(object):
         return self.host + '/campaign/spy/{}/'.format(mission_code)  # 402/ 4代表航母战役 02代表难度是困难.format()
 
     def campaignDeal(self, mission_code, formation_code):
-        return self.host + '/campaign/challenge/{}/{}'.format(mission_code, formation_code)  # 402/2/ 4代表航母战役 02代表难度是困难 最后的2代表阵型.format()
+        return self.host + '/campaign/challenge/{}/{}'.format(mission_code,
+                                                              formation_code)  # 402/2/ 4代表航母战役 02代表难度是困难 最后的2代表阵型.format()
 
     def campaignResult(self, night_flag):
         return self.host + '/campaign/getWarResult/{}/'.format(night_flag)  # 1/ 最后的1代表进行夜战.format()
-
 
 
 class ZjsnUserShip(dict):
@@ -132,7 +133,7 @@ class ZjsnUserShip(dict):
 
     def __init__(self, *args, **kwargs):
         super(ZjsnUserShip, self).__init__(*args, **kwargs)
-        self.shipNumTop=0
+        self.shipNumTop = 0
 
     def __getitem__(self, item):
         if type(item) == ZjsnShip:
@@ -159,7 +160,6 @@ class ZjsnUserShip(dict):
         """broken level 0 : 擦伤, 1 : 中破,  2 : 大破"""
         return [ship.id for ship in self if ship.should_be_repair(broken_level)]
 
-
     def save(self, file_name='my_ships.md'):
         markdown_string = ""
         markdown_string += "船名|等级|ID|CID\n"
@@ -183,10 +183,11 @@ class ZjsnUserShip(dict):
         for ship in sorted(self, key=lambda x: x["level"], reverse=True):
             if ship.name in ship_name:
                 return ship
-        if default=="raise":
+        if default == "raise":
             raise ZjsnError("no ship called {}".format(ship_name))
         else:
             return default
+
 
 class ZjsnShip(dict):
     """docstring for ZjsnUserShip"""
@@ -214,7 +215,7 @@ class ZjsnShip(dict):
                      10009911,  # ,空想
                      10008211,  # ,萤火虫
                      10013512
-                 ], # 紫石英
+                 ],  # 紫石英
 
     def __init__(self, *args, **kwargs):
         super(ZjsnShip, self).__init__(*args, **kwargs)
@@ -252,7 +253,6 @@ class ZjsnShip(dict):
         else:
             return 0
 
-
     @property
     def level(self):
         return self['level']
@@ -265,6 +265,13 @@ class ZjsnShip(dict):
     def skillType(self):
         return int(self['skillType'])
 
+    @property
+    def star(self):
+        if self.cid in shipCard:
+            return int(shipCard[self.cid]['star'])
+        else:
+            return 99
+
     def protected(self, ze):
         conditions = (
             self.cid in ze.unlockShip,  # 不是new
@@ -272,6 +279,7 @@ class ZjsnShip(dict):
             self.status == 0,  # 没被修理
             self.id not in ze.fleet_ships_id,  # 不在任何舰队中
             self.cid not in self.white_list,
+            self.star < 5,  # 小于五星
         )
         return not all(conditions)
 
@@ -351,9 +359,9 @@ class ZjsnShip(dict):
 
 class ZjsnTask(dict):
     """docstring for ZjsnTask"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
 
     def __getitem__(self, item):
         try:
@@ -372,6 +380,7 @@ class ZjsnTask(dict):
         item = int(item)
         if item in self:
             del self[item]
+
 
 class ZjsnEmulator(object):
     """docstring for ZjsnEmulator"""
@@ -471,16 +480,18 @@ class ZjsnEmulator(object):
 
         try:
             r = self.s.request(method, url, timeout=30, **kwargs)
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, requests.exceptions.ChunkedEncodingError):
+        except (
+                requests.exceptions.ConnectionError, requests.exceptions.Timeout,
+                requests.exceptions.ChunkedEncodingError):
             return self.get(url, error_count, sleep_flag, method, **kwargs)
         if sleep_flag:
             time.sleep(self.operation_lag)
 
         try:
-            rj =r.json()
+            rj = r.json()
         except:
             return self.get(url, error_count, sleep_flag, method, **kwargs)
-        
+
         if r.status_code != 200:
             return self.get(url, error_count, sleep_flag, method, **kwargs)
         elif "eid" in rj:
@@ -489,9 +500,9 @@ class ZjsnEmulator(object):
                 zlogger.warning('操作太快, url: {}'.format(url))
                 time.sleep(self.operation_lag * 2)
                 return self.get(url, error_count, sleep_flag, method, **kwargs)
-            elif eid == -9999: # 维护啦
+            elif eid == -9999:  # 维护啦
                 zlogger.warning('服务器维护中')
-                time.sleep(60*60)
+                time.sleep(60 * 60)
                 error_count -= 1
                 return self.get(url, error_count, sleep_flag, method, **kwargs)
             else:
@@ -514,7 +525,7 @@ class ZjsnEmulator(object):
                       data={"username": self.username,
                             "pwd": self.password})
         self.s.cookies = requests.utils.cookiejar_from_dict(dict(r1.cookies))
-        self.s.cookies.update({'path':'/'})
+        self.s.cookies.update({'path': '/'})
         defaultServer = r1.json()['defaultServer']
         server_json = next(filter(lambda x: x['id'] == defaultServer, r1.json()['serverList']))
         self.url_server = server_json['host'][:-1]
@@ -598,7 +609,7 @@ class ZjsnEmulator(object):
                 for t in r['taskVo']:
                     if 'taskCid' in t:
                         next_cid = t['taskCid']
-                        if next_cid == 5200432  :
+                        if next_cid == 5200432:
                             self.build_boat_remain = 1
                         elif next_cid == 5200332:
                             self.build_equipment_remain = 3
@@ -683,7 +694,7 @@ class ZjsnEmulator(object):
                           ship.type in ['驱逐',  # DD
                                         '轻巡',  # 轻巡
                                         '重巡',  # 重巡
-                                        '轻母']) # 轻母
+                                        '轻母'])  # 轻母
             if all(conditions):
                 ships_dismantle.append(ship["id"])
         if len(ships_dismantle) > 0:
@@ -726,7 +737,7 @@ class ZjsnEmulator(object):
             if attribute_id in target_attribute and exp_remain > 0:
                 ship_types.append(food_type[attribute_id])
         if not ship_types:
-            return -1 # 没必要强化
+            return -1  # 没必要强化
 
         for ship in self.userShip:
             conditions = (not ship.protected(self),
@@ -753,9 +764,9 @@ class ZjsnEmulator(object):
             if all([not any(ship.strength_exp),
                     ship.skillLevel != 3,
                     ship.type != '补给',
-                    ship.skillType != 97, #干TM的塔菲3
+                    ship.skillType != 97,  # 干TM的塔菲3
                     ]):
-                zlogger.debug('{} skill level up to {}'.format(ship.name, ship.skillLevel+1))
+                zlogger.debug('{} skill level up to {}'.format(ship.name, ship.skillLevel + 1))
                 r = self.get(self.api.skillLevelUp(ship.id))
                 self.userShip.update(r['shipVO'])
                 return r
@@ -818,7 +829,6 @@ class ZjsnEmulator(object):
         self.pveExplore = r["pveExploreVo"]["levels"]
         self.fleet = r["fleetVo"]
 
-
     def explore_result(self, explore_id):
         r = self.get(self.api.getExploreResult(explore_id))
         self.pveExplore = r["pveExploreVo"]["levels"]
@@ -860,7 +870,7 @@ class ZjsnEmulator(object):
         r = self.get(self.api.getEquipment(dock_id))
         self.equipmentDock = r['equipmentDockVo']
         # if r['equipmentCid'] in [i['equipmentCid']
-        get_flag = False # 是否增加了一个新装备
+        get_flag = False  # 是否增加了一个新装备
         equipment_name = equipmentCard[int(r['equipmentCid'])]['title']
         for i in self.equipment:
             if r['equipmentCid'] == i['equipmentCid']:
@@ -893,8 +903,6 @@ class ZjsnEmulator(object):
                 dock_id = i['id']
                 self.buildEquipment(dock_id, *self.equipment_formula)
                 self.build_equipment_remain -= 1
-
-
 
     # def update_ship_info(self, new_ship):
     #     for i, ship in enumerate(self.userShip):
@@ -937,7 +945,7 @@ class ZjsnEmulator(object):
     def repair(self, ship_id, dock_id, instant=False):
         time.sleep(1)
         if not instant:
-            r = self.get(self.api.repair(ship_id, dock_id+1))
+            r = self.get(self.api.repair(ship_id, dock_id + 1))
             self.repairDock = r["repairDockVo"]
             self.userShip.update(r["shipVO"])
         else:
@@ -947,7 +955,7 @@ class ZjsnEmulator(object):
                 self.repairDock = r["repairDockVo"]
 
     def repair_complete(self, ship_id, dock_id):
-        r = self.get(self.api.repairComplete(ship_id, dock_id+1))
+        r = self.get(self.api.repairComplete(ship_id, dock_id + 1))
         self.repairDock = r["repairDockVo"]
         self.userShip.update(r["shipVO"])
 
@@ -958,18 +966,18 @@ class ZjsnEmulator(object):
                 self.url_server + "/pve/cha11enge/{0}/{1}/0/".format(map_code, self.working_fleet))
         else:
             raise ZjsnError('船坞已满', eid=-215)
-        # self.go_next()
-        # except ZjsnError as ke:
-        #     if -215 in ke.args:  # 船满了
-        #         self.mission_flag = self.FLAG_FULL
-        #     elif -413 in ke.args:  # 有船在修
-        #         self.mission_flag = self.FLAG_REPAIR
-        #     elif -412 in ke.args:
-        #         self.mission_flag = self.FLAG_EXPLORE
-        #     else:
-        #         raise ke
-        #     r = ke.args[0]
-        # return r
+            # self.go_next()
+            # except ZjsnError as ke:
+            #     if -215 in ke.args:  # 船满了
+            #         self.mission_flag = self.FLAG_FULL
+            #     elif -413 in ke.args:  # 有船在修
+            #         self.mission_flag = self.FLAG_REPAIR
+            #     elif -412 in ke.args:
+            #         self.mission_flag = self.FLAG_EXPLORE
+            #     else:
+            #         raise ke
+            #     r = ke.args[0]
+            # return r
 
     def go_next(self):
         # todo 确认旗舰大破的eid
@@ -1036,7 +1044,6 @@ class ZjsnEmulator(object):
             r = self.get(self.api.supplyBoats(ships_id))
             self.userShip.update(r['shipVO'])
 
-
     def skip(self):
         r = self.get(self.api.skip())
         return r['isSuccess']
@@ -1054,4 +1061,4 @@ if __name__ == '__main__':
         print(ship.name, ship.level, ship.id, ship.cid, ship.type, ship.locked, ship.strength_exp)
     # e.auto_strengthen()
     # e.cleanup_equipment()
-    e.build(500,130,600,400)
+    e.build(500, 130, 600, 400)

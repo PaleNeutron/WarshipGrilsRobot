@@ -1,6 +1,8 @@
 import logging
+
 import zemulator
 import zrobot
+
 
 class Mission_6_1_A(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -30,7 +32,7 @@ class Mission_6_1_A(zrobot.Mission):
             "dd_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in dd_ships]))
 
         # boss_ship = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
-        boss_ships = [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 50]
+        boss_ships = [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
         # boss_ships = [self.ze.userShip.name('赤城').id]
         boss_ships.sort(key=lambda x: self.ze.userShip[x].level)
         zrobot._logger.debug("boss_ships:{}".format(
@@ -554,6 +556,7 @@ class Mission_6_4(zrobot.Mission):
             return False
         return True
 
+
 class MissionEvent2(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__('E6', 9937, ze)
@@ -587,6 +590,7 @@ class MissionEvent2(zrobot.Mission):
         super().summery()
         zrobot._logger.debug("boss hp={}".format(self.boss_hp))
 
+
 class ChinaRobot(zrobot.Robot):
     def __init__(self):
         super().__init__()
@@ -602,7 +606,6 @@ class ChinaRobot(zrobot.Robot):
             ([123, 13973, 27865, 14138, 10706, 104], '20001')
         )
         self.campaign.mission_code = 202
-
 
     def set_missions(self):
         challenge = zrobot.Challenge(self.ze)

@@ -1,15 +1,14 @@
-import time
-import string
-import random
-import logging
-import threading
 import collections
+import logging
+import random
+import string
+import threading
+import time
 from datetime import datetime
 from typing import List
 
-from transitions import State
 from transitions import Machine
-# from transitions.extensions import GraphMachine as Machine
+from transitions import State
 
 import zemulator
 
@@ -17,7 +16,6 @@ _logger = logging.getLogger('zjsn.zrobot')
 
 
 class Node(object):
-
     """docstring for Node"""
     _node_types = ['simple', 'resource', 'skip']
 
@@ -44,6 +42,8 @@ class Node(object):
         self.formation = formation
         self.enemy_target = enemy_target
         self.enemy_avoid = enemy_avoid
+        self.skip_rate_limit = 0
+        self.skip_rate = 0
 
         self.sleep_mu = 30
         self.sleep_sigma = 2
@@ -70,6 +70,8 @@ class Node(object):
     def spy_filter(self, spy_result):
         if 'enemyVO' not in spy_result:
             return True
+        else:
+            self.skip_rate = float(spy_result['enemyVO']['successRate'].strip("%")) / 100
         try:
             enemy_ids = [int(i['type']) for i in spy_result['enemyVO']['enemyShips']]
             enemy_ids += [int(spy_result['enemyVO']['enemyFleet']['id'])]
@@ -99,62 +101,72 @@ class Node(object):
         else:
             return False
 
-    def deal(self, ze: zemulator.ZjsnEmulator):
+    def deal(self, mission: 'Mission'):
+        ze = mission.ze
         _logger.info('进入 {} 点'.format(self._node_name(ze.node)))
-        if self.node_type == 'simple':
-            spy_result = ze.spy()
-            if self.spy_filter(spy_result):
-                try:
-                    result_before_night = ze.deal(
-                        self.formation, big_broken_protect=self.big_broken_protect)
-                except zemulator.ZjsnError as e:
-                    _logger.debug(e)
-                    return -1
-                time.sleep(self.battle_length)
 
-                if self.night_flag:
-                    report = result_before_night["warReport"]
-                    if not any(report["hpBeforeNightWarEnemy"]):
-                        night_flag = 0
-                    else:
-                        night_flag = 1
-                        _logger.debug('night battle')
-
-                else:
-                    night_flag = 0
-
-                self.battle_result = ze.getWarResult(night_flag)
-                if "bossHp" in self.battle_result:
-                    self.boss_hp = int(self.battle_result['bossHp'])
-                elif 'bossHpLeft' in self.battle_result:
-                    self.boss_hp = int(self.battle_result['bossHpLeft'])
-                battle_report = self.battle_result["warResult"]
-                result = zip([ship['hp'] for ship in battle_report["selfShipResults"]],
-                             [i['hp'] for i in battle_report['enemyShipResults']])
-                # todo 增加战斗评价
-                _logger.debug(
-                    '\n' + "\n".join(["{}     {}".format(a, b) for a, b in result]))
-
-                # if 'newShipVO' in self.battle_result:
-                #     new_ship = zemulator.ZjsnShip(
-                #         self.battle_result['newShipVO'][0])
-                #     if new_ship.cid not in ze.unlockShip:
-                #         _logger.info('get new ship: {}'.format(new_ship.name))
-                #     else:
-                #         _logger.debug('get: {}'.format(new_ship.name))
-            else:
-                return 0
-
-        elif self.node_type == 'resource':
+        if self.node_type == 'resource':
             if ze.working_ships[0].should_be_repair(2):
                 return 0
             else:
                 self.battle_result = ze.deal(1, big_broken_protect=False)
+        else:
+            spy_result = ze.spy()
+            if self.spy_filter(spy_result):
+                force_battle = False
+                if self.node_type == 'skip':
+                    if self.skip_rate > self.skip_rate_limit:
+                        skip_result = ze.skip()
+                        if not skip_result:
+                            if mission.skip_margin > 0:
+                                mission.skip_margin -= 1
+                                force_battle = True
+                            else:
+                                return 0
+                    else:
+                        return 0
 
-        elif self.node_type == 'skip':
-            self.battle_result = ze.skip()
-            if not self.battle_result:
-                return 0
+                if self.node_type == 'simple' or force_battle:
+                    try:
+                        result_before_night = ze.deal(
+                            self.formation, big_broken_protect=self.big_broken_protect)
+                    except zemulator.ZjsnError as e:
+                        _logger.debug(e)
+                        return -1
+                    time.sleep(self.battle_length)
+
+                    if self.night_flag:
+                        report = result_before_night["warReport"]
+                        if not any(report["hpBeforeNightWarEnemy"]):
+                            night_flag = 0
+                        else:
+                            night_flag = 1
+                            _logger.debug('night battle')
+
+                    else:
+                        night_flag = 0
+
+                    self.battle_result = ze.getWarResult(night_flag)
+                    if "bossHp" in self.battle_result:
+                        self.boss_hp = int(self.battle_result['bossHp'])
+                    elif 'bossHpLeft' in self.battle_result:
+                        self.boss_hp = int(self.battle_result['bossHpLeft'])
+                    battle_report = self.battle_result["warResult"]
+                    result = zip([ship['hp'] for ship in battle_report["selfShipResults"]],
+                                 [i['hp'] for i in battle_report['enemyShipResults']])
+                    # todo 增加战斗评价
+                    _logger.debug(
+                        '\n' + "\n".join(["{}     {}".format(a, b) for a, b in result]))
+
+                    # if 'newShipVO' in self.battle_result:
+                    #     new_ship = zemulator.ZjsnShip(
+                    #         self.battle_result['newShipVO'][0])
+                    #     if new_ship.cid not in ze.unlockShip:
+                    #         _logger.info('get new ship: {}'.format(new_ship.name))
+                    #     else:
+                    #         _logger.debug('get: {}'.format(new_ship.name))
+                else:
+                    return 0
 
         if self.next_nodes:
             next_node_id = ze.go_next()
@@ -167,7 +179,6 @@ class Node(object):
 
 
 class Mission(object):
-
     """docstring for Mission"""
 
     def __init__(self, mission_name, mission_code, ze: zemulator.ZjsnEmulator):
@@ -179,7 +190,7 @@ class Mission(object):
         self.first_nodes = []
         f_node = self.set_first_nodes()
         if type(f_node) == Node:
-             self.first_nodes.append(f_node)
+            self.first_nodes.append(f_node)
         elif type(f_node) == list:
             self.first_nodes.extend(f_node)
 
@@ -190,6 +201,8 @@ class Mission(object):
 
         self.boss_hp = -1
         self.current_node = None
+
+        self.skip_margin = 0
 
     def __repr__(self):
         return self.mission_name
@@ -204,6 +217,14 @@ class Mission(object):
                 'after': 'go_back',
                 }
 
+    @property
+    def back_trigger(self):
+        return {'trigger': 'go_back',
+                'source': self.state.name,
+                'dest': 'init',
+                'after': [self.postprocessing],
+                }
+
     def condition(self):
         return self.available
 
@@ -211,7 +232,7 @@ class Mission(object):
         # if len(self.ze.pveExplore) == 4:
         #     self.available = False
         #     return False
-        fleet_avilable = next(filter(lambda x: x['status']==0 and x['ships'], self.ze.fleet), None)
+        fleet_avilable = next(filter(lambda x: x['status'] == 0 and x['ships'], self.ze.fleet), None)
         # [int(i) for i in range(1, 5) if str(
         #     i) not in [e['fleetId'] for e in self.ze.pveExplore]][0]
         if fleet_avilable:
@@ -247,6 +268,8 @@ class Mission(object):
 
     def start(self):
         self.success = False
+        self.skip_margin = 0
+
         first_node_name = Node('0')._node_name(self.ze.go_next())
         node = 0
         for n in self.first_nodes:
@@ -259,7 +282,7 @@ class Mission(object):
 
         while type(node) == Node:
             self.current_node = node
-            new_node = node.deal(self.ze)
+            new_node = node.deal(self)
             node = new_node
 
         if node == None:
@@ -270,7 +293,7 @@ class Mission(object):
             self.boss_hp = self.current_node.boss_hp
 
         self.summery()
-        self.postprocessing()
+        # self.postprocessing()
 
     def postprocessing(self):
         self.ze.auto_strengthen()
@@ -284,8 +307,8 @@ class Mission(object):
                 len(self.ze.userShip),
                 [(i.name, i.level) for i in self.ze.working_ships]))
 
-class Explore(Mission):
 
+class Explore(Mission):
     """docstring for Explore"""
 
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -331,8 +354,8 @@ class Explore(Mission):
             self.ze.working_fleet = explore_over_fleet
             return True
 
-class Campaign(Mission):
 
+class Campaign(Mission):
     """docstring for Campaign"""
 
     def __init__(self, ze: zemulator.ZjsnEmulator, mission_code=202, formation_code=2):
@@ -348,7 +371,8 @@ class Campaign(Mission):
             if not self.ships_id:
                 rsp = self.ze.get(self.ze.api.campaignGetFleet(self.mission_code))
                 self.ships_id = [int(i) for i in rsp['campaignLevelFleet']]
-            if not any([self.ze.userShip[i].should_be_repair(1) or self.ze.userShip[i].status == 2 for i in self.ships_id]):
+            if not any([self.ze.userShip[i].should_be_repair(1) or self.ze.userShip[i].status == 2 for i in
+                        self.ships_id]):
                 try:
                     self.ze.get(self.ze.api.supplyBoats(self.ships_id))
                     return True
@@ -391,7 +415,6 @@ class Campaign(Mission):
 
 
 class Challenge(Mission):
-
     """docstring for Challenge"""
 
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -442,12 +465,10 @@ class Challenge(Mission):
                 enemy_ships = [zemulator.ZjsnShip(s) for s in i["shipInfos"]]
                 self.challenge_list.update({i['uid']: enemy_ships})
 
-
         r_f = self.ze.get(
             self.ze.url_server + '/friend/visitorFriend/' + str(self.friends[0]))
         if r_f['challengeNum'] == 0:
             self.friend_available = True
-
 
         if self.challenge_list or self.friend_available:
             self.ze.instant_fleet(self.battle_fleet)
@@ -456,7 +477,6 @@ class Challenge(Mission):
             self.available = False
 
         self.last_challenge_time = datetime.today()
-
 
     def formation_for_fish(self, fish_num):
         # todo define more simple antisubmarine ships
@@ -565,15 +585,18 @@ class Challenge(Mission):
             self.ze.url_server + "/{}/getWarResult/{}/".format(api, night_flag))
         _logger.debug("result level:{}".format(r3["warResult"]["resultLevel"]))
 
+
 class Dock(State):
-    def __init__(self, ze:zemulator.ZjsnEmulator):
+    def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(name='init', on_enter=self.go_home)
         self.ze = ze
+
     def go_home(self):
         self.ze.go_home()
         self.ze.auto_explore()
         self.ze.repair_all()
         self.ze.supply()
+
 
 class Mission_1_1(Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -612,16 +635,19 @@ class Mission_1_5(Mission_1_1):
         self.mission_name = '1-5'
         self.mission_code = 105
 
+
 class DailyTask(Mission):
     """日常任务"""
+
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__('Task', 0, ze)
         self.task_solution = {2200132: Mission_1_1,
                               2200232: Mission_1_5,
-                              2200332: Mission_1_1,}
+                              2200332: Mission_1_1, }
         for key in self.task_solution:
             self.task_solution[key] = self.task_solution[key](self.ze)
         self.task_mission = None
+
     def _prepare(self):
         task_id = next(filter(lambda x: x in self.ze.task, self.task_solution), None)
         if task_id:
@@ -631,6 +657,7 @@ class DailyTask(Mission):
         else:
             self.available = False
         return
+
     def prepare(self):
         pass
 
@@ -642,8 +669,8 @@ class DailyTask(Mission):
 
 
 class Robot(object):
-
     """docstring for Robot"""
+
     # todo 把thread变成一个属性 每次start重新实例化一个thread
     def __init__(self):
         super(Robot, self).__init__()
@@ -658,7 +685,6 @@ class Robot(object):
             self.explore, self.campaign,
         ]
 
-
         self.machine = Machine(model=self, states=self.states, initial='init')
         self.command = 'run'
 
@@ -670,12 +696,13 @@ class Robot(object):
                                     conditions=[self.campaign.prepare], after=[self.campaign.start])
         self.machine.add_transition(trigger='go_out', source=self.explore.mission_name, dest='init',
                                     conditions=[self.explore.get_explore])
-        self.machine.add_transition(trigger='go_back', source='*', dest='init')
+        # self.machine.add_transition(trigger='go_back', source='*', dest='init')
 
     def add_mission(self, mission: Mission):
         self.missions.append(mission)
         self.machine.add_states(mission.state)
         self.machine.add_transition(**mission.trigger)
+        self.machine.add_transition(**mission.back_trigger)
 
     def set_missions(self):
         pass
@@ -691,7 +718,6 @@ class Robot(object):
 
         # self.machine.add_transition(**self.m1_1a.trigger)
         # self.machine.add_transition(**self.m6_1.trigger)
-
 
     @property
     def states(self):
