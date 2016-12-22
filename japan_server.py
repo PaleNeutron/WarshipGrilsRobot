@@ -296,7 +296,7 @@ class JapanChallenge(zrobot.Challenge):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(ze)
         self.friends = [22876, 21892, 18869]
-        self.battle_fleet = [1612, 1632, 174, 782, 147, 798]
+        self.battle_fleet = [1612, 1632, 174, 782, 954, 798]
         self.start_point = 100
 
     def formation_for_fish(self, fish_num):
