@@ -184,6 +184,7 @@ class Mission(object):
 
     def __init__(self, mission_name, mission_code, ze: zemulator.ZjsnEmulator):
         super().__init__()
+        self.enable = False
         self.mission_code = mission_code
         self.mission_name = mission_name
         self.state = State(name=self.mission_name, on_exit=self.start)
@@ -241,7 +242,7 @@ class Mission(object):
             return True
 
     def _prepare(self):
-        if not self.get_working_fleet():
+        if not (self.get_working_fleet() and self.enable):
             self.available = False
             return
         self.available = self.prepare()
@@ -681,12 +682,10 @@ class Robot(object):
         self.dock = Dock(self.ze)
         self.explore = Explore(self.ze)
         self.campaign = Campaign(self.ze, 402)
+        states = [self.dock] + [m.state for m in [self.explore, self.campaign]]
+        self.missions = {}
 
-        self.missions = [
-            self.explore, self.campaign,
-        ]
-
-        self.machine = Machine(model=self, states=self.states, initial='init')
+        self.machine = Machine(model=self, states=states, initial='init', auto_transitions=False)
         self.command = 'run'
 
         self.add_mission(DailyTask(self.ze))
@@ -700,7 +699,10 @@ class Robot(object):
         # self.machine.add_transition(trigger='go_back', source='*', dest='init')
 
     def add_mission(self, mission: Mission):
-        self.missions.append(mission)
+        if mission.mission_name not in self.missions:
+            self.missions[mission.mission_name] = mission
+        else:
+            raise ValueError("mission name {} is already used".format(mission.mission_name))
         self.machine.add_states(mission.state)
         self.machine.add_transition(**mission.trigger)
         self.machine.add_transition(**mission.back_trigger)
@@ -719,10 +721,6 @@ class Robot(object):
 
         # self.machine.add_transition(**self.m1_1a.trigger)
         # self.machine.add_transition(**self.m6_1.trigger)
-
-    @property
-    def states(self):
-        return [self.dock] + [m.state for m in self.missions]
 
     def run(self):
         self.ze.login()
