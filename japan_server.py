@@ -492,6 +492,6 @@ if __name__ == '__main__':
     transitions_logger.addHandler(stream_handler)
     transitions_logger.setLevel(logging.INFO)
     r = JapanRobot()
-    r.run()
+    r.start()
     # r.ze.login()
     # print(r.ze.fleet)
