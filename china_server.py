@@ -344,7 +344,7 @@ class MissionPants(zrobot.Mission):
     def set_first_nodes(self):
         self.node_b = zrobot.Node('B', node_type='resource')
         self.node_d = zrobot.Node('D', node_type='resource')
-        self.node_f = zrobot.Node('F', night_flag=1, enemy_target='运输')
+        self.node_f = zrobot.Node('F', night_flag=1, enemy_target=zemulator.ZjsnShip.type_id('补给'))
         self.node_b.add_next(self.node_d)
         self.node_d.add_next(self.node_f)
 
