@@ -648,4 +648,5 @@ if __name__ == '__main__':
     transitions_logger.addHandler(stream_handler)
     transitions_logger.setLevel(logging.INFO)
     r = ChinaRobot()
+    r.missions['6-3'].enable = True
     t = r.start()

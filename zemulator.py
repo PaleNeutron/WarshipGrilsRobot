@@ -851,6 +851,17 @@ class ZjsnEmulator(object):
                 self.explore_result(explore_id)
                 return fleet_id
 
+    def cancel_explore(self, fleet_id):
+        for ex in self.pveExplore:
+            fleetId = ex["fleetId"]
+            explore_id = ex["exploreId"]
+            if int(fleet_id) == int(fleetId):
+                r = self.get(self.api.cancel_explore(explore_id))
+                self.pveExplore = r["pveExploreVo"]["levels"]
+                return True
+
+
+
     def get_boat(self, dock_id):
         if len(self.userShip) < self.userShip.shipNumTop:
             r = self.get(self.api.getBoat(dock_id))
