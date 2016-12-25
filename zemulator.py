@@ -537,7 +537,7 @@ class ZjsnEmulator(object):
         self.get(self.url_server + "/pevent/getPveData/", sleep_flag=False)
 
         j = self.initGame
-        self.userShip.update(j["userShipVO"])
+        self.userShip.__init__(j["userShipVO"])
         self.userShip.shipNumTop = j['userVo']['detailInfo']['shipNumTop']
 
         self.pveExplore = j["pveExploreVo"]["levels"]
