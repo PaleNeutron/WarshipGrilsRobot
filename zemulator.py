@@ -789,11 +789,14 @@ class ZjsnEmulator(object):
         for i in self.equipment:
             if i['num'] > 0:
                 cid = int(i['equipmentCid'])
-                if (equipmentCard[cid]['star'] < 3 and cid not in white_list) or cid in black_list:
-                    d = ('content=' + str('{{"{}":{}}}')).format(cid, i['num']).encode()
-                    r = self.get(self.api.dismantleEquipment(), method='POST',
-                                 headers={'Content-Type': 'application/x-www-form-urlencoded'}, data=d)
-                    self.equipment = r.json()['equipmentVo']
+                if cid in equipmentCard:
+                    if (equipmentCard[cid]['star'] < 3 and cid not in white_list) or cid in black_list:
+                        d = ('content=' + str('{{"{}":{}}}')).format(cid, i['num']).encode()
+                        r = self.get(self.api.dismantleEquipment(), method='POST',
+                                     headers={'Content-Type': 'application/x-www-form-urlencoded'}, data=d)
+                        self.equipment = r.json()['equipmentVo']
+                else:
+                    zlogger.warning("unknown equipment {}".format(cid))
 
     # def strengthen_exp_remain(self, ship_id):
     #     ship = self.userShip[ship_id]
