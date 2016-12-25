@@ -8,7 +8,7 @@ import china_server
 class JapanPants(china_server.MissionPants):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(ze)
-        self.pants_yesterday = 42
+        self.pants_yesterday = 4
         self.enable = True
 
     def prepare(self):
