@@ -156,7 +156,7 @@ class Mission3_4_A(zrobot.Mission):
                           ]
             if all(conditions):
                 dd_ships.append(ship.id)
-        self.ze.ship_groups[0] = [[1612], 1, False]
+        self.ze.ship_groups[0] = [[1632], 1, False]
         for i in range(1, 5):
             self.ze.ship_groups[i] = [dd_ships, 1, False]
         _logger.debug(
@@ -465,8 +465,8 @@ class JapanRobot(zrobot.Robot):
             ([833, 183, 710, 391, 386, 449], '10003'),
             ([111, 104, 550, 211, 187, 185], '50003'),
         )
-        self.campaign.mission_code = 302
-        self.campaign.formation_code = 5
+        self.campaign.mission_code = 102
+        # self.campaign.formation_code = 5
 
     def set_missions(self):
         # self.m1_4a = Mission1_4(self.ze)

@@ -559,15 +559,17 @@ class Mission_6_4(zrobot.Mission):
 
 class MissionEvent2(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super().__init__('E6', 9937, ze)
-        self.battle_fleet = [229, 13692, 830, 1410, 115, 43707]
+        super().__init__('E9', 9940, ze)
+        # self.battle_fleet = [229, 370, 16523, 1410, 115, 43707]
+        self.battle_fleet = []
+        self.enable = True
 
     def set_first_nodes(self):
-        self.node_a = self.node_chain([zrobot.Node('a'),
-                                       zrobot.Node('b'),
-                                       zrobot.Node('c'),
-                                       zrobot.Node('d'),
-                                       # zrobot.Node('m', formation=1, night_flag=1),
+        self.node_a = self.node_chain([zrobot.Node('b', enemy_target=994003001),
+                                       zrobot.Node('f', node_type="skip"),
+                                       zrobot.Node('j', node_type="resource"),
+                                       zrobot.Node('p'),
+                                       zrobot.Node('q', formation=4, night_flag=1),
                                        ])
 
         return self.node_a
@@ -577,6 +579,8 @@ class MissionEvent2(zrobot.Mission):
             return False
 
         # fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet]
+        if not self.battle_fleet:
+            self.battle_fleet = self.ze.working_ships_id
         fleet = self.battle_fleet
         fleet_group = [([i], 0.9, True) for i in fleet]
         self.ze.ship_groups = fleet_group

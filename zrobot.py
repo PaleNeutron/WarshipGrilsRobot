@@ -114,6 +114,7 @@ class Node(object):
             if self.spy_filter(spy_result):
                 force_battle = False
                 if self.node_type == 'skip':
+                    _logger.debug("sikp success rate: {:.1%}".format(self.skip_rate))
                     if self.skip_rate > self.skip_rate_limit:
                         skip_result = ze.skip()
                         if not skip_result:
@@ -164,8 +165,6 @@ class Node(object):
                     #         _logger.info('get new ship: {}'.format(new_ship.name))
                     #     else:
                     #         _logger.debug('get: {}'.format(new_ship.name))
-                else:
-                    return 0
             else:
                 return 0
 
