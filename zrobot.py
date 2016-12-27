@@ -653,6 +653,7 @@ class DailyTask(Mission):
         task_id = next(filter(lambda x: x in self.ze.task, self.task_solution), None)
         if task_id:
             self.task_mission = self.task_solution[task_id]
+            self.task_mission.enable = True
             self.task_mission._prepare()
             self.available = self.task_mission.available
         else:

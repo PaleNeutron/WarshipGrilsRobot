@@ -9,7 +9,7 @@ class JapanPants(china_server.MissionPants):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(ze)
         self.pants_yesterday = 24
-        self.enable = True
+        # self.enable = True
 
     def prepare(self):
         if self.ze.spoils - self.pants_yesterday >= 50:
