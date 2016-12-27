@@ -174,6 +174,8 @@ class Node(object):
             for n_node in self.next_nodes:
                 if n_node.name == next_node:
                     return n_node
+                else:
+                    return 0
         else:
             return None
 
