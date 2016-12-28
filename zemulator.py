@@ -974,8 +974,10 @@ class ZjsnEmulator(object):
         self.repairDock = r["repairDockVo"]
         self.userShip.update(r["shipVO"])
 
-    def go_out(self, map_code):
+    def go_out(self, map_code, ignore500=False):
         # try:
+        if self.drop500 or ignore500:
+            raise ZjsnError('500已满', eid=-215)
         if len(self.userShip) < self.userShip.shipNumTop:
             r = self.get(
                 self.url_server + "/pve/cha11enge/{0}/{1}/0/".format(map_code, self.working_fleet))
