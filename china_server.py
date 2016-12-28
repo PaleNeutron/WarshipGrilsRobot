@@ -612,7 +612,7 @@ class MissionEvent5(zrobot.Mission):
         return self.node_a
 
     def prepare(self):
-        if 10028911 == self.ze.unlockShip:
+        if 10028911 not in self.ze.unlockShip:
             zrobot._logger("有黄毛了，告别E5")
             return False
 
