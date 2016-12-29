@@ -612,7 +612,7 @@ class MissionEvent5(zrobot.Mission):
         return self.node_a
 
     def prepare(self):
-        if 10028911 == self.ze.unlockShip:
+        if 10028911 in self.ze.unlockShip:
             zrobot._logger("有黄毛了，告别E5")
             return False
 
@@ -651,7 +651,7 @@ class ChinaRobot(zrobot.Robot):
         challenge.friends = [2593850, 74851, 2827412]
         self.add_mission(challenge)
         self.add_mission(Mission_6_3(self.ze))
-        self.add_mission(MissionEvent5(self.ze))
+        # self.add_mission(MissionEvent5(self.ze))
         self.add_mission(Mission_6_1_A(self.ze))
         # self.add_mission(Mission_5_2_C(self.ze))
         # self.add_mission(Mission_2_5_mid(self.ze))
