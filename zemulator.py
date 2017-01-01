@@ -149,6 +149,17 @@ class ZjsnUserShip(dict):
     def __iter__(self):
         return iter(self.values())
 
+    def add_ship(self, ship_dict, ze: "ZjsnEmulator", source='get'):
+        self.update(ship_dict)
+        for s in ship_dict:
+            ship = self[s['id']]
+            if ship.cid not in ze.unlockShip:
+                ze.lock(ship.id)
+                ze.unlockShip.append(ship.cid)
+                zlogger.info("{} new ship {}".format(source, ship.name))
+            else:
+                zlogger.debug("{} {}".format(source, ship.name))
+
     def update(self, E=None, **F):
         if "id" in E:
             super(ZjsnUserShip, self).update({E['id']: ZjsnShip(E)}, **F)
@@ -556,15 +567,7 @@ class ZjsnEmulator(object):
         if j['marketingData']['continueLoginAward']['canGetDay'] != -1:
             r = self.get(self.api.loginAward())
             if 'shipVO' in r:
-                self.userShip.update(r['shipVO'])
-                ship = self.userShip[r['shipVO']['id']]
-                if ship.cid not in self.unlockShip:
-                    self.lock(ship.id)
-                    self.unlockShip.append(ship.cid)
-                    # ship.locked = 1
-                    zlogger.info("get new ship {}".format(ship.name))
-                else:
-                    zlogger.debug("get {}".format(ship.name))
+                self.userShip.add_ship(r['shipVO'], ze=self)
         self.login_time = datetime.datetime.today()
 
         self.userShip.save('{}_{}.md'.format(self.username, server_json['name']))
@@ -614,6 +617,8 @@ class ZjsnEmulator(object):
                             self.build_boat_remain = 1
                         elif next_cid == 5200332:
                             self.build_equipment_remain = 3
+            if 'shipVO' in r:
+                self.userShip.add_ship(r['shipVO'], ze=self)
         self.award_list = []
 
     def change_ships(self):
@@ -765,7 +770,7 @@ class ZjsnEmulator(object):
             if all([not any(ship.strength_exp),
                     ship.skillLevel != 3,
                     ship.type != '补给',
-                    ship.skillType != 97,  # 干TM的塔菲3
+                    ship.skillType != 98,  # “球上倒立”技能无法升级
                     ]):
                 zlogger.debug('{} skill level up to {}'.format(ship.name, ship.skillLevel + 1))
                 r = self.get(self.api.skillLevelUp(ship.id))
@@ -870,16 +875,8 @@ class ZjsnEmulator(object):
         if len(self.userShip) < self.userShip.shipNumTop:
             r = self.get(self.api.getBoat(dock_id))
             self.dock = r['dockVo']
-            self.userShip.update(r['shipVO'])
-
-            ship = self.userShip[r['shipVO']['id']]
-            if ship.cid not in self.unlockShip:
-                self.lock(ship.id)
-                self.unlockShip.append(ship.cid)
-                # ship.locked = 1
-                zlogger.info("build new ship {}".format(ship.name))
-            else:
-                zlogger.info("build {}".format(ship.name))
+            if 'shipVO' in r:
+                self.userShip.add_ship(r['shipVO'], ze=self, source='build')
 
     def get_equipment(self, dock_id):
         r = self.get(self.api.getEquipment(dock_id))
@@ -1032,19 +1029,8 @@ class ZjsnEmulator(object):
             self.drop500 = True
             zlogger.warning('今日500船已满')
         if "newShipVO" in r:
-            new_ships = r["newShipVO"]
-            self.userShip.update(new_ships)
-            for new_ship in new_ships:
-                ship = ZjsnShip(new_ship)
-                if ship.cid not in self.unlockShip:
-                    self.lock(ship.id)
-                    self.unlockShip.append(ship.cid)
-                    ship.locked = 1
-
-                    zlogger.info("result: {}, get new ship {}".format(self.result_list[int(result_level)], ship.name))
-                else:
-
-                    zlogger.info("result: {}, get {}".format(self.result_list[int(result_level)], ship.name))
+            self.userShip.add_ship(r["newShipVO"], ze=self,
+                                   source='result {}, get'.format(self.result_list[int(result_level)]))
         if 'spoils' in r:
             self.spoils = r['spoils']
         return r

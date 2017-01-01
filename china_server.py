@@ -317,7 +317,7 @@ class Mission_6_3(zrobot.Mission):
         # 所有能开幕的水下船只
         ss_ships = []
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
-            conditions = [ship["level"] > 11,
+            conditions = [ship["level"] > 90,
                           ship.type in ['潜艇', '炮潜'],
                           ]
             if all(conditions):
