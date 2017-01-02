@@ -25,7 +25,7 @@ class ZjsnError(Exception):
 
     def __init__(self, message, eid=0):
         super(ZjsnError, self).__init__(message)
-        self.eid = eid
+        self.eid = int(eid)
 
 
 class ZjsnApi(object):
@@ -158,7 +158,7 @@ class ZjsnUserShip(dict):
                 ze.unlockShip.append(ship.cid)
                 zlogger.info("{} new ship {}".format(source, ship.name))
             else:
-                zlogger.debug("{} {}".format(source, ship.name))
+                zlogger.info("{} {}".format(source, ship.name))
 
     def update(self, E=None, **F):
         if "id" in E:

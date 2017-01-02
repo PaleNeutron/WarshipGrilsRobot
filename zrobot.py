@@ -733,9 +733,12 @@ class Robot(object):
             except zemulator.ZjsnError as zerror:
                 if zerror.eid == -101:
                     self.ze.login()
-                if zerror.eid in [-9997, -9995]:
-                    input("login on another device, input anything to continue")
+                    self.state = 'init'
+                elif zerror.eid in [-9997, -9995]:
+                    _logger("login on another device, input anything to continue")
+                    input()
                     self.ze.login()
+                    self.state = 'init'
                 else:
                     raise zerror
 
