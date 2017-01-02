@@ -586,6 +586,8 @@ class Challenge(Mission):
         r3 = self.ze.get(
             self.ze.url_server + "/{}/getWarResult/{}/".format(api, night_flag))
         _logger.debug("result level:{}".format(r3["warResult"]["resultLevel"]))
+        _logger.debug("challenge fleet:{}".format(
+            [(si.name, si.level) for si in self.ze.working_ships]))
 
 
 class Dock(State):
