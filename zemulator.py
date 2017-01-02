@@ -876,7 +876,7 @@ class ZjsnEmulator(object):
             r = self.get(self.api.getBoat(dock_id))
             self.dock = r['dockVo']
             if 'shipVO' in r:
-                self.userShip.add_ship(r['shipVO'], ze=self, source='build')
+                self.userShip.add_ship([r['shipVO']], ze=self, source='build')
 
     def get_equipment(self, dock_id):
         r = self.get(self.api.getEquipment(dock_id))
