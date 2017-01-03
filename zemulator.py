@@ -969,7 +969,9 @@ class ZjsnEmulator(object):
     def repair_complete(self, ship_id, dock_id):
         r = self.get(self.api.repairComplete(ship_id, dock_id + 1))
         self.repairDock = r["repairDockVo"]
-        self.userShip.update(r["shipVO"])
+        # I don't know why sometimes shipVO not in response
+        if "shipVO" in r:
+            self.userShip.update(r["shipVO"])
 
     def go_out(self, map_code, ignore500=False):
         # try:
