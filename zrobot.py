@@ -737,7 +737,7 @@ class Robot(object):
                     self.ze.login()
                     self.state = 'init'
                 elif zerror.eid in [-9997, -9995]:
-                    _logger("login on another device, input anything to continue")
+                    _logger.info("login on another device, input anything to continue")
                     input()
                     self.ze.login()
                     self.state = 'init'
