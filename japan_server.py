@@ -483,7 +483,7 @@ class JapanRobot(zrobot.Robot):
         # self.machine.add_transition(**self.m3_4.trigger)
 
         self.add_mission(Mission3_4_A(self.ze))
-        self.add_mission(JapanPants(self.ze))
+        # self.add_mission(JapanPants(self.ze))
 
         # self.m3_2 = Mission3_2(self.ze)
         # self.machine.add_states(self.m3_2.state)
