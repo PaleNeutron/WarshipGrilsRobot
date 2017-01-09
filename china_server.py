@@ -339,7 +339,7 @@ class MissionPants(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(MissionPants, self).__init__('pants', 201, ze)
         self.pants_num = 0
-        self.pants_yesterday = 56
+        self.pants_yesterday = 5
 
     def set_first_nodes(self):
         self.node_b = zrobot.Node('B', node_type='resource')
@@ -659,7 +659,7 @@ class ChinaRobot(zrobot.Robot):
         # self.add_mission(Mission_2_5_mid(self.ze))
         # self.add_mission(Mission_2_5_down(self.ze))
         # self.add_mission(Mission_5_5_C(self.ze))
-        # self.add_mission(MissionPants(self.ze))
+        self.add_mission(MissionPants(self.ze))
         # self.add_mission(Mission_1_1(self.ze))
         # self.add_mission(Mission_4_3(self.ze))
         # self.add_mission(Mission_2_2(self.ze))
@@ -688,4 +688,5 @@ if __name__ == '__main__':
     transitions_logger.setLevel(logging.INFO)
     r = ChinaRobot()
     r.missions['6-3'].enable = True
+    r.missions['pants'].enable = True
     t = r.start()
