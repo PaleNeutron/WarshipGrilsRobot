@@ -6,6 +6,7 @@ import threading
 import time
 from datetime import datetime
 from typing import List
+from itertools import zip_longest
 
 from transitions import Machine
 from transitions import State
@@ -152,7 +153,7 @@ class Node(object):
                     elif 'bossHpLeft' in self.battle_result:
                         self.boss_hp = int(self.battle_result['bossHpLeft'])
                     battle_report = self.battle_result["warResult"]
-                    result = zip([ship['hp'] for ship in battle_report["selfShipResults"]],
+                    result = zip_longest([ship['hp'] for ship in battle_report["selfShipResults"]],
                                  [i['hp'] for i in battle_report['enemyShipResults']])
                     # todo 增加战斗评价
                     _logger.debug(
