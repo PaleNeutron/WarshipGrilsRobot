@@ -371,6 +371,8 @@ class MissionPants(zrobot.Mission):
 
         for i in range(0, 4):
             self.ze.ship_groups[i] = (dd_ships, 1, False)
+        self.ze.ship_groups[2] = ([self.ze.userShip.name("苍龙").id], 1, False)
+        self.ze.ship_groups[3] = ([self.ze.userShip.name("企业").id], 1, False)
         self.ze.ship_groups[4] = self.ze.ship_groups[5] = (None, 1, False)
 
         try:

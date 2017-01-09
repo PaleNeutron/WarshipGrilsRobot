@@ -190,7 +190,7 @@ class ZjsnUserShip(dict):
             f.write(markdown_string)
 
     def name(self, ship_name, default="raise"):
-        # 查找船名，返回船对象，不必全称
+        """查找船名，返回船对象，不必全称"""
         for ship in sorted(self, key=lambda x: x["level"], reverse=True):
             if ship.name in ship_name:
                 return ship
