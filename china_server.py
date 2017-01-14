@@ -558,6 +558,51 @@ class Mission_6_4(zrobot.Mission):
             return False
         return True
 
+class Mission_6_4_fish(zrobot.Mission):
+    def __init__(self, ze: zemulator.ZjsnEmulator):
+        super(Mission_6_4_fish, self).__init__('6-4 fish', 604, ze)
+        self.pants_num = 0
+
+    def set_first_nodes(self):
+        # self.node_a = Node('A', additional_spy_filter=lambda sr: '战巡' in str(sr) or '航母'in str(sr))
+        self.node_c = self.node_chain([zrobot.Node('c'),
+                                       zrobot.Node('f', formation=4),
+                                       zrobot.Node('h', formation=4, night_flag=1),
+                                       zrobot.Node('j', node_type="resource"),
+                                       zrobot.Node('l', enemy_target='20100003', formation=4),
+                                       ])
+        self.node_b = self.node_chain([zrobot.Node('b', formation=4, night_flag=1),
+                                       zrobot.Node('d', formation=4, night_flag=1),
+                                       ])
+        self.node_a = zrobot.Node('a', enemy_avoid='驱逐')
+        self.node_a.add_next(self.node_b)
+        self.node_a.add_next(self.node_c)
+        return self.node_a
+
+    def prepare(self):
+        target = 10023712
+        if target in self.ze.unlockShip:
+            zrobot._logger.info('有{}了'.format(zemulator.shipCard[target]["title"]))
+            return False
+        # 所有能开幕的水下船只
+        ss_ships = []
+        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
+            conditions = [ship["level"] > 75,
+                          ship.type in ['潜艇', '炮潜'],
+                          ]
+            if all(conditions):
+                ss_ships.append(ship.id)
+        ships = [self.ze.userShip[ship_id] for ship_id in ss_ships]
+        zrobot._logger.debug("ss_ships:{}".format([(s.name, s.level) for s in ships]))
+
+        for i in range(0, 6):
+            self.ze.ship_groups[i] = (ss_ships, 0, False)
+        self.ze.ship_groups[0][0].insert(0, 6744)  # 尽可能狼群U47旗舰
+        try:
+            self.ze.change_ships()
+        except zemulator.ZjsnError:
+            return False
+        return True
 
 class MissionEvent2(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -652,8 +697,9 @@ class ChinaRobot(zrobot.Robot):
         challenge.ninghai = 1215
         challenge.friends = [2593850, 74851, 2827412]
         self.add_mission(challenge)
-        self.add_mission(Mission_6_3(self.ze))
+        # self.add_mission(Mission_6_3(self.ze))
         # self.add_mission(MissionEvent5(self.ze))
+        self.add_mission(Mission_6_4_fish(self.ze))
         self.add_mission(Mission_6_1_A(self.ze))
         # self.add_mission(Mission_5_2_C(self.ze))
         # self.add_mission(Mission_2_5_mid(self.ze))
@@ -687,6 +733,6 @@ if __name__ == '__main__':
     transitions_logger.addHandler(stream_handler)
     transitions_logger.setLevel(logging.INFO)
     r = ChinaRobot()
-    r.missions['6-3'].enable = True
     r.missions['pants'].enable = True
+    r.missions['6-4 fish'].enable = True
     t = r.start()

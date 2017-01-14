@@ -155,7 +155,6 @@ class Node(object):
                     battle_report = self.battle_result["warResult"]
                     result = zip_longest([ship['hp'] for ship in battle_report["selfShipResults"]],
                                  [i['hp'] for i in battle_report['enemyShipResults']])
-                    # todo 增加战斗评价
                     _logger.debug(
                         '\n' + "\n".join(["{}     {}".format(a, b) for a, b in result]))
 
@@ -586,7 +585,7 @@ class Challenge(Mission):
         # r3 = e.get(e.url_server + "/pvp/getWarResult/0/")
         r3 = self.ze.get(
             self.ze.url_server + "/{}/getWarResult/{}/".format(api, night_flag))
-        _logger.debug("result level:{}".format(r3["warResult"]["resultLevel"]))
+        _logger.debug("result level:{}".format(self.ze.result_list[int(r3["warResult"]["resultLevel"])]))
         _logger.debug("challenge fleet:{}".format(
             [(si.name, si.level) for si in self.ze.working_ships]))
 
