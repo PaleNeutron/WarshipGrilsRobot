@@ -339,7 +339,7 @@ class MissionPants(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(MissionPants, self).__init__('pants', 201, ze)
         self.pants_num = 0
-        self.pants_yesterday = 5
+        self.pants_yesterday = 277
 
     def set_first_nodes(self):
         self.node_b = zrobot.Node('B', node_type='resource')
@@ -565,9 +565,9 @@ class Mission_6_4_fish(zrobot.Mission):
 
     def set_first_nodes(self):
         # self.node_a = Node('A', additional_spy_filter=lambda sr: '战巡' in str(sr) or '航母'in str(sr))
-        self.node_c = self.node_chain([zrobot.Node('c'),
+        self.node_c = self.node_chain([zrobot.Node('c', formation=4, night_flag=1),
                                        zrobot.Node('f', formation=4),
-                                       zrobot.Node('h', formation=4, night_flag=1),
+                                       zrobot.Node('h'),
                                        zrobot.Node('j', node_type="resource"),
                                        zrobot.Node('l', enemy_target='20100003', formation=4),
                                        ])
