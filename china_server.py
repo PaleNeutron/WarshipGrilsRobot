@@ -699,12 +699,12 @@ class ChinaRobot(zrobot.Robot):
         self.add_mission(challenge)
         # self.add_mission(Mission_6_3(self.ze))
         # self.add_mission(MissionEvent5(self.ze))
-        self.add_mission(Mission_6_4_fish(self.ze))
+        # self.add_mission(Mission_6_4_fish(self.ze))
         self.add_mission(Mission_6_1_A(self.ze))
         # self.add_mission(Mission_5_2_C(self.ze))
         # self.add_mission(Mission_2_5_mid(self.ze))
         # self.add_mission(Mission_2_5_down(self.ze))
-        # self.add_mission(Mission_5_5_C(self.ze))
+        self.add_mission(Mission_5_5_C(self.ze))
         self.add_mission(MissionPants(self.ze))
         # self.add_mission(Mission_1_1(self.ze))
         # self.add_mission(Mission_4_3(self.ze))
@@ -734,5 +734,5 @@ if __name__ == '__main__':
     transitions_logger.setLevel(logging.INFO)
     r = ChinaRobot()
     r.missions['pants'].enable = True
-    r.missions['6-4 fish'].enable = True
+    r.missions['5-5C'].enable = True
     t = r.start()
