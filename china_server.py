@@ -685,8 +685,8 @@ class ChinaRobot(zrobot.Robot):
 
         self.ze.username = 'junhongbill'
         self.ze.password = 'ouzhoutiduzjsn'
-        self.ze.equipment_formula = [200, 30, 200, 30]
-        self.ze.boat_formula = [20, 50, 10, 100]
+        self.ze.equipment_formula = [10, 90, 90, 30]
+        self.ze.boat_formula = [200, 30, 200, 30]
         self.explore.explore_table = (
             ([35442, 35500, 3846, 7376, 183, 103], '10003'),
             ([44420, 7367, 3877, 13972, 11497, 8452], '50003'),
