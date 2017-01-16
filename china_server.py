@@ -12,7 +12,8 @@ class Mission_6_1_A(zrobot.Mission):
         node_a = zrobot.Node('A', formation=5,
                              additional_spy_filter=lambda x: x["enemyVO"]["enemyFleet"]["id"] == 60102003)
         return node_a
-
+    def boss_ship(self):
+        return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
     def prepare(self):
         # 所有装了声呐的反潜船
         dd_ships = []
@@ -31,15 +32,18 @@ class Mission_6_1_A(zrobot.Mission):
         zrobot._logger.debug(
             "dd_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in dd_ships]))
 
-        # boss_ship = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
-        boss_ships = [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
+        # boss_ships = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
+        if self.boss_ship():
+            boss_ships = self.boss_ship()
+            self.ze.ship_groups[0] = (boss_ships, 2, True)
+        else:
+            boss_ships = dd_ships
+            self.ze.ship_groups[0] = (boss_ships, 1, False)
         # boss_ships = [self.ze.userShip.name('赤城').id]
         boss_ships.sort(key=lambda x: self.ze.userShip[x].level)
         zrobot._logger.debug("boss_ships:{}".format(
             [self.ze.userShip[ship_id].name for ship_id in boss_ships]))
 
-        # self.ze.ship_groups[0] = (dd_ships, 1, False)
-        self.ze.ship_groups[0] = (boss_ships, 2, True)
 
         for i in range(1, 5):
             self.ze.ship_groups[i] = (dd_ships, 1, False)

@@ -209,6 +209,9 @@ class Mission(object):
     def __repr__(self):
         return self.mission_name
 
+    def switch(self):
+        self.enable = not self.enable
+
     @property
     def trigger(self):
         return {'trigger': 'go_out',

@@ -446,6 +446,10 @@ class Japan_Mission_5_2_C(zrobot.Mission):
     def postprocessing(self):
         pass
 
+class Japan_Mission_6_1_A(china_server.Mission_6_1_A):
+    """鱼塘 炸鱼"""
+    def boss_ship(self):
+        return None
 
 class JapanRobot(zrobot.Robot):
     """docstring for Robot"""
@@ -482,6 +486,7 @@ class JapanRobot(zrobot.Robot):
         # self.machine.add_states(self.m3_4.state)
         # self.machine.add_transition(**self.m3_4.trigger)
 
+        self.add_mission(Japan_Mission_6_1_A(self.ze))
         self.add_mission(Mission3_4_A(self.ze))
         # self.add_mission(JapanPants(self.ze))
 
@@ -532,6 +537,8 @@ if __name__ == '__main__':
     transitions_logger.addHandler(stream_handler)
     transitions_logger.setLevel(logging.INFO)
     r = JapanRobot()
+    # r.missions['kill_fish'].switch()
+    r.ze.build_equipment_remain = 50
     r.start()
     # r.ze.login()
     # print(r.ze.fleet)
