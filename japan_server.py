@@ -335,34 +335,11 @@ class JapanChallenge(zrobot.Challenge):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(ze)
         self.friends = [22876, 21892, 18869]
-        self.battle_fleet = [1612, 1632, 174, 3305, 954, 1614]
-        self.start_point = 100
+        self.battle_fleet = [1632, 3305, 954, 1614, 1034, 6640]
+        self.start_point = 80
 
     def formation_for_fish(self, fish_num):
         self.ze.instant_fleet(self.battle_fleet)
-
-
-class Japan_Mission_1_1(zrobot.Mission):
-    def __init__(self, ze: zemulator.ZjsnEmulator):
-        super(Japan_Mission_1_1, self).__init__('1-1A', 101, ze)
-
-    def set_first_nodes(self):
-        self.node_a = zrobot.Node('A', formation=1)
-        return self.node_a
-
-    def prepare(self):
-        # 所有高级改造DD
-        dd_ships = [self.ze.userShip.name('吹雪').id]
-
-        for i in range(1, 6):
-            self.ze.ship_groups[i] = (None, 1, False)
-        self.ze.ship_groups[0] = (dd_ships, 1, False)
-
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError as zerror:
-            return False
-        return True
 
 
 class Japan_Mission_1_5(zrobot.Mission):
@@ -478,6 +455,7 @@ class JapanRobot(zrobot.Robot):
         # self.machine.add_transition(**self.m1_4a.trigger)
 
         self.add_mission(JapanChallenge(self.ze))
+        self.add_mission(zrobot.Mission_1_1(self.ze))
         # self.challenge = JapanChallenge(self.ze)
         # self.machine.add_states(self.challenge.state)
         # self.machine.add_transition(**self.challenge.trigger)
