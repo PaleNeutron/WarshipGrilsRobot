@@ -279,7 +279,10 @@ class ZjsnShip(dict):
 
     @property
     def evoLevel(self):
-        return int(self.card['evoLevel'])
+        if self.evolved:
+            return int(shipCard[int(self.card['evoCid'])]['evoLevel'])
+        else:
+            return int(self.card['evoLevel'])
 
     @property
     def card(self):
