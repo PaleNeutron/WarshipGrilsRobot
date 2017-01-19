@@ -689,7 +689,7 @@ class ChinaRobot(zrobot.Robot):
         self.ze.boat_formula = [200, 30, 200, 30]
         self.explore.explore_table = (
             ([35442, 35500, 3846, 7376, 183, 103], '10003'),
-            ([44420, 7367, 3877, 13972, 11497, 8452], '50003'),
+            ([42093, 7367, 3877, 13972, 11497, 8452], '50003'),
             ([128, 14094, 113, 101, 577, 7373], '40001'),
             ([123, 13973, 27865, 14138, 10706, 104], '20001')
         )
@@ -697,7 +697,7 @@ class ChinaRobot(zrobot.Robot):
 
     def set_missions(self):
         challenge = zrobot.Challenge(self.ze)
-        challenge.battle_fleet = [52359, 213, 13708, 42093, 50367, 56604]
+        challenge.battle_fleet = [52359, 213, 13708, 9260, 50367, 56604]
         challenge.ninghai = 1215
         challenge.friends = [2593850, 74851, 2827412]
         self.add_mission(challenge)

@@ -520,7 +520,7 @@ if __name__ == '__main__':
     r = JapanRobot()
     # r.missions['kill_fish'].switch()
     r.missions['Task'].switch()
-    r.missions['1-1A'].switch()
+    # r.missions['1-1A'].switch()
     r.start()
     # r.ze.login()
     # print(r.ze.fleet)

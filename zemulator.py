@@ -16,6 +16,7 @@ with open(os.path.dirname(os.path.realpath(__file__)) + os.sep + "init.txt", enc
     __ZJSN_DATA = json.load(f)
 
 shipCard = {int(i['cid']): i for i in __ZJSN_DATA["shipCard"]}
+shipCard.update({18011613: shipCard[10011613]}) # this line is for 戈本 in japan
 errorCode = __ZJSN_DATA['errorCode']
 equipmentCard = {int(i['cid']): i for i in __ZJSN_DATA["shipEquipmnt"]}
 
@@ -275,6 +276,17 @@ class ZjsnShip(dict):
     @property
     def skillType(self):
         return int(self['skillType'])
+
+    @property
+    def evoLevel(self):
+        return int(self.card['evoLevel'])
+
+    @property
+    def card(self):
+        if self.cid in shipCard:
+            return shipCard[self.cid]
+        else:
+            return 0
 
     @property
     def star(self):
@@ -559,6 +571,7 @@ class ZjsnEmulator(object):
 
         self.fleet = j["fleetVo"]
         self.unlockShip = j["unlockShip"]
+        self.unlockEquipment = j['unlockEquipment']
         self.equipment = j['equipmentVo']
         self.task.update(j['taskVo'])
 
@@ -720,7 +733,7 @@ class ZjsnEmulator(object):
             self.auto_skill(ship)
             conditions = (
                 ship.locked == 1,
-                ship.name not in ['罗德尼', '纳尔逊', '大凤', '空想', '萤火虫'],
+                not (ship.name in ['罗德尼', '纳尔逊', '大凤', '空想', '萤火虫'] and ship.level < ship.evoLevel + 5),
                 (not ship.can_evo and ship.level > 1) or ship.evolved == 1 or ship.type == '潜艇',  # 不能改造或者已经改造
                 ship.fleet_id not in self.explore_fleets,  # 不在远征舰队中
                 any(ship.strength_exp),
@@ -884,15 +897,16 @@ class ZjsnEmulator(object):
         # if r['equipmentCid'] in [i['equipmentCid']
         get_flag = False  # 是否增加了一个新装备
         equipment_name = equipmentCard[int(r['equipmentCid'])]['title']
+        # todo 判断是否解锁了一件新装备
         for i in self.equipment:
             if r['equipmentCid'] == i['equipmentCid']:
                 i['num'] = r['equipmentVo']['num']
-                zlogger.info('build new equipment: {}'.format(equipment_name))
+                zlogger.info('build equipment: {}'.format(equipment_name))
                 get_flag = True
                 break
         if not get_flag:
             self.equipment.append(r['equipmentVo'])
-            zlogger.info('build equipment: {}'.format(equipment_name))
+        zlogger.info('build equipment: {}'.format(equipment_name))
 
     def auto_build(self):
         for ex in filter(lambda d: 'endTime' in d, self.dock):
