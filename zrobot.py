@@ -5,8 +5,8 @@ import string
 import threading
 import time
 from datetime import datetime
-from typing import List
 from itertools import zip_longest
+from typing import List
 
 from transitions import Machine
 from transitions import State
@@ -656,6 +656,9 @@ class DailyTask(Mission):
         self.task_mission = None
 
     def _prepare(self):
+        if not self.enable:
+            self.available = False
+            return
         task_id = next(filter(lambda x: x in self.ze.task, self.task_solution), None)
         if task_id:
             self.task_mission = self.task_solution[task_id]
