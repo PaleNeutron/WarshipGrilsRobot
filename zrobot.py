@@ -648,6 +648,7 @@ class DailyTask(Mission):
 
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__('Task', 0, ze)
+        self.enable = True
         self.task_solution = {2200132: Mission_1_1,
                               2200232: Mission_1_5,
                               2200332: Mission_1_1, }

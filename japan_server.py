@@ -1,8 +1,8 @@
 import logging
 
+import china_server
 import zemulator
 import zrobot
-import china_server
 
 
 class JapanPants(china_server.MissionPants):
@@ -339,7 +339,10 @@ class JapanChallenge(zrobot.Challenge):
         self.start_point = 80
 
     def formation_for_fish(self, fish_num):
-        self.ze.instant_fleet(self.battle_fleet)
+        fish_fleet = self.battle_fleet[:]
+        if fish_num > 0:
+            fish_fleet[-1] = self.ze.userShip.name('宁海').id
+        self.ze.instant_fleet(fish_fleet)
 
 
 class Japan_Mission_1_5(zrobot.Mission):
@@ -516,7 +519,8 @@ if __name__ == '__main__':
     transitions_logger.setLevel(logging.INFO)
     r = JapanRobot()
     # r.missions['kill_fish'].switch()
-    r.ze.build_equipment_remain = 50
+    r.missions['Task'].switch()
+    r.missions['1-1A'].switch()
     r.start()
     # r.ze.login()
     # print(r.ze.fleet)
