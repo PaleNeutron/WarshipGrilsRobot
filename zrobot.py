@@ -363,13 +363,18 @@ class Explore(Mission):
 class Campaign(Mission):
     """docstring for Campaign"""
 
-    def __init__(self, ze: zemulator.ZjsnEmulator, mission_code=202, formation_code=2):
+    def __init__(self, ze: zemulator.ZjsnEmulator, mission_code=202, formation_code=None):
         super().__init__('campaign', mission_code, ze)
         self.ze = ze
         self.avilable = True
         self.state.ignore_invalid_triggers = True
         self.ships_id = []
-        self.formation_code = formation_code
+        if formation_code:
+            self.formation_code = formation_code
+        elif self.mission_code == 302:
+            self.formation_code = 5
+        else:
+            self.formation_code = 2
 
     def prepare(self):
         if self.ze.campaign_num > 0:
