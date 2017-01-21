@@ -156,7 +156,7 @@ class Mission3_4_A(zrobot.Mission):
                           ]
             if all(conditions):
                 dd_ships.append(ship.id)
-        self.ze.ship_groups[0] = [[1632], 1, False]
+        self.ze.ship_groups[0] = [[self.ze.userShip.name('安德烈').id], 1, False]
         for i in range(1, 5):
             self.ze.ship_groups[i] = [dd_ships, 1, False]
         _logger.debug(
@@ -519,7 +519,7 @@ if __name__ == '__main__':
     transitions_logger.setLevel(logging.INFO)
     r = JapanRobot()
     # r.missions['kill_fish'].switch()
-    r.missions['Task'].switch()
+    # r.missions['Task'].switch()
     # r.missions['1-1A'].switch()
     r.start()
     # r.ze.login()
