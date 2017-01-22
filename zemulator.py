@@ -20,6 +20,11 @@ shipCard.update({18011613: shipCard[10011613]}) # this line is for 戈本 in jap
 errorCode = __ZJSN_DATA['errorCode']
 equipmentCard = {int(i['cid']): i for i in __ZJSN_DATA["shipEquipmnt"]}
 
+with open(os.path.dirname(os.path.realpath(__file__)) + os.sep + "init_japan.txt", encoding="utf8") as f:
+    __ZJSN_DATA = json.load(f)
+
+shipCard.update({int(i['cid']): i for i in __ZJSN_DATA["shipCard"] if int(i['cid']) not in shipCard})
+equipmentCard.update({int(i['cid']): i for i in __ZJSN_DATA["shipEquipmnt"] if int(i['cid']) not in equipmentCard})
 
 class ZjsnError(Exception):
     """docstring for ZjsnError"""
