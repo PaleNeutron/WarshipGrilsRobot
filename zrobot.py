@@ -647,6 +647,66 @@ class Mission_1_5(Mission_1_1):
         self.mission_name = '1-5'
         self.mission_code = 105
 
+class Mission_2_1(Mission):
+
+    def __init__(self, ze: zemulator.ZjsnEmulator):
+        self._target_type = "战巡"
+        super().__init__('type_task', 201, ze)
+
+    @property
+    def target_type(self):
+        return self._target_type
+
+    @target_type.setter
+    def target_type(self, value):
+        self._target_type = value
+        self.node_f.enemy_target = zemulator.ZjsnShip.type_id(self._target_type)
+
+    def set_first_nodes(self):
+        self.node_b = Node('B', node_type='resource')
+        self.node_d = Node('D', node_type='resource')
+        self.node_f = Node('F', night_flag=1, enemy_target=self.target_type)
+        self.node_b.add_next(self.node_d)
+        self.node_d.add_next(self.node_f)
+
+        return self.node_b
+
+    def prepare(self):
+        # 所有高级改造DD
+        dd_ships = []
+        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
+            conditions = [ship["level"] > 80,
+                          ship.type in ['驱逐'],
+                          ship.evolved == 1,
+                          ]
+            if all(conditions):
+                dd_ships.append(ship.id)
+        ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
+        _logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
+
+        # 所有高级改造CV
+        cv_ships = []
+        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
+            conditions = [ship["level"] > 80,
+                          ship.type in ['航母', '装母'],
+                          ]
+            if all(conditions):
+                cv_ships.append(ship.id)
+        ships = [self.ze.userShip[ship_id] for ship_id in cv_ships]
+        _logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
+
+        for i in range(0, 2):
+            self.ze.ship_groups[i] = (dd_ships, 1, False)
+        for i in range(2, 4):
+            self.ze.ship_groups[i] = (cv_ships, 1, False)
+        self.ze.ship_groups[4] = self.ze.ship_groups[5] = (None, 1, False)
+
+        try:
+            self.ze.change_ships()
+        except zemulator.ZjsnError:
+            return False
+        return True
+
 
 class DailyTask(Mission):
     """日常任务"""
@@ -659,6 +719,26 @@ class DailyTask(Mission):
                               2200332: Mission_1_1, }
         for key in self.task_solution:
             self.task_solution[key] = self.task_solution[key](self.ze)
+
+        self.type_mission_1 = Mission_2_1(self.ze)
+
+        self.type_task = {
+            2201232:"驱逐",
+            2201332:"轻巡",
+            2201432:"重巡",
+            2201532:"战列",
+            2201632:"轻母",
+            # 2201732:"航母",
+            2201832:"战巡",
+            # 2201932:"潜艇",
+            2200432:"驱逐",
+            2200532:"轻巡",
+            2200632:"重巡",
+            2200732:"战列",
+            2200832:"轻母",
+            # 2200932:"航母",
+            2201132:"战巡",
+        }
         self.task_mission = None
 
     def _prepare(self):
@@ -666,8 +746,13 @@ class DailyTask(Mission):
             self.available = False
             return
         task_id = next(filter(lambda x: x in self.ze.task, self.task_solution), None)
-        if task_id:
-            self.task_mission = self.task_solution[task_id]
+        type_task_id = next(filter(lambda x: x in self.ze.task, self.type_task), None)
+        if task_id or type_task_id:
+            if task_id:
+                self.task_mission = self.task_solution[task_id]
+            elif type_task_id:
+                self.task_mission = self.type_mission_1
+                self.type_mission_1.target_type = self.type_task[type_task_id]
             self.task_mission.enable = True
             self.task_mission._prepare()
             self.available = self.task_mission.available
