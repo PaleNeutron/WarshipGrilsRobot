@@ -605,7 +605,7 @@ class Dock(State):
 
     def go_home(self):
         self.ze.go_home()
-        self.ze.auto_explore()
+        # self.ze.auto_explore()
         self.ze.repair_all()
         self.ze.supply()
 

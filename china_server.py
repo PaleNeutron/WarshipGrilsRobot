@@ -315,8 +315,8 @@ class Mission_6_3(zrobot.Mission):
         return self.node_b
 
     def prepare(self):
-        if 10010413 in self.ze.unlockShip:
-            zrobot._logger.info('有厌战了')
+        if 10030812 in self.ze.unlockShip and 10021811 in self.ze.unlockShip:
+            zrobot._logger.info('有哥特兰和古斯塔夫了')
             return False
         # 所有能开幕的水下船只
         ss_ships = []
@@ -701,20 +701,20 @@ class ChinaRobot(zrobot.Robot):
         challenge.ninghai = 1215
         challenge.friends = [2593850, 74851, 2827412]
         self.add_mission(challenge)
-        # self.add_mission(Mission_6_3(self.ze))
+        self.add_mission(Mission_6_3(self.ze))
         # self.add_mission(MissionEvent5(self.ze))
         # self.add_mission(Mission_6_4_fish(self.ze))
-        self.add_mission(Mission_6_1_A(self.ze))
         # self.add_mission(Mission_5_2_C(self.ze))
         # self.add_mission(Mission_2_5_mid(self.ze))
         # self.add_mission(Mission_2_5_down(self.ze))
         self.add_mission(Mission_5_5_C(self.ze))
-        self.add_mission(MissionPants(self.ze))
         # self.add_mission(Mission_1_1(self.ze))
         # self.add_mission(Mission_4_3(self.ze))
         # self.add_mission(Mission_2_2(self.ze))
         # self.add_mission(Mission_5_5_B(self.ze))
         # self.add_mission(Mission_6_4(self.ze))
+        self.add_mission(MissionPants(self.ze))
+        self.add_mission(Mission_6_1_A(self.ze))
 
 
 if __name__ == '__main__':
@@ -737,6 +737,6 @@ if __name__ == '__main__':
     transitions_logger.addHandler(stream_handler)
     transitions_logger.setLevel(logging.INFO)
     r = ChinaRobot()
-    r.missions['pants'].enable = True
-    r.missions['5-5C'].enable = True
+    # r.missions['pants'].enable = True
+    r.missions['6-3'].enable = True
     t = r.start()
