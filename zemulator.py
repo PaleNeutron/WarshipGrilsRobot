@@ -741,7 +741,7 @@ class ZjsnEmulator(object):
             self.auto_skill(ship)
             conditions = (
                 ship.locked == 1,
-                not (ship.name in ['罗德尼', '纳尔逊', '大凤', '空想', '萤火虫'] and ship.level < ship.evoLevel + 5),
+                not (ship.name in ['罗德尼', '纳尔逊', '大凤', '空想', '萤火虫'] and ship.level < ship.evoLevel + 10),
                 (not ship.can_evo and ship.level > 1) or ship.evolved == 1 or ship.type == '潜艇',  # 不能改造或者已经改造
                 ship.fleet_id not in self.explore_fleets,  # 不在远征舰队中
                 any(ship.strength_exp),

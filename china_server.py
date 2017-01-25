@@ -723,7 +723,7 @@ if __name__ == '__main__':
 
     log_formatter = logging.Formatter(
         '%(asctime)s: %(levelname)s: %(message)s', datefmt='%H:%M:%S')
-    stream_handler = logging.StreamHandler()
+    stream_handler = handlers.TimedRotatingFileHandler('china_server.log', when='midnight', backupCount=3, encoding='utf8')
     stream_handler.setFormatter(log_formatter)
 
     f_handler = handlers.TimedRotatingFileHandler('zrobot.log', when='midnight', backupCount=3, encoding='utf8')
