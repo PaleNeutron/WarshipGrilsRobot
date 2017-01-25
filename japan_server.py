@@ -501,10 +501,14 @@ if __name__ == '__main__':
     from transitions import logger as transitions_logger
     from logging import handlers
     from zrobot import _logger
+    import os
 
     log_formatter = logging.Formatter(
         '%(asctime)s: %(levelname)s: %(message)s', datefmt='%H:%M:%S')
-    stream_handler = handlers.TimedRotatingFileHandler('japan_server.log', when='midnight', backupCount=3, encoding='utf8')
+    if os.name == 'nt':
+        stream_handler = logging.StreamHandler()
+    else:
+        stream_handler = handlers.TimedRotatingFileHandler('japan_server.log', when='midnight', backupCount=3, encoding='utf8')
     stream_handler.setFormatter(log_formatter)
 
     f_handler = handlers.TimedRotatingFileHandler('jrobot.log', when='midnight', backupCount=3, encoding='utf8')

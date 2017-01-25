@@ -720,10 +720,14 @@ class ChinaRobot(zrobot.Robot):
 if __name__ == '__main__':
     from transitions import logger as transitions_logger
     from logging import handlers
+    import os
 
     log_formatter = logging.Formatter(
         '%(asctime)s: %(levelname)s: %(message)s', datefmt='%H:%M:%S')
-    stream_handler = handlers.TimedRotatingFileHandler('china_server.log', when='midnight', backupCount=3, encoding='utf8')
+    if os.name == 'nt':
+        stream_handler = logging.StreamHandler()
+    else:
+        stream_handler = handlers.TimedRotatingFileHandler('china_server.log', when='midnight', backupCount=3, encoding='utf8')
     stream_handler.setFormatter(log_formatter)
 
     f_handler = handlers.TimedRotatingFileHandler('zrobot.log', when='midnight', backupCount=3, encoding='utf8')
