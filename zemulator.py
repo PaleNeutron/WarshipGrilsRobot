@@ -888,6 +888,7 @@ class ZjsnEmulator(object):
             if int(fleet_id) == int(fleetId):
                 r = self.get(self.api.cancel_explore(explore_id))
                 self.pveExplore = r["pveExploreVo"]["levels"]
+                self.fleet = r["fleetVo"]
                 return True
 
 
