@@ -369,12 +369,7 @@ class Campaign(Mission):
         self.avilable = True
         self.state.ignore_invalid_triggers = True
         self.ships_id = []
-        if formation_code:
-            self.formation_code = formation_code
-        elif self.mission_code == 302:
-            self.formation_code = 5
-        else:
-            self.formation_code = 2
+        self.formation_code = formation_code
 
     def prepare(self):
         if self.ze.campaign_num > 0:
@@ -399,6 +394,13 @@ class Campaign(Mission):
         pass
 
     def start(self):
+
+        if not self.formation_code:
+            if self.mission_code == 302:
+                self.formation_code = 5
+            else:
+                self.formation_code = 2
+
         _logger.info('start campaign {}, remain {} times'.format(self.mission_code, self.ze.campaign_num))
         self.ze.get(self.ze.api.campaignSpy(self.mission_code))
         result_before_night = self.ze.get(self.ze.api.campaignDeal(self.mission_code, self.formation_code))
