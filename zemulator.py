@@ -175,7 +175,11 @@ class ZjsnUserShip(dict):
 
     def broken_ships_id(self, broken_level=0):
         """broken level 0 : 擦伤, 1 : 中破,  2 : 大破"""
-        return [ship.id for ship in self if ship.should_be_repair(broken_level)]
+        return [ship.id for ship in self.broken_ships(broken_level)]
+
+    def broken_ships(self, broken_level=0):
+        """broken level 0 : 擦伤, 1 : 中破,  2 : 大破"""
+        return [ship for ship in self if ship.should_be_repair(broken_level)]
 
     def save(self, file_name='my_ships.md'):
         markdown_string = ""
@@ -956,15 +960,15 @@ class ZjsnEmulator(object):
     def repair_all(self, broken_level=0, instant=False):
         """broken level 0 : 擦伤, 1 : 中破,  2 : 大破
         不会修理第一舰队的船"""
-        ships = [i for i in self.userShip.broken_ships_id(broken_level) if i not in self.fleet_ships_id]
+        ships = [i.id for i in self.userShip.broken_ships(broken_level) if i.status == 0]
         # 先修时间最短的
         ships.sort(key=lambda x: self.userShip[x].repair_time, reverse=True)
         for dock_index, dock in enumerate(self.repairDock):
             if "endTime" in dock:
                 if dock["endTime"] + self.common_lag < time.time():
                     self.repair_complete(dock["shipId"], dock_index)
-            elif dock["locked"] == 0 and len(ships) > 0:
-                self.repair(ships.pop(), dock_index, instant)
+            if "endTime" not in dock and dock["locked"] == 0 and len(ships) > 0:
+                    self.repair(ships.pop(), dock_index, instant)
 
     def repair_instant(self, broken_level=1):
         """对第一舰队用快修修理"""
