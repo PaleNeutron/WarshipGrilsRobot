@@ -290,33 +290,29 @@ class Mission_4_4_Boss(zrobot.Mission):
 
 class Mission_Event(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super().__init__('mission event', 9912, ze)
-        self.battle_fleet = ['胡德', '声望', '纳尔逊', '罗德尼', '海伦娜', '萨拉托加']
+        super().__init__('mission event', 9908, ze)
+        self.battle_fleet_name = ['胡德', '俾斯麦', '声望','大凤', '列克星敦', '萨拉托加']
 
     def set_first_nodes(self):
-        self.node_c = zrobot.Node('c')
-        self.node_g = zrobot.Node('g')
-        self.node_o = zrobot.Node('o', node_type='resource')
-        self.node_p = zrobot.Node('p')
-        self.node_t = zrobot.Node('t')
-        self.node_r = zrobot.Node('r', node_type='resource')
-        self.node_v = zrobot.Node('v', formation=1, night_flag=1)
+        self.node_a = self.node_chain([
+            zrobot.Node('b'),
+            # zrobot.Node('c', node_type='resource'),
+            zrobot.Node('e'),
+            zrobot.Node('h', night_flag=1, enemy_avoid=zemulator.ZjsnShip.type_id('潜艇')),
+            ])
 
-        self.node_c.add_next(self.node_g)
-        self.node_g.add_next(self.node_o)
-        self.node_o.add_next(self.node_p)
-        self.node_p.add_next(self.node_t)
-        self.node_t.add_next(self.node_v)
-        self.node_t.add_next(self.node_r)
-
-        return self.node_c
+        return self.node_a
 
     def prepare(self):
-        if self.boss_hp == 0:
+        if 10021913 in self.ze.unlockShip:
+            zrobot._logger.info("有瑞鹤了")
             return False
 
-        fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet]
-        fleet_group = [([i], 0.85, True) for i in fleet]
+        self.battle_fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet_name]
+        if not self.battle_fleet:
+            self.battle_fleet = self.ze.working_ships_id
+        fleet = self.battle_fleet
+        fleet_group = [([i], 0.8, True) for i in fleet]
         self.ze.ship_groups = fleet_group
         try:
             self.ze.change_ships()
@@ -326,7 +322,7 @@ class Mission_Event(zrobot.Mission):
 
     def summery(self):
         super().summery()
-        _logger.debug("boss hp={}".format(self.boss_hp))
+        zrobot._logger.debug("boss hp={}".format(self.boss_hp))
 
 
 class JapanChallenge(zrobot.Challenge):
@@ -335,7 +331,7 @@ class JapanChallenge(zrobot.Challenge):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(ze)
         self.friends = [22876, 21892, 18869]
-        self.battle_fleet = [1632, 3305, 954, 1614, 6642, 6640]
+        self.battle_fleet = [954, 1632, 3305, 1614, 8788, 6640]
         self.start_point = 80
 
     def formation_for_fish(self, fish_num):
@@ -444,9 +440,9 @@ class JapanRobot(zrobot.Robot):
         self.ze.equipment_formula = [10, 90, 90, 30]
         self.ze.boat_formula = [400, 80, 650, 101]
         self.explore.explore_table = (
-            ([105, 125, 112, 195, 143, 121], '40001'),
-            ([102, 109, 108, 107, 106, 110], '20001'),
             ([833, 183, 710, 391, 386, 449], '10003'),
+            ([102, 109, 108, 107, 106, 110], '20001'),
+            ([105, 125, 112, 195, 143, 121], '40001'),
             ([111, 104, 550, 211, 187, 185], '50003'),
         )
         self.campaign.mission_code = 102
@@ -458,6 +454,9 @@ class JapanRobot(zrobot.Robot):
         # self.machine.add_transition(**self.m1_4a.trigger)
 
         self.add_mission(JapanChallenge(self.ze))
+
+
+        self.add_mission(Mission_Event(self.ze))
         self.add_mission(zrobot.Mission_1_1(self.ze))
         # self.challenge = JapanChallenge(self.ze)
         # self.machine.add_states(self.challenge.state)
@@ -525,6 +524,7 @@ if __name__ == '__main__':
     # r.missions['kill_fish'].switch()
     # r.missions['Task'].switch()
     # r.missions['1-1A'].switch()
+    # r.missions['mission event'].switch()
     r.start()
     # r.ze.login()
     # print(r.ze.fleet)

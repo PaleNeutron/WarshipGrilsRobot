@@ -504,7 +504,9 @@ class ZjsnEmulator(object):
 
     def get(self, url, error_count=0, sleep_flag=True, method='GET', **kwargs):
         """kwargs: sleep=True"""
-        if error_count > 3:
+        if error_count:
+            time.sleep(error_count**3)
+        if error_count > 10:
             raise ConnectionError("lost connection")
         error_count += 1
 
@@ -537,7 +539,7 @@ class ZjsnEmulator(object):
                 return self.get(url, error_count, sleep_flag, method, **kwargs)
             elif eid == -9999:  # 维护啦
                 zlogger.warning('服务器维护中')
-                time.sleep(60 * 60)
+                time.sleep(30 * 60)
                 error_count -= 1
                 return self.get(url, error_count, sleep_flag, method, **kwargs)
             else:
@@ -1052,8 +1054,14 @@ class ZjsnEmulator(object):
     def getWarResult(self, night_flag=0):
         """0 不夜战, 1 夜战"""
         r = self.get(self.url_server + "/pve/getWarResult/" + str(night_flag))
-        self.userShip.update(r["shipVO"])
         result_level = r["warResult"]["resultLevel"]
+
+        if len(r["shipVO"]) > len(self.working_ships_id):
+            for s_d in r["shipVO"]:
+                if int(s_d['id']) not in self.userShip:
+                    self.userShip.add_ship([s_d], ze=self,
+                                           source='result {}, get'.format(self.result_list[int(result_level)]))
+        self.userShip.update(r["shipVO"])
         if "drop500" in r:
             self.drop500 = True
             zlogger.warning('今日500船已满')
