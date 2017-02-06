@@ -843,6 +843,15 @@ class Robot(object):
                     self.state = 'init'
                 else:
                     raise zerror
+            except ConnectionError:
+                while 1:
+                    time.sleep(600)
+                    try:
+                        self.ze.login()
+                        self.state = 'init'
+                        break
+                    except ConnectionError:
+                        pass
 
     def start(self):
         self.thread = threading.Thread(target=self.run)
