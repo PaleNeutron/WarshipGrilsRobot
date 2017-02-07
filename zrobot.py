@@ -825,9 +825,7 @@ class Robot(object):
         # self.machine.add_transition(**self.m1_1a.trigger)
         # self.machine.add_transition(**self.m6_1.trigger)
 
-    def run(self):
-        self.ze.login()
-        self.ze.repair_all()
+    def step(self):
         while self.command != 'stop':
             try:
                 self.go_out()
@@ -844,7 +842,7 @@ class Robot(object):
                 else:
                     raise zerror
             except ConnectionError:
-                while 1:
+                while self.command != 'stop':
                     time.sleep(600)
                     try:
                         self.ze.login()
@@ -852,6 +850,21 @@ class Robot(object):
                         break
                     except ConnectionError:
                         pass
+    def run(self):
+        while self.command != 'stop':
+            try:
+                self.ze.login()
+                self.ze.repair_all()
+                self.step()
+            except Exception as e:
+                _logger.error(e)
+                # disable mission where this error occurs
+                if self.state in self.missions:
+                    current_mission = self.missions[self.state]
+                    current_mission.enable = False
+                    _logger.error("{} is disabled".format(current_mission))
+                time.sleep(10)
+
 
     def start(self):
         self.thread = threading.Thread(target=self.run)
