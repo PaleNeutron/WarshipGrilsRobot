@@ -14,7 +14,7 @@ class Mission_6_1_A(zrobot.Mission):
         return node_a
     def boss_ship(self):
         # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
-        return [self.ze.userShip.name('博格').id]
+        return [self.ze.userShip.name('追赶者').id]
     def prepare(self):
         # 所有装了声呐的反潜船
         dd_ships = []
@@ -687,7 +687,7 @@ class ChinaRobot(zrobot.Robot):
         self.ze.username = 'junhongbill'
         self.ze.password = 'ouzhoutiduzjsn'
         self.ze.equipment_formula = [10, 90, 90, 30]
-        self.ze.boat_formula = [200, 30, 200, 30]
+        self.ze.boat_formula = [400, 30, 500, 300]
         self.explore.explore_table = (
             ([35442, 35500, 3846, 7376, 183, 103], '10003'),
             ([42093, 7367, 3877, 13972, 11497, 8452], '50003'),
