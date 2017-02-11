@@ -466,7 +466,6 @@ class ZjsnEmulator(object):
 
         self.node = 0
 
-        self.mission_flag = ""
         self.login_time = 0
 
         self.ship_groups = [([], 1, False)] * 6
@@ -481,10 +480,7 @@ class ZjsnEmulator(object):
         self.build_boat_remain = 0
         self.build_equipment_remain = 0
 
-        self.FLAG_FULL = "船满"
-        self.FLAG_REPAIR = "维修中,无法出击"
-        self.FLAG_EXPLORE = "远征中,无法出击"
-        self.FLAG_EXIT = "退出"
+        self.last_request = None
 
     @property
     def working_ships_id(self):
@@ -517,6 +513,7 @@ class ZjsnEmulator(object):
 
         try:
             r = self.s.request(method, url, timeout=30, **kwargs)
+            self.last_request = r
         except (
                 requests.exceptions.ConnectionError, requests.exceptions.Timeout,
                 requests.exceptions.ChunkedEncodingError):
