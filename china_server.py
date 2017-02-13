@@ -743,6 +743,6 @@ if __name__ == '__main__':
     transitions_logger.setLevel(logging.INFO)
     r = ChinaRobot()
     # r.missions['pants'].enable = True
-    r.missions['5-5C'].enable = True
+    # r.missions['5-5C'].enable = True
     # r.missions['kill_fish'].enable = True
     t = r.start()
