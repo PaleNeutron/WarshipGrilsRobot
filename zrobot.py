@@ -850,8 +850,17 @@ class Robot(object):
                         break
                     except ConnectionError:
                         pass
+
+    def is_sleep(self) -> bool:
+        # sleep in 0:00 to 6:00
+        now = datetime.today()
+        if now.replace(hour=0) < now < now.replace(hour=6):
+            return True
+        else:
+            return False
+
     def run(self):
-        while self.command != 'stop':
+        while self.command != 'stop' and not self.is_sleep():
             try:
                 self.ze.login()
                 self.ze.repair_all()
