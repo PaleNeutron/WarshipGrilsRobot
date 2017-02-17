@@ -445,7 +445,7 @@ class JapanRobot(zrobot.Robot):
             ([105, 125, 112, 195, 143, 121], '40001'),
             ([111, 104, 550, 211, 187, 185], '50003'),
         )
-        self.campaign.mission_code = 102
+        self.campaign.mission_code = 402
         # self.campaign.formation_code = 5
 
     def set_missions(self):

@@ -825,8 +825,8 @@ class Robot(object):
         # self.machine.add_transition(**self.m1_1a.trigger)
         # self.machine.add_transition(**self.m6_1.trigger)
 
-    def step(self):
-        while self.command != 'stop':
+    def working_loop(self):
+        while self.command != 'stop' and not self.is_sleep():
             try:
                 self.go_out()
                 time.sleep(2)
@@ -860,11 +860,11 @@ class Robot(object):
             return False
 
     def run(self):
-        while self.command != 'stop' and not self.is_sleep():
+        while self.command != 'stop':
             try:
                 self.ze.login()
                 self.ze.repair_all()
-                self.step()
+                self.working_loop()
             except Exception as e:
                 _logger.error(e)
                 # disable mission where this error occurs
