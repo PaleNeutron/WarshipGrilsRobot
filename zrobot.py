@@ -826,10 +826,13 @@ class Robot(object):
         # self.machine.add_transition(**self.m6_1.trigger)
 
     def working_loop(self):
-        while self.command != 'stop' and not self.is_sleep():
+        while self.command != 'stop':
             try:
-                self.go_out()
-                time.sleep(2)
+                if not self.is_sleep():
+                    self.go_out()
+                    time.sleep(2)
+                else:
+                    time.sleep(600)
             except zemulator.ZjsnError as zerror:
                 if zerror.eid == -101:
                     self.ze.login()
@@ -843,6 +846,7 @@ class Robot(object):
                     raise zerror
             except ConnectionError:
                 while self.command != 'stop':
+                    _logger.error("Connection error")
                     time.sleep(600)
                     try:
                         self.ze.login()
