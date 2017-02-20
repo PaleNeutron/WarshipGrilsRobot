@@ -858,7 +858,7 @@ class Robot(object):
     def is_sleep(self) -> bool:
         # sleep in 0:00 to 6:00
         now = datetime.today()
-        if now.replace(hour=0) < now < now.replace(hour=6):
+        if now.replace(hour=0, minute=0) < now < now.replace(hour=6):
             return True
         else:
             return False
