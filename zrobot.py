@@ -884,6 +884,8 @@ class Robot(object):
         from logging import handlers
         import os
 
+        self.ze.login()
+
         log_formatter = logging.Formatter(
             '%(asctime)s: %(levelname)s: %(message)s', datefmt='%H:%M:%S')
         if os.name == 'nt':
