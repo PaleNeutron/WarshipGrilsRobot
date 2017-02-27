@@ -1,5 +1,3 @@
-import logging
-
 import china_server
 import zemulator
 import zrobot
@@ -8,8 +6,7 @@ import zrobot
 class JapanPants(china_server.MissionPants):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(ze)
-        self.pants_yesterday = 14
-        self.enable = True
+        self.pants_yesterday = 10
 
     def prepare(self):
         if self.ze.spoils - self.pants_yesterday >= 50:
@@ -498,6 +495,7 @@ class JapanRobot(zrobot.Robot):
 
 if __name__ == '__main__':
     r = JapanRobot()
+    r.missions['pants'].switch()
     # r.missions['kill_fish'].switch()
     # r.missions['Task'].switch()
     # r.missions['1-1A'].switch()
