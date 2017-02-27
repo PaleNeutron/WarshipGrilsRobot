@@ -565,7 +565,8 @@ class ZjsnEmulator(object):
         self.url_server = server_json['host'][:-1]
         self.api.host = self.url_server
         # 亲测userID没有作用，决定登陆哪个账号的是cookie
-        self.get(self.api.login(r1.json()["userId"]), sleep_flag=False)
+        self.uid = r1.json()["userId"]
+        self.get(self.api.login(self.uid), sleep_flag=False)
         self.initGame = self.get(self.api.init(), sleep_flag=False)
         self.get(self.url_server + "/pve/getPveData/", sleep_flag=False)
         self.get(self.url_server + "/pevent/getPveData/", sleep_flag=False)

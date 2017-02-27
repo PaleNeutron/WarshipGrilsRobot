@@ -159,7 +159,7 @@ class Mission3_4_A(zrobot.Mission):
         self.ze.ship_groups[0] = [[self.ze.userShip.name('安德烈').id], 1, False]
         for i in range(1, 5):
             self.ze.ship_groups[i] = [dd_ships, 1, False]
-        _logger.debug(
+        zrobot._logger.debug(
             "dd_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in dd_ships]))
 
         try:
@@ -248,7 +248,7 @@ class Mission_3_4_Boss(zrobot.Mission):
 
     def summery(self):
         super().summery()
-        _logger.debug("boss hp={}".format(self.boss_hp))
+        zrobot._logger.debug("boss hp={}".format(self.boss_hp))
 
 
 class Mission_4_4_Boss(zrobot.Mission):
@@ -285,7 +285,7 @@ class Mission_4_4_Boss(zrobot.Mission):
 
     def summery(self):
         super().summery()
-        _logger.debug("boss hp={}".format(self.boss_hp))
+        zrobot._logger.debug("boss hp={}".format(self.boss_hp))
 
 
 class Mission_Event(zrobot.Mission):
@@ -468,7 +468,7 @@ class JapanRobot(zrobot.Robot):
 
         self.add_mission(Japan_Mission_6_1_A(self.ze))
         self.add_mission(Mission3_4_A(self.ze))
-        # self.add_mission(JapanPants(self.ze))
+        self.add_mission(JapanPants(self.ze))
 
         # self.m3_2 = Mission3_2(self.ze)
         # self.machine.add_states(self.m3_2.state)
@@ -497,29 +497,6 @@ class JapanRobot(zrobot.Robot):
 
 
 if __name__ == '__main__':
-    from transitions import logger as transitions_logger
-    from logging import handlers
-    from zrobot import _logger
-    import os
-
-    log_formatter = logging.Formatter(
-        '%(asctime)s: %(levelname)s: %(message)s', datefmt='%H:%M:%S')
-    if os.name == 'nt':
-        stream_handler = logging.StreamHandler()
-    else:
-        stream_handler = handlers.TimedRotatingFileHandler('japan_server.log', when='midnight', backupCount=3, encoding='utf8')
-    stream_handler.setFormatter(log_formatter)
-
-    f_handler = handlers.TimedRotatingFileHandler('jrobot.log', when='midnight', backupCount=3, encoding='utf8')
-    f_handler.setFormatter(log_formatter)
-
-    _logger.addHandler(stream_handler)
-    _logger.addHandler(f_handler)
-    _logger.setLevel(logging.DEBUG)
-    f_handler.setLevel(logging.INFO)
-
-    transitions_logger.addHandler(stream_handler)
-    transitions_logger.setLevel(logging.INFO)
     r = JapanRobot()
     # r.missions['kill_fish'].switch()
     # r.missions['Task'].switch()

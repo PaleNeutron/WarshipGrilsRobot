@@ -719,28 +719,6 @@ class ChinaRobot(zrobot.Robot):
 
 
 if __name__ == '__main__':
-    from transitions import logger as transitions_logger
-    from logging import handlers
-    import os
-
-    log_formatter = logging.Formatter(
-        '%(asctime)s: %(levelname)s: %(message)s', datefmt='%H:%M:%S')
-    if os.name == 'nt':
-        stream_handler = logging.StreamHandler()
-    else:
-        stream_handler = handlers.TimedRotatingFileHandler('china_server.log', when='midnight', backupCount=3, encoding='utf8')
-    stream_handler.setFormatter(log_formatter)
-
-    f_handler = handlers.TimedRotatingFileHandler('zrobot.log', when='midnight', backupCount=3, encoding='utf8')
-    f_handler.setFormatter(log_formatter)
-
-    zrobot._logger.addHandler(stream_handler)
-    zrobot._logger.addHandler(f_handler)
-    zrobot._logger.setLevel(logging.DEBUG)
-    f_handler.setLevel(logging.INFO)
-
-    transitions_logger.addHandler(stream_handler)
-    transitions_logger.setLevel(logging.INFO)
     r = ChinaRobot()
     # r.missions['pants'].enable = True
     # r.missions['5-5C'].enable = True

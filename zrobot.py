@@ -880,6 +880,25 @@ class Robot(object):
 
 
     def start(self):
+        from transitions import logger as transitions_logger
+        from logging import handlers
+        import os
+
+        log_formatter = logging.Formatter(
+            '%(asctime)s: %(levelname)s: %(message)s', datefmt='%H:%M:%S')
+        if os.name == 'nt':
+            stream_handler = logging.StreamHandler()
+        else:
+            stream_handler = handlers.TimedRotatingFileHandler('{}.log'.format(self.ze.uid), when='midnight', backupCount=3,
+                                                               encoding='utf8')
+        stream_handler.setFormatter(log_formatter)
+
+        _logger.addHandler(stream_handler)
+        _logger.setLevel(logging.DEBUG)
+
+        transitions_logger.addHandler(stream_handler)
+        transitions_logger.setLevel(logging.INFO)
+
         self.thread = threading.Thread(target=self.run)
         self.thread.start()
         return self.thread
