@@ -16,7 +16,6 @@ with open(os.path.dirname(os.path.realpath(__file__)) + os.sep + "init.txt", enc
     __ZJSN_DATA = json.load(f)
 
 shipCard = {int(i['cid']): i for i in __ZJSN_DATA["shipCard"]}
-shipCard.update({18011613: shipCard[10011613]}) # this line is for 戈本 in japan
 errorCode = __ZJSN_DATA['errorCode']
 equipmentCard = {int(i['cid']): i for i in __ZJSN_DATA["shipEquipmnt"]}
 
