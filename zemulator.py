@@ -211,8 +211,7 @@ class ZjsnUserShip(dict):
 
 class ZjsnShip(dict):
     """docstring for ZjsnUserShip"""
-    type_list = ['全部',
-                 '航母',
+    type_list = ['航母',
                  '轻母',
                  '装母',
                  '战列',
@@ -228,7 +227,11 @@ class ZjsnShip(dict):
                  '潜艇',
                  '炮潜',
                  '补给',
-                 '其他', ]
+                 '导驱',
+                 '防驱',]
+
+    type_id_list = list(range(1,17)) + [23, 24] # 导驱的ID是23，防驱是24
+
 
     white_list = [
                      10003912,  # 不是欧派塔
@@ -269,7 +272,8 @@ class ZjsnShip(dict):
     @property
     def type(self):
         if self.cid in shipCard:
-            return ZjsnShip.type_list[int(shipCard[self.cid]['type'])]
+            type_trans_code = ZjsnShip.type_id_list.index(int(shipCard[self.cid]['type']))
+            return ZjsnShip.type_list[type_trans_code]
         else:
             return 0
 
@@ -319,7 +323,8 @@ class ZjsnShip(dict):
 
     @staticmethod
     def type_id(type_name):
-        return ZjsnShip.type_list.index(type_name)
+        type_trans_code = ZjsnShip.type_list.index(type_name)
+        return ZjsnShip.type_id_list[type_trans_code]
 
     @property
     def married(self):

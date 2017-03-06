@@ -876,6 +876,8 @@ class Robot(object):
                     current_mission = self.missions[self.state]
                     current_mission.enable = False
                     _logger.error("{} is disabled".format(current_mission))
+                    # init state
+                    self.state = 'init'
                 time.sleep(10)
 
 
