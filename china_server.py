@@ -691,7 +691,7 @@ class ChinaRobot(zrobot.Robot):
             ([35442, 35500, 3846, 7376, 183, 103], '10003'),
             ([42093, 7367, 3877, 13972, 11497, 8452], '50003'),
             ([128, 14094, 113, 101, 577, 7373], '40001'),
-            ([123, 13973, 27865, 14138, 10706, 104], '20001')
+            ([123, 13973, 10800, 14138, 10706, 104], '20001')
         )
         self.campaign.mission_code = 402
 
@@ -721,5 +721,5 @@ if __name__ == '__main__':
     r = ChinaRobot()
     # r.missions['pants'].enable = True
     # r.missions['5-5C'].enable = True
-    # r.missions['kill_fish'].enable = True
+    r.missions['kill_fish'].enable = True
     t = r.start()
