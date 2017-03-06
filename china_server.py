@@ -1,5 +1,3 @@
-import logging
-
 import zemulator
 import zrobot
 
@@ -12,7 +10,8 @@ class Mission_6_1_A(zrobot.Mission):
         node_a = zrobot.Node('A', formation=5,
                              additional_spy_filter=lambda x: x["enemyVO"]["enemyFleet"]["id"] == 60102003)
         return node_a
-    def boss_ship(self):
+
+    def boss_ships(self) -> list:
         # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
         return [self.ze.userShip.name('追赶者').id]
     def prepare(self):
@@ -34,8 +33,8 @@ class Mission_6_1_A(zrobot.Mission):
             "dd_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in dd_ships]))
 
         # boss_ships = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
-        if self.boss_ship():
-            boss_ships = self.boss_ship()
+        if self.boss_ships():
+            boss_ships = self.boss_ships()
             self.ze.ship_groups[0] = (boss_ships, 2, True)
         else:
             boss_ships = dd_ships
@@ -698,7 +697,7 @@ class ChinaRobot(zrobot.Robot):
 
     def set_missions(self):
         challenge = zrobot.Challenge(self.ze)
-        challenge.battle_fleet = [851, 213, 61131, 7385, 56604, 52359]
+        challenge.battle_fleet = [851, 213, 61131, 927, 56604, 52359]
         challenge.ninghai = 1215
         challenge.friends = [2593850, 74851, 2827412]
         self.add_mission(challenge)

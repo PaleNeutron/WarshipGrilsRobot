@@ -421,8 +421,10 @@ class Japan_Mission_5_2_C(zrobot.Mission):
 
 class Japan_Mission_6_1_A(china_server.Mission_6_1_A):
     """鱼塘 炸鱼"""
-    def boss_ship(self):
-        return None
+
+    def boss_ships(self):
+        return [self.ze.userShip.name('天龙').id]
+        # return None
 
 class JapanRobot(zrobot.Robot):
     """docstring for Robot"""
@@ -438,8 +440,8 @@ class JapanRobot(zrobot.Robot):
         self.ze.boat_formula = [400, 80, 650, 101]
         self.explore.explore_table = (
             ([833, 183, 710, 391, 386, 449], '10003'),
-            ([102, 109, 108, 107, 106, 110], '20001'),
-            ([105, 125, 112, 195, 143, 121], '40001'),
+            ([102, 109, 108, 107, 219, 1338], '20001'),
+            ([143, 2891, 9005, 3002, 105, 120], '40001'),
             ([111, 104, 550, 211, 187, 185], '50003'),
         )
         self.campaign.mission_code = 402
@@ -495,8 +497,8 @@ class JapanRobot(zrobot.Robot):
 
 if __name__ == '__main__':
     r = JapanRobot()
-    r.missions['pants'].switch()
-    # r.missions['kill_fish'].switch()
+    # r.missions['pants'].switch()
+    r.missions['kill_fish'].switch()
     # r.missions['Task'].switch()
     # r.missions['1-1A'].switch()
     # r.missions['mission event'].switch()
