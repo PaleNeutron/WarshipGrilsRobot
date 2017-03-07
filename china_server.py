@@ -11,9 +11,10 @@ class Mission_6_1_A(zrobot.Mission):
                              additional_spy_filter=lambda x: x["enemyVO"]["enemyFleet"]["id"] == 60102003)
         return node_a
 
-    def boss_ships(self) -> list:
+    def boss_ships(self):
         # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
-        return [self.ze.userShip.name('追赶者').id]
+        # return [self.ze.userShip.name('追赶者').id]
+        return None
     def prepare(self):
         # 所有装了声呐的反潜船
         dd_ships = []
@@ -721,5 +722,5 @@ if __name__ == '__main__':
     r = ChinaRobot()
     # r.missions['pants'].enable = True
     # r.missions['5-5C'].enable = True
-    r.missions['kill_fish'].enable = True
+    # r.missions['kill_fish'].enable = True
     t = r.start()

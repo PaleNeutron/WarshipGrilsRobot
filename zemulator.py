@@ -317,7 +317,7 @@ class ZjsnShip(dict):
             self.status == 0,  # 没被修理
             self.id not in ze.fleet_ships_id,  # 不在任何舰队中
             self.cid not in self.white_list,
-            self.star < 5,  # 小于五星
+            self.star < 5 or self.name in ['欧根亲王', '天狼星'],  # 小于五星
         )
         return not all(conditions)
 
@@ -764,13 +764,17 @@ class ZjsnEmulator(object):
             target_attribute = [0, 1, 2, 3]
         ships_strengthen = []
         ship_types = []
-        food_type = ['重巡', '驱逐', '驱逐', '轻巡']
+        # 分别是火力，装甲，鱼雷，对空
+        food_type = [['重巡', '战巡'],
+                     ['驱逐'],
+                     ['驱逐'],
+                     ['轻巡']]
         if not any(ship_in.strength_exp):
             # if not self.auto_skill(ship_in):
             return -1  # 没必要强化
         for attribute_id, exp_remain in enumerate(ship_in.strength_exp):
             if attribute_id in target_attribute and exp_remain > 0:
-                ship_types.append(food_type[attribute_id])
+                ship_types.extend(food_type[attribute_id])
         if not ship_types:
             return -1  # 没必要强化
 
