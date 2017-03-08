@@ -14,7 +14,7 @@ class Mission_6_1_A(zrobot.Mission):
     def boss_ships(self):
         # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
         # return [self.ze.userShip.name('追赶者').id]
-        return None
+        return []
     def prepare(self):
         # 所有装了声呐的反潜船
         dd_ships = []
@@ -35,7 +35,11 @@ class Mission_6_1_A(zrobot.Mission):
 
         # boss_ships = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
         if self.boss_ships():
-            boss_ships = self.boss_ships()
+            boss_ships = [boss_ship < 100 for boss_ship in self.boss_ships() if self.ze.userShip[boss_ship].level < 100]
+        else:
+            boss_ships = []
+
+        if boss_ships:
             self.ze.ship_groups[0] = (boss_ships, 2, True)
         else:
             boss_ships = dd_ships
