@@ -35,7 +35,7 @@ class Mission_6_1_A(zrobot.Mission):
 
         # boss_ships = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
         if self.boss_ships():
-            boss_ships = [boss_ship < 100 for boss_ship in self.boss_ships() if self.ze.userShip[boss_ship].level < 100]
+            boss_ships = [boss_ship for boss_ship in self.boss_ships() if self.ze.userShip[boss_ship].level < 100]
         else:
             boss_ships = []
 
