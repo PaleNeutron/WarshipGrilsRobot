@@ -423,7 +423,7 @@ class Japan_Mission_6_1_A(china_server.Mission_6_1_A):
     """鱼塘 炸鱼"""
 
     def boss_ships(self):
-        return [self.ze.userShip.name('天龙').id]
+        return [self.ze.userShip.name('龙田').id]
         # return None
 
 class JapanRobot(zrobot.Robot):
