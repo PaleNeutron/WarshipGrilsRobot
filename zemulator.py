@@ -317,7 +317,7 @@ class ZjsnShip(dict):
             self.status == 0,  # 没被修理
             self.id not in ze.fleet_ships_id,  # 不在任何舰队中
             self.cid not in self.white_list,
-            self.star < 5 or self.name in ['欧根亲王', '天狼星'],  # 小于五星
+            self.star < 5 or self.name in ['欧根亲王', '天狼星', '胡德', '关岛', '阿拉斯加'],  # 小于五星
         )
         return not all(conditions)
 
