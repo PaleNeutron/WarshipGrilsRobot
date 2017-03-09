@@ -735,6 +735,7 @@ class ZjsnEmulator(object):
         if len(ships_dismantle) > 0:
             r = self.get(self.api.dismantleBoat(ships_dismantle, throw_equipment))
             del_ships = r['delShips']
+            zlogger.debug('dismantle: {}'.format([self.userShip[s].name for s in del_ships]))
             if 'equipmentVo' in r:
                 self.equipment = r['equipmentVo']
             for ship_id in del_ships:
@@ -785,7 +786,8 @@ class ZjsnEmulator(object):
                 ships_strengthen.append(ship.id)
         if len(ships_strengthen) > 0:
             ships_strengthen = ships_strengthen[:2]  # 一次最多吃2艘船
-            r = self.get(self.api.strengthen(ship_in['id'], ships_strengthen))
+            r = self.get(self.api.strengthen(ship_in.id, ships_strengthen))
+            zlogger.debug("{} eats {}".format(ship_in.name, [self.userShip[s].name for s in ships_strengthen]))
             del_ships = r['delShips']
             for ship_id in del_ships:
                 self.userShip.pop(ship_id, None)
