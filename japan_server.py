@@ -444,7 +444,7 @@ class JapanRobot(zrobot.Robot):
             ([105, 143, 2891, 9005, 3002, 120], '40001'),
             ([111, 104, 550, 211, 187, 185], '50003'),
         )
-        self.campaign.mission_code = 201
+        self.campaign.mission_code = 402
         # self.campaign.formation_code = 5
 
     def set_missions(self):
@@ -498,7 +498,7 @@ class JapanRobot(zrobot.Robot):
 if __name__ == '__main__':
     r = JapanRobot()
     # r.missions['pants'].switch()
-    r.missions['kill_fish'].switch()
+    # r.missions['kill_fish'].switch()
     # r.missions['Task'].switch()
     # r.missions['1-1A'].switch()
     # r.missions['mission event'].switch()

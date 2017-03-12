@@ -698,7 +698,7 @@ class ChinaRobot(zrobot.Robot):
             ([128, 14094, 113, 101, 577, 7373], '40001'),
             ([123, 13973, 10800, 14138, 10706, 104], '20001')
         )
-        self.campaign.mission_code = 102
+        self.campaign.mission_code = 402
 
     def set_missions(self):
         challenge = zrobot.Challenge(self.ze)
