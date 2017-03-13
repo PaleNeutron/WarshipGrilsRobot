@@ -531,7 +531,7 @@ class Mission_6_4(zrobot.Mission):
         if 10023712 in self.ze.unlockShip:
             zrobot._logger.debug('有昆特了')
             return False
-        boss_ships = [s.id for s in self.ze.userShip if s.name == '赤城']  # 赤城带队洗地
+        boss_ships = [s.id for s in self.ze.userShip if s.name == '赤城' and s.level > 80]  # 赤城带队洗地
         cv_ships = []
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
             conditions = [1 < ship["level"] < 100,
@@ -555,11 +555,12 @@ class Mission_6_4(zrobot.Mission):
         ships = [self.ze.userShip[ship_id] for ship_id in ca_ships]
         zrobot._logger.debug("ca_ships:{}".format([(s.name, s.level) for s in ships]))
 
-        for i in range(2, 6):
+        for i in range(0, 6):
             self.ze.ship_groups[i] = (cv_ships, 1, True)
         # boss_ships = cv_ships
         self.ze.ship_groups[0] = (boss_ships, 1, True)
-        self.ze.ship_groups[1] = (ca_ships, 1, True)
+        self.ze.ship_groups[1] = ([229], 1, True)
+        self.ze.ship_groups[2] = (ca_ships, 1, True)
 
         try:
             self.ze.change_ships()
