@@ -707,9 +707,8 @@ class ZjsnEmulator(object):
                               )
                 if all(conditions):
                     new_ship_id = s_id
+                    self.repair(new_ship_id, 0, instant=True)
                     break
-            if new_ship_id:
-                self.repair(new_ship_id, 0, instant=True)
         if new_ship_id:
             return new_ship_id
         else:

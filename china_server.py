@@ -518,26 +518,25 @@ class Mission_1_1(zrobot.Mission):
 
 class Mission_6_4(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super(Mission_6_4, self).__init__('6-4 两点', 604, ze)
+        super(Mission_6_4, self).__init__('6-4', 604, ze)
         self.pants_num = 0
 
     def set_first_nodes(self):
-        # self.node_a = Node('A', additional_spy_filter=lambda sr: '战巡' in str(sr) or '航母'in str(sr))
-        self.node_a = zrobot.Node('A', enemy_avoid='战巡')
-        self.node_b = zrobot.Node('B', night_flag=True)
-
-        self.node_a.add_next(self.node_b)
+        self.node_a = self.node_chain([zrobot.Node('A', enemy_avoid='战巡'),
+                                       zrobot.Node('B'),
+                                       zrobot.Node('e', enemy_avoid='潜艇')])
         return self.node_a
 
     def prepare(self):
         if 10023712 in self.ze.unlockShip:
             zrobot._logger.debug('有昆特了')
             return False
-        boss_ships = [44420, 9210, 5324]  # 密苏里, 牛仔级
+        boss_ships = [s.id for s in self.ze.userShip if s.name == '赤城']  # 赤城带队洗地
         cv_ships = []
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
-            conditions = [1 < ship["level"] < 99,
+            conditions = [1 < ship["level"] < 100,
                           ship.type in ['航母'],
+                          ship.name != '突击者',
                           ]
             if all(conditions):
                 cv_ships.append(ship.id)
@@ -556,14 +555,16 @@ class Mission_6_4(zrobot.Mission):
         ships = [self.ze.userShip[ship_id] for ship_id in ca_ships]
         zrobot._logger.debug("ca_ships:{}".format([(s.name, s.level) for s in ships]))
 
-        for i in range(1, 3):
-            self.ze.ship_groups[i] = (ca_ships, 1, False)
-        boss_ships = cv_ships
+        for i in range(2, 6):
+            self.ze.ship_groups[i] = (cv_ships, 1, True)
+        # boss_ships = cv_ships
         self.ze.ship_groups[0] = (boss_ships, 1, True)
-        self.ze.ship_groups[3] = self.ze.ship_groups[4] = self.ze.ship_groups[5] = (cv_ships, 1, True)
+        self.ze.ship_groups[1] = (ca_ships, 1, True)
+
         try:
             self.ze.change_ships()
-        except zemulator.ZjsnError:
+        except zemulator.ZjsnError as ze:
+            zrobot._logger.debug(ze)
             return False
         return True
 
@@ -717,13 +718,14 @@ class ChinaRobot(zrobot.Robot):
         # self.add_mission(Mission_4_3(self.ze))
         # self.add_mission(Mission_2_2(self.ze))
         # self.add_mission(Mission_5_5_B(self.ze))
-        # self.add_mission(Mission_6_4(self.ze))
+        self.add_mission(Mission_6_4(self.ze))
         self.add_mission(MissionPants(self.ze))
         self.add_mission(Mission_6_1_A(self.ze))
 
 
 if __name__ == '__main__':
     r = ChinaRobot()
+    r.missions['6-4'].switch()
     # r.missions['pants'].enable = True
     # r.missions['5-5C'].enable = True
     # r.missions['kill_fish'].enable = True
