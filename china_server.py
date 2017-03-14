@@ -534,9 +534,9 @@ class Mission_6_4(zrobot.Mission):
         boss_ships = [s.id for s in self.ze.userShip if s.name == '赤城' and s.level > 80]  # 赤城带队洗地
         cv_ships = []
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
-            conditions = [1 < ship["level"] < 100,
+            conditions = [20 < ship["level"] < 100,
                           ship.type in ['航母'],
-                          ship.name != '突击者',
+                          ship.name not in ['突击者', '赤城'],
                           ]
             if all(conditions):
                 cv_ships.append(ship.id)
