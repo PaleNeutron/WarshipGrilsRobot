@@ -524,7 +524,7 @@ class Mission_6_4(zrobot.Mission):
     def set_first_nodes(self):
         self.node_a = self.node_chain([zrobot.Node('A', enemy_avoid='战巡'),
                                        zrobot.Node('B'),
-                                       zrobot.Node('e', enemy_avoid='潜艇')])
+                                       zrobot.Node('e', enemy_avoid='潜艇', night_flag=1)])
         return self.node_a
 
     def prepare(self):
