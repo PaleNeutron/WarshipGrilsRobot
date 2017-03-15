@@ -693,7 +693,7 @@ class ChinaRobot(zrobot.Robot):
         self.ze.username = 'junhongbill'
         self.ze.password = 'ouzhoutiduzjsn'
         self.ze.equipment_formula = [10, 90, 90, 30]
-        self.ze.boat_formula = [400, 30, 500, 300]
+        self.ze.boat_formula = [200, 30, 200, 30]
         self.explore.explore_table = (
             ([35442, 35500, 3846, 7376, 19801, 283], '10003'),
             ([42093, 7367, 3877, 13972, 11497, 8452], '50003'),
@@ -726,7 +726,7 @@ class ChinaRobot(zrobot.Robot):
 
 if __name__ == '__main__':
     r = ChinaRobot()
-    r.missions['6-4'].switch()
+    # r.missions['6-4'].switch()
     # r.missions['pants'].enable = True
     # r.missions['5-5C'].enable = True
     # r.missions['kill_fish'].enable = True
