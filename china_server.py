@@ -704,7 +704,7 @@ class ChinaRobot(zrobot.Robot):
 
     def set_missions(self):
         challenge = zrobot.Challenge(self.ze)
-        challenge.battle_fleet = [851, 213, 61131, 2914, 56604, 65646]
+        challenge.battle_fleet = [851, 14091, 61131, 2914, 56604, 65646]
         challenge.ninghai = 1215
         challenge.friends = [2593850, 74851, 2827412]
         self.add_mission(challenge)
