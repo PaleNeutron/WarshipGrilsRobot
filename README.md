@@ -1,13 +1,13 @@
 # WarshipGrilsRobot
 a Robot for warship grils.
 You can create self-designed robot script to resolve warshipgirls daily work.
-##Requirement
 
+## Requirement
 1. Python 3
 2. requests
 3. transitions
 
-##Usage
+## Usage
 The version is an alpha version, classes you need is in `zrobot.py` and `zemulator.py`.
 
 japan_server.py is an example
