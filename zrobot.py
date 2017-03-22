@@ -433,8 +433,8 @@ class Challenge(Mission):
         super(Challenge, self).__init__('challenge', 0, ze)
         self.ze = ze
         self.available = True
-        self.battle_fleet = [7860, 50367, 42093, 13708, 927, 13598]
-        self.friends = [2593850, 74851, 2827412]
+        self.ship_list = []
+        self.friends = []
         self.old_fleet = []
         self.challenge_list = {}
         self.friend_available = False
@@ -482,6 +482,28 @@ class Challenge(Mission):
         if r_f['challengeNum'] == 0:
             self.friend_available = True
 
+        # 去掉满级船和养殖结束的船
+        battle_fleet = [s for s in self.ship_list + self.farm_ships() if self.fleet_filter(s)]
+        if len(battle_fleet) < 6:
+            self.battle_fleet = self.battle_fleet[:6]
+        else:
+            self.battle_fleet = battle_fleet[:6]
+
+        # 按照大炮，小船，航母的顺序编队
+        ships_a = []
+        ships_b = []
+        ships_c = []
+        for s_id in self.battle_fleet:
+            ship = self.ze.userShip[s_id]
+            if ship.type in ['战列', '战巡', '航战']:
+                ships_a.append(s_id)
+            elif ship.type in ['航母', '装母', '轻母']:
+                ships_c.append(s_id)
+            else:
+                ships_b.append(s_id)
+
+        self.battle_fleet = ships_a + ships_b + ships_c
+
         if self.challenge_list or self.friend_available:
             self.ze.instant_fleet(self.battle_fleet)
             self.available = True
@@ -490,21 +512,26 @@ class Challenge(Mission):
 
         self.last_challenge_time = datetime.today()
 
+    def farm_ships(self):
+        farm_ships = [s.id for s in self.ze.userShip if s.name in ['罗德尼', '纳尔逊']]
+        return farm_ships
+
     def formation_for_fish(self, fish_num):
         # todo define more simple antisubmarine ships
-        fish_fleet = self.battle_fleet[:]
+        new_fleet = self.battle_fleet[:]
         if fish_num == 1:
-            fish_fleet[1] = 367  # 干死那条鱼
+            new_fleet[1] = 367  # 干死那条鱼
         if fish_num == 2:
-            fish_fleet[-1] = 1215  # 干死那2条鱼
+            new_fleet[-1] = 1215  # 干死那2条鱼
         if fish_num == 3:
-            fish_fleet[-2:] = [367, 1215]  # 干死那3条鱼
+            new_fleet[-2:] = [367, 1215]  # 干死那3条鱼
         if fish_num == 4:
-            fish_fleet[-2:] = [11063, 1215]  # 干死那4条鱼
+            new_fleet[-2:] = [11063, 1215]  # 干死那4条鱼
         if fish_num > 4:
-            fish_fleet[-3:] = [32549, 11063, 1215]
-        self.ze.instant_fleet(fish_fleet)
-        return fish_fleet
+            new_fleet[-3:] = [32549, 11063, 1215]
+
+        self.ze.instant_fleet(new_fleet)
+        return new_fleet
 
     def start(self):
         _logger.debug("challenge fleet:{}".format(
@@ -515,6 +542,14 @@ class Challenge(Mission):
             for friend_uid in self.friends:
                 self.fight(friend_uid, friend=True)
         _logger.debug("finish")
+
+    def fleet_filter(self, ship_id):
+        """"""
+        ship = self.ze.userShip[ship_id]
+        condition = ship.level < 100
+        if ship.name in ['罗德尼', '纳尔逊'] and not ship.evolved:
+            condition = ship.level < ship.evoLevel
+        return condition
 
     def fight(self, enemy_uid, friend=False):
         if friend:
