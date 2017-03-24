@@ -13,8 +13,11 @@ class Mission_6_1_A(zrobot.Mission):
 
     def boss_ships(self):
         # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
-        # return [self.ze.userShip.name('追赶者').id]
-        return []
+        return [self.ze.userShip.name('雪风').id,
+                self.ze.userShip.name('岛风').id,
+                self.ze.userShip.name('塔什干').id,
+                ]
+        # return []
     def prepare(self):
         # 所有装了声呐的反潜船
         dd_ships = []
