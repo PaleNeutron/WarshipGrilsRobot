@@ -331,7 +331,7 @@ class JapanChallenge(zrobot.Challenge):
         self.ship_list = [10401, 177, 10287, 8788, 9035, 775, 1213, 10380, 173]
         self.start_point = 80
 
-    def formation_for_ship(self, fish_num):
+    def formation_for_fish(self, fish_num):
         fish_fleet = self.battle_fleet[:]
         if fish_num > 0:
             fish_fleet[-1] = self.ze.userShip.name('宁海').id
@@ -497,6 +497,8 @@ class JapanRobot(zrobot.Robot):
 
 if __name__ == '__main__':
     r = JapanRobot()
+    r.ze.boat_formula = [200, 30, 200, 30]
+    r.ze.build_boat_remain = 10
     # r.missions['pants'].switch()
     # r.missions['kill_fish'].switch()
     # r.missions['Task'].switch()
