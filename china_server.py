@@ -13,9 +13,7 @@ class Mission_6_1_A(zrobot.Mission):
 
     def boss_ships(self):
         # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
-        return [self.ze.userShip.name('雪风').id,
-                self.ze.userShip.name('岛风').id,
-                self.ze.userShip.name('塔什干').id,
+        return [self.ze.userShip.name('维内托').id,
                 ]
         # return []
     def prepare(self):
@@ -698,7 +696,7 @@ class ChinaRobot(zrobot.Robot):
         self.ze.equipment_formula = [10, 90, 90, 30]
         self.ze.boat_formula = [200, 30, 200, 30]
         self.explore.explore_table = (
-            ([35442, 35500, 3846, 7376, 19801, 283], '10003'),
+            ([14091, 35442, 35500, 49333, 37890, 44175], '10003'),
             ([42093, 7367, 3877, 13972, 11497, 8452], '50003'),
             ([128, 14094, 113, 101, 577, 7373], '40001'),
             ([123, 13973, 10800, 14138, 10706, 104], '20001')
@@ -707,7 +705,9 @@ class ChinaRobot(zrobot.Robot):
 
     def set_missions(self):
         challenge = zrobot.Challenge(self.ze)
-        challenge.ship_list = [851, 14091, 61131, 2914, 56604, 65646, 35436, 8579, 1079, 9210, 5324, 166, 58591]
+        challenge.ship_list = [851, 14091, 61131, 2914, 56604, 65646,
+                               7865, 8579, 379, 1079, 9210, 5324, 166, 58591,
+                               36207, 370, 231, 7869, 35361, 3835, 7499, 47271]
         challenge.ninghai = 1215
         challenge.friends = [2593850, 74851, 2827412]
         self.add_mission(challenge)
