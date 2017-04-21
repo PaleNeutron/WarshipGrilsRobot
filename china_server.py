@@ -207,7 +207,7 @@ class Mission_5_5_C(zrobot.Mission):
         # 所有90级以上水下船只
         ss_ships = []
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
-            conditions = [ship["level"] > 70,
+            conditions = [ship["level"] >= 70,
                           ship.type in ['潜艇', '炮潜'],
                           ]
             if all(conditions):
