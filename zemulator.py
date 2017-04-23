@@ -587,6 +587,12 @@ class ZjsnEmulator(object):
 
         self.fleet = j["fleetVo"]
         self.unlockShip = j["unlockShip"]
+        cid_of_1 = 0
+        for s in self.userShip:
+            if s.id == 1:
+                cid_of_1 = s.evoCid
+                break
+        self.unlockShip.append(cid_of_1)
         self.unlockEquipment = j['unlockEquipment']
         self.equipment = j['equipmentVo']
         self.task.update(j['taskVo'])
