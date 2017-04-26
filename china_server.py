@@ -349,7 +349,7 @@ class MissionPants(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(MissionPants, self).__init__('pants', 201, ze)
         self.pants_num = 0
-        self.pants_yesterday = 350
+        self.pants_yesterday = 500
 
     def set_first_nodes(self):
         self.node_b = zrobot.Node('B', node_type='resource')
@@ -385,18 +385,18 @@ class MissionPants(zrobot.Mission):
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
             conditions = [ship.type in ['航母'],
                           ship.level > 1,
-                          ship.evolved == 1,
+                          ship.evolved == 1 or not ship.can_evo,
                           ]
             if all(conditions):
                 cv_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in cv_ships]
-        zrobot._logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("cv_ships:{}".format([(s.name, s.level) for s in ships]))
 
         for i in range(0, 4):
             self.ze.ship_groups[i] = (dd_ships, 1, False)
         for i in range(2, 4):
             self.ze.ship_groups[i] = (cv_ships, 1, False)
-        self.ze.ship_groups[2] = ([self.ze.userShip.name("约克城").id], 1, True)
+        # self.ze.ship_groups[2] = ([self.ze.userShip.name("约克城").id], 1, True)
         self.ze.ship_groups[4] = self.ze.ship_groups[5] = (None, 1, False)
 
         try:
@@ -744,7 +744,7 @@ class ChinaRobot(zrobot.Robot):
 if __name__ == '__main__':
     r = ChinaRobot()
     # r.missions['6-4'].switch()
-    # r.missions['pants'].switch()
+    r.missions['pants'].switch()
     # r.missions['5-5C'].enable = True
     # r.missions['kill_fish'].enable = True
     t = r.start()
