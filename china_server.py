@@ -260,6 +260,49 @@ class Mission_5_5_B(zrobot.Mission):
         return True
 
 
+class Mission_2_5_up(zrobot.Mission):
+    def __init__(self, ze: zemulator.ZjsnEmulator):
+        super(Mission_2_5_up, self).__init__('2-5', 205, ze)
+        self.pants_num = 0
+
+    def set_first_nodes(self):
+        self.node_a = self.node_chain([zrobot.Node('A', enemy_avoid='20502003'),
+                                       zrobot.Node('B'),
+                                       zrobot.Node('c', node_type='resource').add_next(
+                                           zrobot.Node('g')),
+                                       zrobot.Node('f'),
+                                       zrobot.Node('j', night_flag=1, formation=4),
+                                       ])
+        return self.node_a
+
+    def prepare(self):
+        if 10010213 in self.ze.unlockShip:
+            zrobot._logger.debug('有陆奥了')
+            return False
+        # 所有高级潜艇
+        ss_ships = []
+        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
+            conditions = [ship["level"] > 60,
+                          ship.type in ['潜艇'],
+                          ]
+            if all(conditions):
+                ss_ships.append(ship.id)
+        zrobot._logger.debug("ss_ships:{}".format(
+            [(self.ze.userShip[ship_id].name, self.ze.userShip[ship_id].level) for ship_id in ss_ships]))
+
+        for i in range(1, 4):
+            self.ze.ship_groups[i] = (ss_ships, 0, False)
+        self.ze.ship_groups[0] = ([43014], 0, True)
+        self.ze.ship_groups[4] = ([115], 0, True)
+        self.ze.ship_groups[5] = ([43707], 0, True)
+
+        try:
+            self.ze.change_ships()
+        except zemulator.ZjsnError as ze:
+            zrobot._logger.debug(ze)
+            return False
+        return True
+
 class Mission_2_5_down(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(Mission_2_5_down, self).__init__('2-5down', 205, ze)
@@ -349,7 +392,7 @@ class MissionPants(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(MissionPants, self).__init__('pants', 201, ze)
         self.pants_num = 0
-        self.pants_yesterday = 500
+        self.pants_yesterday = 300
 
     def set_first_nodes(self):
         self.node_b = zrobot.Node('B', node_type='resource')
@@ -460,6 +503,53 @@ class Mission_4_3(zrobot.Mission):
                 zrobot._logger.info("资源： 油:{0[oil]:<7} 弹:{0[ammo]:<7} 钢:{0[steel]:<7} 铝:{0[aluminium]:<7}".format(
                     self.node_d.battle_result['userResVo']))
 
+
+
+class Mission_5_3(zrobot.Mission):
+    """一次45铝，一小时2700铝，再见了，远征铝"""
+
+    def __init__(self, ze: zemulator.ZjsnEmulator):
+        super().__init__('偷钢', 503, ze)
+
+    def set_first_nodes(self):
+        self.node_b = zrobot.Node('B')
+        self.node_d = zrobot.Node('D', node_type='resource')
+
+        self.node_b.add_next(self.node_d)
+        self.aluminum = 0
+
+        return self.node_b
+
+    def prepare(self):
+        # 所有高级DD
+        dd_ships = []
+        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
+            conditions = [ship["level"] > 80,
+                          ship.type in ['驱逐'],
+                          # ship.evolved == 1,
+                          ]
+            if all(conditions):
+                dd_ships.append(ship.id)
+        ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
+        zrobot._logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
+
+        self.ze.ship_groups[0] = (dd_ships, 0, False)  # 旗舰必须是完好的防止大破
+        for i in range(1, 4):
+            self.ze.ship_groups[i] = (dd_ships, 1, False)
+        self.ze.ship_groups[4] = self.ze.ship_groups[5] = (None, 1, False)
+
+        try:
+            self.ze.change_ships()
+        except zemulator.ZjsnError:
+            return False
+        return True
+
+    def summery(self):
+        super().summery()
+        if self.success:
+            if 'userResVo' in self.node_d.battle_result:
+                zrobot._logger.info("资源： 油:{0[oil]:<7} 弹:{0[ammo]:<7} 钢:{0[steel]:<7} 铝:{0[aluminium]:<7}".format(
+                    self.node_d.battle_result['userResVo']))
 
 class Mission_2_2(zrobot.Mission):
     """一次17油，一小时1000油，效率高于远征，大有可为"""
@@ -744,7 +834,7 @@ class ChinaRobot(zrobot.Robot):
 if __name__ == '__main__':
     r = ChinaRobot()
     # r.missions['6-4'].switch()
-    r.missions['pants'].switch()
+    # r.missions['pants'].switch()
     # r.missions['5-5C'].enable = True
     # r.missions['kill_fish'].enable = True
     t = r.start()

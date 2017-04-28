@@ -63,7 +63,7 @@ class Node(object):
             self.next_nodes.extend(next_nodes)
         else:
             self.next_nodes.append(next_nodes)
-        return
+        return self
 
     def _node_name(self, node_id):
         return string.ascii_uppercase[int(str(node_id)[-2:]) - 2]
@@ -109,7 +109,7 @@ class Node(object):
             if ze.working_ships[0].should_be_repair(2):
                 return 0
             else:
-                self.battle_result = ze.deal(1, big_broken_protect=False)
+                self.battle_result = ze.dealto(1, big_broken_protect=False)
         else:
             spy_result = ze.spy()
             if self.spy_filter(spy_result):
@@ -129,7 +129,7 @@ class Node(object):
 
                 if self.node_type == 'simple' or force_battle:
                     try:
-                        result_before_night = ze.deal(
+                        result_before_night = ze.dealto(
                             self.formation, big_broken_protect=self.big_broken_protect)
                     except zemulator.ZjsnError as e:
                         _logger.debug(e)

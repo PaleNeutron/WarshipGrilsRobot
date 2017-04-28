@@ -1049,6 +1049,16 @@ class ZjsnEmulator(object):
         r = self.get(self.url_server + "/pve/spy/")
         return r
 
+    def dealto(self, formation_code, big_broken_protect=True):
+        if [i for i in self.userShip.broken_ships_id(2) if
+            i in self.working_ships_id] and big_broken_protect:
+            raise ZjsnError("big broken")
+        """阵型编号 1 单纵 2 复纵 3 轮型 4 梯形 5 单横"""
+        node = self.node
+        r = self.get(
+            self.url_server + "/pve/dealto/{0}/{1}/{2}".format(node, self.working_fleet, formation_code))
+        return r
+
     def deal(self, formation_code, big_broken_protect=True):
         if [i for i in self.userShip.broken_ships_id(2) if
             i in self.working_ships_id] and big_broken_protect:
@@ -1058,6 +1068,7 @@ class ZjsnEmulator(object):
         r = self.get(
             self.url_server + "/pve/deal/{0}/{1}/{2}".format(node, self.working_fleet, formation_code))
         return r
+
 
     def lock(self, ship_id):
         r = self.get(self.api.lock(ship_id))

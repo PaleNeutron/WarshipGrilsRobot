@@ -439,10 +439,10 @@ class JapanRobot(zrobot.Robot):
         self.ze.equipment_formula = [10, 90, 90, 30]
         self.ze.boat_formula = [400, 80, 650, 101]
         self.explore.explore_table = (
-            ([833, 183, 710, 391, 386, 449], '10003'),
+            ([110, 183, 710, 391, 386, 449], '10004'),
             ([121, 102, 109, 108, 107, 219], '20001'),
             ([105, 143, 2891, 9005, 3002, 120], '40001'),
-            ([111, 104, 550, 211, 187, 185], '50003'),
+            ([833, 104, 550, 211, 187, 185], '50003'),
         )
         self.campaign.mission_code = 402
         # self.campaign.formation_code = 5
