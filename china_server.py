@@ -262,14 +262,14 @@ class Mission_5_5_B(zrobot.Mission):
 
 class Mission_2_5_up(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super(Mission_2_5_up, self).__init__('2-5', 205, ze)
-        self.pants_num = 0
+        super(Mission_2_5_up, self).__init__('2-5-up', 205, ze)
 
     def set_first_nodes(self):
         self.node_a = self.node_chain([zrobot.Node('A', enemy_avoid='20502003'),
                                        zrobot.Node('B'),
                                        zrobot.Node('c', node_type='resource').add_next(
-                                           zrobot.Node('g')),
+                                           zrobot.Node('g').add_next(
+                                               zrobot.Node('j', night_flag=1, formation=4))),
                                        zrobot.Node('f'),
                                        zrobot.Node('j', night_flag=1, formation=4),
                                        ])
@@ -292,9 +292,9 @@ class Mission_2_5_up(zrobot.Mission):
 
         for i in range(1, 4):
             self.ze.ship_groups[i] = (ss_ships, 0, False)
-        self.ze.ship_groups[0] = ([43014], 0, True)
-        self.ze.ship_groups[4] = ([115], 0, True)
-        self.ze.ship_groups[5] = ([43707], 0, True)
+        self.ze.ship_groups[0] = ([43014], 0.8, True)
+        self.ze.ship_groups[4] = ([115], 0.8, True)
+        self.ze.ship_groups[5] = ([43707], 0.8, True)
 
         try:
             self.ze.change_ships()
@@ -392,7 +392,7 @@ class MissionPants(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(MissionPants, self).__init__('pants', 201, ze)
         self.pants_num = 0
-        self.pants_yesterday = 300
+        self.pants_yesterday = 20
 
     def set_first_nodes(self):
         self.node_b = zrobot.Node('B', node_type='resource')
@@ -677,7 +677,6 @@ class Mission_6_4(zrobot.Mission):
 class Mission_6_4_fish(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(Mission_6_4_fish, self).__init__('6-4 fish', 604, ze)
-        self.pants_num = 0
 
     def set_first_nodes(self):
         # self.node_a = Node('A', additional_spy_filter=lambda sr: '战巡' in str(sr) or '航母'in str(sr))
@@ -821,6 +820,7 @@ class ChinaRobot(zrobot.Robot):
         # self.add_mission(Mission_5_2_C(self.ze))
         # self.add_mission(Mission_2_5_mid(self.ze))
         # self.add_mission(Mission_2_5_down(self.ze))
+        self.add_mission(Mission_2_5_up(self.ze))
         self.add_mission(Mission_5_5_C(self.ze))
         # self.add_mission(Mission_1_1(self.ze))
         # self.add_mission(Mission_4_3(self.ze))

@@ -438,11 +438,13 @@ class JapanRobot(zrobot.Robot):
         self.ze.common_lag = 50
         self.ze.equipment_formula = [10, 90, 90, 30]
         self.ze.boat_formula = [400, 80, 650, 101]
+        # difference api in japan server
+        self.ze.dealto = self.ze.deal
         self.explore.explore_table = (
             ([110, 183, 710, 391, 386, 449], '10004'),
             ([121, 102, 109, 108, 107, 219], '20001'),
             ([105, 143, 2891, 9005, 3002, 120], '40001'),
-            ([833, 104, 550, 211, 187, 185], '50003'),
+            ([3305, 550, 211, 187, 185, 258], '50003'),
         )
         self.campaign.mission_code = 402
         # self.campaign.formation_code = 5
@@ -457,6 +459,7 @@ class JapanRobot(zrobot.Robot):
 
         self.add_mission(Mission_Event(self.ze))
         self.add_mission(zrobot.Mission_1_1(self.ze))
+        self.add_mission(china_server.Mission_5_3(self.ze))
         # self.challenge = JapanChallenge(self.ze)
         # self.machine.add_states(self.challenge.state)
         # self.machine.add_transition(**self.challenge.trigger)
@@ -497,11 +500,11 @@ class JapanRobot(zrobot.Robot):
 
 if __name__ == '__main__':
     r = JapanRobot()
-    r.ze.boat_formula = [200, 30, 200, 30]
-    r.ze.build_boat_remain = 10
+    # r.ze.boat_formula = [200, 30, 200, 30]
+    # r.ze.build_boat_remain = 10
     # r.missions['pants'].switch()
     # r.missions['kill_fish'].switch()
-    # r.missions['Task'].switch()
+    r.missions['偷钢'].switch()
     # r.missions['1-1A'].switch()
     # r.missions['mission event'].switch()
     r.start()
