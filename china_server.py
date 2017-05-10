@@ -23,8 +23,8 @@ class Mission_6_1_A(zrobot.Mission):
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
             conditions = [100 > ship["level"],
                           ship.type in ['驱逐', '轻母', '轻巡'],
-                          "10008321" in ship["equipment"] or "10008421" in ship[
-                              "equipment"] or ship.type == '轻母',  # 带着声呐
+                          "10008321" in ship.equipment or "10008421" in ship.equipment
+                          or ship.type == '轻母',  # 带着声呐
                           ]
             if all(conditions):
                 if float(ship["battleProps"]["speed"]) > 27:  # 航速高于27

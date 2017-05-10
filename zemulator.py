@@ -132,6 +132,9 @@ class ZjsnApi(object):
     def campaignResult(self, night_flag):
         return self.host + '/campaign/getWarResult/{}/'.format(night_flag)  # 1/ 最后的1代表进行夜战.format()
 
+    def kiss(self, ship_id):
+        return self.host + '/friend/kiss/{ship_id}'.format(ship_id=ship_id)
+
 
 class ZjsnUserShip(dict):
     """docstring for ZjsnUserShip"""
@@ -280,6 +283,13 @@ class ZjsnShip(dict):
     @property
     def level(self):
         return self['level']
+
+    @property
+    def equipment(self):
+        if type(self['equipment']) == dict:
+            return self['equipment'].values()
+        elif type(self['equipment']) == list:
+            return self['equipment']
 
     @property
     def skillLevel(self):
@@ -502,6 +512,10 @@ class ZjsnEmulator(object):
     def explore_fleets(self):
         return [int(e['fleetId']) for e in self.pveExplore]
 
+    @property
+    def explore_ships_id(self):
+        return [s.id for s in self.userShip if s.fleet_id in self.explore_fleets]
+
     def get(self, url, error_count=0, sleep_flag=True, method='GET', **kwargs):
         """kwargs: sleep=True"""
         if error_count:
@@ -627,6 +641,9 @@ class ZjsnEmulator(object):
             self.drop500 = False
         return True
 
+    def kiss(self):
+        pass
+
     def build(self, dock_id, oil, ammo, steel, aluminum):
 
         r = self.get(self.api.buildBoat(dock_id, oil, ammo, steel, aluminum))
@@ -721,11 +738,12 @@ class ZjsnEmulator(object):
             raise ZjsnError("no ship to use in location {}".format(location))
 
     def instant_fleet(self, ships_id):
-        zlogger.debug('编队 {}'.format([self.userShip[i].name for i in ships_id]))
-        r = self.get(self.api.instantFleet(self.working_fleet, ships_id))
-        self.fleet[int(self.working_fleet) - 1] = r["fleetVo"][0]
-        self.userShip.update(r['shipVO'])
-        return r
+        if ships_id:
+            zlogger.debug('编队 {}'.format([self.userShip[i].name for i in ships_id]))
+            r = self.get(self.api.instantFleet(self.working_fleet, ships_id))
+            self.fleet[int(self.working_fleet) - 1] = r["fleetVo"][0]
+            self.userShip.update(r['shipVO'])
+            return r
 
     def dismantle(self, throw_equipment=0):
         ships_dismantle = []
@@ -974,8 +992,8 @@ class ZjsnEmulator(object):
 
     def repair_all(self, broken_level=0, instant=False):
         """broken level 0 : 擦伤, 1 : 中破,  2 : 大破
-        不会修理第一舰队的船"""
-        ships = [i.id for i in self.userShip.broken_ships(broken_level) if i.status == 0]
+        不会修理正在远征和修理的船"""
+        ships = [i.id for i in self.userShip.broken_ships(broken_level) if i.status == 0 and i.id not in self.explore_ships_id]
         # 先修时间最短的
         ships.sort(key=lambda x: self.userShip[x].repair_time, reverse=True)
         for dock_index, dock in enumerate(self.repairDock):

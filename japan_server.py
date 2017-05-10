@@ -504,7 +504,7 @@ if __name__ == '__main__':
     # r.ze.build_boat_remain = 10
     # r.missions['pants'].switch()
     # r.missions['kill_fish'].switch()
-    r.missions['偷钢'].switch()
+    # r.missions['偷钢'].switch()
     # r.missions['1-1A'].switch()
     # r.missions['mission event'].switch()
     r.start()

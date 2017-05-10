@@ -321,11 +321,19 @@ class Explore(Mission):
         self.ze = ze
         self.avilable = True
         # 第一项是远征需要用到的船 第二项是远征目标
-        self.explore_table = (([0, 0, 0, 0, 0, 0], '10003'),
-                              ([0, 0, 0, 0, 0, 0], '50003'),
-                              ([0, 0, 0, 0, 0, 0], '40001'),
-                              ([0, 0, 0, 0, 0, 0], '20001'))
+        self.explore_table = [[[0, 0, 0, 0, 0, 0], '10003'],
+                              [[0, 0, 0, 0, 0, 0], '50003'],
+                              [[0, 0, 0, 0, 0, 0], '40001'],
+                              [[0, 0, 0, 0, 0, 0], '20001']]
         self.state.ignore_invalid_triggers = True
+
+    def init_table(self):
+        if self.explore_table[0][0][0] == 0:
+            for i in self.ze.pveExplore:
+                fleet_index = int(i['fleetId']) - 1
+                self.explore_table[fleet_index][0] = self.ze.fleet[fleet_index]['ships']
+                self.explore_table[fleet_index][1] = i['exploreId']
+
 
     def prepare(self):
         pass
@@ -335,10 +343,11 @@ class Explore(Mission):
 
     def _prepare(self):
         self.ze.go_home()
+        self.init_table()
         self.fleet_is_free = False
         exploring_fleet = [e['fleetId'] for e in self.ze.pveExplore]
         for i, table in enumerate(self.explore_table):
-            if str(i + 1) not in exploring_fleet:
+            if str(i + 1) not in exploring_fleet and 0 not in table[0]:
                 self.ze.working_fleet = str(i + 1)
                 if self.ze.working_ships_id != table[0]:
                     self.ze.instant_fleet(table[0])
@@ -358,6 +367,8 @@ class Explore(Mission):
         if explore_over_fleet:
             self.ze.working_fleet = explore_over_fleet
             return True
+        else:
+            return self.get_working_fleet()
 
 
 class Campaign(Mission):
@@ -450,7 +461,17 @@ class Challenge(Mission):
     def set_first_nodes(self):
         pass
 
+    def init_friends(self):
+        if not self.friends:
+            r_f = self.ze.get(self.ze.url_server + '/friend/getlist/')
+            f_list = r_f['list']
+            f_list.sort(key=lambda x: int(x['level']), reverse=True)
+            self.friends = [i['uid'] for i in f_list][:3]
+
     def _prepare(self):
+        if not self.ship_list:
+            self.ship_list = [s.id for s in self.ze.userShip if s.type in '战列']
+        self.init_friends()
         if not self.get_working_fleet():
             self.available = False
             return
@@ -483,7 +504,14 @@ class Challenge(Mission):
             self.friend_available = True
 
         # 去掉满级船和养殖结束的船
-        battle_fleet = [s for s in self.ship_list + self.farm_ships() if self.fleet_filter(s)]
+        battle_fleet_full = [s for s in self.ship_list + self.farm_ships() if self.fleet_filter(s)]
+        battle_fleet = []
+        evo_cids = []
+        for s_id in battle_fleet_full:
+            s = self.ze.userShip[s_id]
+            if s.evoCid not in evo_cids:
+                evo_cids.append(s.evoCid)
+                battle_fleet.append(s.id)
         if len(battle_fleet) < 6:
             self.battle_fleet = self.battle_fleet[:6]
         else:
@@ -814,6 +842,7 @@ class Robot(object):
     # todo 把thread变成一个属性 每次start重新实例化一个thread
     def __init__(self):
         super(Robot, self).__init__()
+        self.DEBUG = False
         self.ze = zemulator.ZjsnEmulator()
         self.thread = None
 
@@ -906,6 +935,8 @@ class Robot(object):
                 self.working_loop()
             except Exception as e:
                 _logger.error(e)
+                if self.DEBUG:
+                    raise e
                 # disable mission where this error occurs
                 if self.state in self.missions:
                     current_mission = self.missions[self.state]
