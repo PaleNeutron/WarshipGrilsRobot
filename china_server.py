@@ -790,6 +790,43 @@ class MissionEvent5(zrobot.Mission):
             return False
         return True
 
+class MissionEvent(zrobot.Mission):
+    def __init__(self, ze: zemulator.ZjsnEmulator):
+        super().__init__('event', 9948, ze)
+        self.battle_fleet = [43014,370,13664,11872,115,43707] # [16523,229,1519,11872,115,43707]
+
+    def set_first_nodes(self):
+        self.node_a = self.node_chain([zrobot.Node('a', node_type='skip'),
+                                       zrobot.Node('d'),
+                                       zrobot.Node('i', node_type='resource'),
+                                       zrobot.Node('o', node_type='resource'),
+                                       zrobot.Node('r'),
+                                       zrobot.Node('u', night_flag=1),
+                                       ])
+        self.node_a.skip_rate_limit = 0.8
+
+        return self.node_a
+
+    def prepare(self):
+        if self.boss_hp == 0:
+            return False
+
+        # fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet]
+        if not self.battle_fleet:
+            self.battle_fleet = self.ze.working_ships_id
+        fleet = self.battle_fleet
+        fleet_group = [([i], 0.85, True) for i in fleet]
+        self.ze.ship_groups = fleet_group
+        try:
+            self.ze.change_ships()
+        except zemulator.ZjsnError:
+            return False
+        return True
+
+    def summery(self):
+        super().summery()
+        zrobot._logger.debug("boss hp={}".format(self.boss_hp))
+
 class ChinaRobot(zrobot.Robot):
     def __init__(self):
         super().__init__()
@@ -820,7 +857,7 @@ class ChinaRobot(zrobot.Robot):
         # self.add_mission(Mission_5_2_C(self.ze))
         # self.add_mission(Mission_2_5_mid(self.ze))
         # self.add_mission(Mission_2_5_down(self.ze))
-        self.add_mission(Mission_2_5_up(self.ze))
+        # self.add_mission(Mission_2_5_up(self.ze))
         self.add_mission(Mission_5_5_C(self.ze))
         # self.add_mission(Mission_1_1(self.ze))
         # self.add_mission(Mission_4_3(self.ze))
@@ -829,10 +866,12 @@ class ChinaRobot(zrobot.Robot):
         self.add_mission(Mission_6_4(self.ze))
         self.add_mission(MissionPants(self.ze))
         self.add_mission(Mission_6_1_A(self.ze))
+        self.add_mission(MissionEvent(self.ze))
 
 
 if __name__ == '__main__':
     r = ChinaRobot()
+    # r.missions['event'].switch()
     # r.missions['6-4'].switch()
     # r.missions['pants'].switch()
     # r.missions['5-5C'].enable = True

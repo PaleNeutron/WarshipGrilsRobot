@@ -4,6 +4,7 @@ import random
 import string
 import threading
 import time
+import os
 from datetime import datetime
 from itertools import zip_longest
 from typing import List
@@ -124,6 +125,8 @@ class Node(object):
                                 force_battle = True
                             else:
                                 return 0
+                        else:
+                            _logger.debug('skip success')
                     else:
                         return 0
 
@@ -922,6 +925,9 @@ class Robot(object):
     def is_sleep(self) -> bool:
         # sleep in 0:00 to 6:00
         now = datetime.today()
+        if os.name == 'nt':
+            return False
+
         if now.replace(hour=0, minute=0) < now < now.replace(hour=6):
             return True
         else:
@@ -950,7 +956,6 @@ class Robot(object):
     def start(self):
         from transitions import logger as transitions_logger
         from logging import handlers
-        import os
 
         self.ze.login()
 
