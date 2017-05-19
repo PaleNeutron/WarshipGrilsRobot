@@ -756,26 +756,67 @@ class MissionEvent2(zrobot.Mission):
         super().summery()
         zrobot._logger.debug("boss hp={}".format(self.boss_hp))
 
-class MissionEvent5(zrobot.Mission):
+class MissionEvent_ex(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super().__init__('E5', 9936, ze)
-        self.battle_fleet = [13598, 7865, 830, 13664, 115, 43707]
-        # self.battle_fleet = []
-        self.enable = True
+        super().__init__('event_ex', 9944, ze)
+        self.battle_fleet = [13598,13674,6131,44042,115,43707]
 
     def set_first_nodes(self):
-        self.node_a = self.node_chain([zrobot.Node('b', enemy_target=993603001),
-                                       zrobot.Node('f', node_type="skip"),
-                                       zrobot.Node('j', node_type="resource"),
-                                       zrobot.Node('p'),
-                                       zrobot.Node('q', formation=4, night_flag=1),
+        self.node_d = zrobot.Node('d', formation=5)
+        self.node_g = zrobot.Node('g', formation=5)
+        self.node_k = zrobot.Node('k', node_type='resource')
+        self.node_j = zrobot.Node('j', formation=5)
+        self.node_l = zrobot.Node('l', formation=5, night_flag=1)
+
+        self.node_d.add_next(self.node_g)
+        self.node_d.add_next(self.node_k)
+        self.node_k.add_next(self.node_l)
+        self.node_g.add_next(self.node_k)
+        self.node_g.add_next(self.node_j)
+        self.node_j.add_next(self.node_k)
+        self.node_j.add_next(self.node_l)
+
+        return self.node_d
+
+    def prepare(self):
+        # if 10029011 in self.ze.unlockShip:
+        #     zrobot._logger.debug("有96了，告别ex")
+        #     return False
+
+        # fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet]
+        if not self.battle_fleet:
+            self.battle_fleet = self.ze.working_ships_id
+        fleet = self.battle_fleet
+        fleet_group = [([i], 0.85, True) for i in fleet]
+        self.ze.ship_groups = fleet_group
+        try:
+            self.ze.change_ships()
+        except zemulator.ZjsnError:
+            return False
+        return True
+
+
+class MissionEvent_E7(zrobot.Mission):
+    def __init__(self, ze: zemulator.ZjsnEmulator):
+        super().__init__('e7', 9948, ze)
+        self.battle_fleet = [13598, 13664, 1519, 11872, 115, 43707]
+        # self.battle_fleet = []
+
+    def set_first_nodes(self):
+        self.node_a = self.node_chain([zrobot.Node('a', node_type='skip'),
+                                       zrobot.Node('d'),
+                                       zrobot.Node('i', node_type='resource'),
+                                       zrobot.Node('o', node_type='resource'),
+                                       zrobot.Node('r'),
                                        ])
+        self.node_a.add_next(zrobot.Node('c', formation=5))
+        self.node_a.skip_rate_limit = 0.8
 
         return self.node_a
 
     def prepare(self):
-        if 10028911 in self.ze.unlockShip:
-            zrobot._logger("有黄毛了，告别E5")
+        if 10015413 in self.ze.unlockShip:
+            zrobot._logger.debug("有勇敢了，告别E7")
             return False
 
         # fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet]
@@ -789,6 +830,7 @@ class MissionEvent5(zrobot.Mission):
         except zemulator.ZjsnError:
             return False
         return True
+
 
 class MissionEvent(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -852,7 +894,7 @@ class ChinaRobot(zrobot.Robot):
         challenge.friends = [2593850, 74851, 2827412]
         self.add_mission(challenge)
         self.add_mission(Mission_6_3(self.ze))
-        # self.add_mission(MissionEvent5(self.ze))
+        self.add_mission(MissionEvent_E7(self.ze))
         # self.add_mission(Mission_6_4_fish(self.ze))
         # self.add_mission(Mission_5_2_C(self.ze))
         # self.add_mission(Mission_2_5_mid(self.ze))
@@ -871,7 +913,7 @@ class ChinaRobot(zrobot.Robot):
 
 if __name__ == '__main__':
     r = ChinaRobot()
-    # r.missions['event'].switch()
+    # r.missions['e7'].switch()
     # r.missions['6-4'].switch()
     # r.missions['pants'].switch()
     # r.missions['5-5C'].enable = True
