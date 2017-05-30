@@ -185,14 +185,14 @@ class ZjsnUserShip(dict):
 
     def save(self, file_name='my_ships.md'):
         markdown_string = ""
-        markdown_string += "船名|等级|ID|CID\n"
-        markdown_string += "----|----|----|----\n"
+        markdown_string += "船名|等级|船型|ID|CID\n"
+        markdown_string += "----|----|----|----|----\n"
         for ship in sorted(self, key=lambda x: x["level"], reverse=True):
             if ship["isLocked"] == 1:
                 #     if ship["level"] != 1 and str(ship["shipCid"])[-2:]=="11" and ship["fleetId"]==0 and ("10008321" in ship["equipment"] or "10008421" in ship["equipment"]):
                 try:
-                    markdown_string += "{:<30}|{:<15}|{:<15}|{:<15}\n".format(
-                        ship.name, ship["level"], ship["id"], ship["shipCid"]
+                    markdown_string += "{:<30}|{:<15}|{:<15}|{:<15}|{:<15}\n".format(
+                        ship.name, ship["level"], ship.type, ship["id"], ship["shipCid"]
                     )
                 except KeyError as ke:
                     print(ke.args)

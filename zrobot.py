@@ -1,10 +1,10 @@
 import collections
 import logging
+import os
 import random
 import string
 import threading
 import time
-import os
 from datetime import datetime
 from itertools import zip_longest
 from typing import List
@@ -516,7 +516,7 @@ class Challenge(Mission):
                 evo_cids.append(s.evoCid)
                 battle_fleet.append(s.id)
         if len(battle_fleet) < 6:
-            self.battle_fleet = self.battle_fleet[:6]
+            self.battle_fleet = self.ship_list[:6]
         else:
             self.battle_fleet = battle_fleet[:6]
 

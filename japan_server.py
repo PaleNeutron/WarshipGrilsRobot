@@ -288,7 +288,7 @@ class Mission_4_4_Boss(zrobot.Mission):
 class Mission_Event(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__('mission event', 9908, ze)
-        self.battle_fleet_name = ['胡德', '俾斯麦', '声望','大凤', '列克星敦', '萨拉托加']
+        self.battle_fleet_name = ['胡德', '俾斯麦', '声望', '大凤', '列克星敦', '萨拉托加']
 
     def set_first_nodes(self):
         self.node_a = self.node_chain([
@@ -296,7 +296,7 @@ class Mission_Event(zrobot.Mission):
             # zrobot.Node('c', node_type='resource'),
             zrobot.Node('e'),
             zrobot.Node('h', night_flag=1, enemy_avoid=zemulator.ZjsnShip.type_id('潜艇')),
-            ])
+        ])
 
         return self.node_a
 
@@ -328,7 +328,7 @@ class JapanChallenge(zrobot.Challenge):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(ze)
         self.friends = [22876, 21892, 18869]
-        self.ship_list = [10401, 177, 10287, 8788, 9035, 775, 1213, 10380, 173]
+        self.ship_list = [17263, 17546, 7203, 775, 1213, 10380, 173, 1258, 9131, 8830]
         self.start_point = 80
 
     def formation_for_fish(self, fish_num):
@@ -419,12 +419,14 @@ class Japan_Mission_5_2_C(zrobot.Mission):
     def postprocessing(self):
         pass
 
+
 class Japan_Mission_6_1_A(china_server.Mission_6_1_A):
     """鱼塘 炸鱼"""
 
     def boss_ships(self):
-        return [self.ze.userShip.name('龙田').id]
+        return [17263]
         # return None
+
 
 class JapanRobot(zrobot.Robot):
     """docstring for Robot"""
@@ -455,7 +457,6 @@ class JapanRobot(zrobot.Robot):
         # self.machine.add_transition(**self.m1_4a.trigger)
 
         self.add_mission(JapanChallenge(self.ze))
-
 
         self.add_mission(Mission_Event(self.ze))
         self.add_mission(zrobot.Mission_1_1(self.ze))
