@@ -471,9 +471,19 @@ class Challenge(Mission):
             f_list.sort(key=lambda x: int(x['level']), reverse=True)
             self.friends = [i['uid'] for i in f_list][:3]
 
+    def generate_challenge_ships(self):
+        ships_evoCid = []
+        ships = []
+        # sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True)
+        for ship in self.ze.userShip:
+            if ship.evoCid not in ships_evoCid:
+                ships_evoCid.append(ship.evoCid)
+                ships.append(ship)
+        return [s.id for s in ships if s.type in ['战列', '航母'] and s.level < 100]
+
     def _prepare(self):
         if not self.ship_list:
-            self.ship_list = [s.id for s in self.ze.userShip if s.type in '战列']
+            self.ship_list = self.generate_challenge_ships()
         self.init_friends()
         if not self.get_working_fleet():
             self.available = False
@@ -577,7 +587,7 @@ class Challenge(Mission):
     def fleet_filter(self, ship_id):
         """"""
         ship = self.ze.userShip[ship_id]
-        condition = ship.level < 100
+        condition = ship.level < 100 and ship.available and ship.fleet_able
         if ship.name in ['罗德尼', '纳尔逊'] and not ship.evolved:
             condition = ship.level < ship.evoLevel
         return condition

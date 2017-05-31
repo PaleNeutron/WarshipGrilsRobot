@@ -243,6 +243,8 @@ class ZjsnShip(dict):
                      10013512
                  ],  # 紫石英
 
+    emulator = None  # type: ZjsnEmulator
+
     def __init__(self, *args, **kwargs):
         super(ZjsnShip, self).__init__(*args, **kwargs)
 
@@ -320,12 +322,12 @@ class ZjsnShip(dict):
         else:
             return 99
 
-    def protected(self, ze):
+    def protected(self):
         conditions = (
-            self.cid in ze.unlockShip,  # 不是new
+            self.cid in self.emulator.unlockShip,  # 不是new
             self.locked != 1,  # 没锁
             self.status == 0,  # 没被修理
-            self.id not in ze.fleet_ships_id,  # 不在任何舰队中
+            self.id not in self.emulator.fleet_ships_id,  # 不在任何舰队中
             self.cid not in self.white_list,
             self.star < 5 or self.name in ['欧根亲王', '天狼星', '胡德', '关岛', '阿拉斯加'],  # 小于五星
         )
@@ -351,7 +353,18 @@ class ZjsnShip(dict):
 
     @property
     def status(self):
-        return int(self['status'])
+        if self.fleet_id in self.emulator.explore_fleets:
+            return 1
+        else:
+            return int(self['status'])
+
+    @property
+    def available(self):
+        return self.status == 0
+
+    @property
+    def fleet_able(self):
+        return self.fleet_id == 0 or self.fleet_id == self.emulator.working_fleet
 
     @property
     def can_evo(self):
@@ -443,6 +456,7 @@ class ZjsnEmulator(object):
 
     def __init__(self):
         super(ZjsnEmulator, self).__init__()
+        ZjsnShip.emulator = self
         self.s = requests.Session()
         self.userShip = ZjsnUserShip()
         self.task = ZjsnTask()
@@ -748,7 +762,7 @@ class ZjsnEmulator(object):
     def dismantle(self, throw_equipment=0):
         ships_dismantle = []
         for ship in self.userShip:
-            conditions = (not ship.protected(self),
+            conditions = (not ship.protected(),
                           ship.type in ['驱逐',  # DD
                                         '轻巡',  # 轻巡
                                         '重巡',  # 重巡
@@ -803,7 +817,7 @@ class ZjsnEmulator(object):
             return -1  # 没必要强化
 
         for ship in self.userShip:
-            conditions = (not ship.protected(self),
+            conditions = (not ship.protected(),
                           ship.type in ship_types)
             if all(conditions):
                 ships_strengthen.append(ship.id)
