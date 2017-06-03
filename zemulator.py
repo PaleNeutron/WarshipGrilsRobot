@@ -680,9 +680,9 @@ class ZjsnEmulator(object):
                     if 'taskCid' in t:
                         next_cid = t['taskCid']
                         if next_cid == 5200432:
-                            self.build_boat_remain = 1
+                            self.build_boat_remain = max(self.build_boat_remain, 1)
                         elif next_cid == 5200332:
-                            self.build_equipment_remain = 3
+                            self.build_equipment_remain = max(self.build_equipment_remain, 1)
             if 'shipVO' in r:
                 self.userShip.add_ship(r['shipVO'], ze=self)
         self.award_list = []
