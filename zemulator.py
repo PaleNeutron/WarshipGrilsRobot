@@ -46,6 +46,10 @@ class ZjsnApi(object):
     def init(self):
         return self.host + "/api/initGame/"
 
+    def bsea(self):
+        """返回3.0版本新增的提督府信息， rsp['bSeaData']['todaySpoilsNum']可以看到今天捞胖次的数量"""
+        return self.host + "/bsea/getData/"
+
     def explore(self, fleet_id, explore_id):
         return self.host + "/explore/start/{fleet_id}/{explore_id}/".format(fleet_id=fleet_id, explore_id=explore_id)
 
@@ -203,6 +207,8 @@ class ZjsnUserShip(dict):
 
     def name(self, ship_name, default="raise") -> 'ZjsnShip':
         """查找船名，返回船对象，不必全称"""
+        if type(ship_name) == int:
+            return self[ship_name]
         for ship in sorted(self, key=lambda x: x["level"], reverse=True):
             if ship.name in ship_name:
                 return ship
@@ -601,7 +607,7 @@ class ZjsnEmulator(object):
         self.get(self.api.login(self.uid), sleep_flag=False)
         self.initGame = self.get(self.api.init(), sleep_flag=False)
         self.get(self.url_server + "/pve/getPveData/", sleep_flag=False)
-        self.get(self.url_server + "/pevent/getPveData/", sleep_flag=False)
+        event_data = self.get(self.url_server + "/pevent/getPveData/", sleep_flag=False)
 
         j = self.initGame
         self.userShip.clear()

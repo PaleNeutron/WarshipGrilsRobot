@@ -389,6 +389,9 @@ class Mission_6_3(zrobot.Mission):
 
 
 class MissionPants(zrobot.Mission):
+    """暂时不知道你萌是否有event是怎么判断的
+    没有event，pevent接口返回的是byte[] arrOutput = { 0x78, 0xDA, 0x8B, 0x8E, 0x05, 0x00, 0x01, 0x15, 0x00, 0xB9 };
+    有event，接口返回的是event信息"""
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(MissionPants, self).__init__('pants', 201, ze)
         self.pants_num = 0
@@ -879,7 +882,7 @@ class ChinaRobot(zrobot.Robot):
         self.ze.boat_formula = [200, 30, 200, 30]
         self.explore.explore_table = (
             ([14091, 35442, 35500, 49333, 37890, 44175], '10003'),
-            ([42093, 7367, 3877, 13972, 11497, 8452], '50003'),
+            ([52359, 329, 13663, 8452, 11497, 3877], '20002'),
             ([128, 14094, 113, 101, 577, 7373], '40001'),
             ([123, 13973, 10800, 14138, 10706, 104], '20001')
         )

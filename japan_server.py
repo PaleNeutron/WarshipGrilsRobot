@@ -287,24 +287,27 @@ class Mission_4_4_Boss(zrobot.Mission):
 
 class Mission_Event(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super().__init__('mission event', 9908, ze)
-        self.battle_fleet_name = ['胡德', '俾斯麦', '声望', '大凤', '列克星敦', '萨拉托加']
+        super().__init__('mission event', 9916, ze)
+        self.battle_fleet_name = [17263, '罗德尼', '翔鹤', '赤城', '列克星敦', '萨拉托加']
 
     def set_first_nodes(self):
         self.node_a = self.node_chain([
-            zrobot.Node('b'),
-            # zrobot.Node('c', node_type='resource'),
-            zrobot.Node('e'),
-            zrobot.Node('h', night_flag=1, enemy_avoid=zemulator.ZjsnShip.type_id('潜艇')),
+            zrobot.Node('a'),
+            zrobot.Node('d'),
+            zrobot.Node('g', night_flag=1),
+            # zrobot.Node('k', night_flag=1),
         ])
 
         return self.node_a
 
     def prepare(self):
-        if 10021913 in self.ze.unlockShip:
-            zrobot._logger.info("有瑞鹤了")
+        # if self.boss_hp == 0:
+        #     zrobot._logger.debug("boss dead, over")
+        #     return False
+        target_ship = '奥班农'
+        if self.ze.userShip.name(target_ship, 0):
+            zrobot._logger.debug("got {}, over".format(target_ship))
             return False
-
         self.battle_fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet_name]
         if not self.battle_fleet:
             self.battle_fleet = self.ze.working_ships_id
@@ -424,7 +427,7 @@ class Japan_Mission_6_1_A(china_server.Mission_6_1_A):
     """鱼塘 炸鱼"""
 
     def boss_ships(self):
-        return [17263]
+        return [self.ze.userShip.name("岚").id]
         # return None
 
 
@@ -443,12 +446,12 @@ class JapanRobot(zrobot.Robot):
         # difference api in japan server
         self.ze.dealto = self.ze.deal
         self.explore.explore_table = (
-            ([110, 183, 710, 391, 386, 449], '10004'),
+            ([110, 183, 710, 391, 386, 449], '20002'),
             ([121, 102, 109, 108, 107, 219], '20001'),
             ([105, 143, 2891, 9005, 3002, 120], '40001'),
             ([3305, 550, 211, 187, 185, 258], '50003'),
         )
-        self.campaign.mission_code = 402
+        self.campaign.mission_code = 302
         # self.campaign.formation_code = 5
 
     def set_missions(self):
