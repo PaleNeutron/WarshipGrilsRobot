@@ -974,8 +974,8 @@ class Robot(object):
         if os.name == 'nt':
             stream_handler = logging.StreamHandler()
         else:
-            stream_handler = handlers.TimedRotatingFileHandler('{}.log'.format(self.ze.uid), when='midnight', backupCount=3,
-                                                               encoding='utf8')
+            stream_handler = handlers.TimedRotatingFileHandler(
+                '{}.log'.format(self.ze.uid), when='midnight', backupCount=3, encoding='utf8')
         stream_handler.setFormatter(log_formatter)
 
         _logger.addHandler(stream_handler)
@@ -986,4 +986,7 @@ class Robot(object):
 
         self.thread = threading.Thread(target=self.run)
         self.thread.start()
-        return self.thread
+        if os.name == 'nt':
+            self.thread.join()
+        else:
+            return self.thread
