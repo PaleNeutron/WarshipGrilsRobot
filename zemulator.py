@@ -1,5 +1,6 @@
 import collections
 import datetime
+import distutils.version
 import itertools
 import json
 import logging
@@ -39,6 +40,9 @@ class ZjsnApi(object):
     def __init__(self, host):
         super(ZjsnApi, self).__init__()
         self.host = host
+
+    def checkVer(self):
+        return "http://version.jr.moefantasy.com/index/checkVer/3.1.0/100011/2&version=3.1.0&channel=100011&market=2"
 
     def login(self, user_id):
         return self.host + "/index/login/{}".format(user_id)
@@ -333,7 +337,7 @@ class ZjsnShip(dict):
             self.cid in self.emulator.unlockShip,  # 不是new
             self.locked != 1,  # 没锁
             self.status == 0,  # 没被修理
-            self.id not in self.emulator.fleet_ships_id,  # 不在任何舰队中
+            self.id not in self.emulator.fleeted_ships_id,  # 不在任何舰队中
             self.cid not in self.white_list,
             self.star < 5 or self.name in ['欧根亲王', '天狼星', '胡德', '关岛', '阿拉斯加'],  # 小于五星
         )
@@ -459,6 +463,7 @@ class ZjsnEmulator(object):
                    'B',
                    'C',
                    'D']
+    KEY_VERSION = distutils.version.LooseVersion("3.1.0")
 
     def __init__(self):
         super(ZjsnEmulator, self).__init__()
@@ -492,6 +497,7 @@ class ZjsnEmulator(object):
 
         self.working_fleet = 1
         self.drop500 = False
+        self.todaySpoilsNum = 0
 
         self.api = ZjsnApi(None)
 
@@ -516,6 +522,8 @@ class ZjsnEmulator(object):
 
         self.last_request = None
 
+        self.version = distutils.version.LooseVersion("3.1.0")
+
     @property
     def working_ships_id(self):
         return self.fleet[int(self.working_fleet) - 1]["ships"]
@@ -524,8 +532,14 @@ class ZjsnEmulator(object):
     def working_ships(self):
         return [self.userShip[i] for i in self.working_ships_id]
 
+    def fleet_ships(self, fleet_id):
+        return [self.userShip[i] for i in self.fleet_ships_id(fleet_id)]
+
+    def fleet_ships_id(self, fleet_id):
+        return self.fleet[int(fleet_id) - 1]["ships"]
+
     @property
-    def fleet_ships_id(self):
+    def fleeted_ships_id(self):
         return itertools.chain.from_iterable([i['ships'] for i in self.fleet])
 
     @property
@@ -591,6 +605,8 @@ class ZjsnEmulator(object):
                 return rj
 
     def login(self):
+        r0 = self.get(self.api.checkVer())
+        self.version = distutils.version.LooseVersion(r0["version"]["newVersionId"])
         self.s = requests.Session()
         r1 = self.get(self.url_passport_hm, method='POST',
                       sleep_flag=False,
@@ -664,6 +680,11 @@ class ZjsnEmulator(object):
     def kiss(self):
         pass
 
+    def bsea(self):
+        r = self.get(self.api.bsea())
+        self.todaySpoilsNum = r["bSeaData"]["todaySpoilsNum"]
+        return r
+
     def build(self, dock_id, oil, ammo, steel, aluminum):
 
         r = self.get(self.api.buildBoat(dock_id, oil, ammo, steel, aluminum))
@@ -713,7 +734,7 @@ class ZjsnEmulator(object):
 
         if tmp_fleet_ships_id != self.working_ships_id:
             new_fleet = tmp_fleet_ships_id[:len(ship_groups)]
-            self.instant_fleet(new_fleet)
+            self.instant_workingfleet(new_fleet)
 
     def get_substitue(self, location, tmp_fleet_ships_id, ship_group_info):
         working_ships = tmp_fleet_ships_id[:]
@@ -757,11 +778,20 @@ class ZjsnEmulator(object):
         else:
             raise ZjsnError("no ship to use in location {}".format(location))
 
-    def instant_fleet(self, ships_id):
+    def instant_workingfleet(self, ships_id):
         if ships_id:
             zlogger.debug('编队 {}'.format([self.userShip[i].name for i in ships_id]))
             r = self.get(self.api.instantFleet(self.working_fleet, ships_id))
             self.fleet[int(self.working_fleet) - 1] = r["fleetVo"][0]
+            self.userShip.update(r['shipVO'])
+            return r
+
+    def instant_fleet(self, fleet_id, ships_id):
+        fleet_id = int(fleet_id)
+        if ships_id:
+            zlogger.debug('编队 {}'.format([self.userShip[i].name for i in ships_id]))
+            r = self.get(self.api.instantFleet(fleet_id, ships_id))
+            self.fleet[fleet_id - 1] = r["fleetVo"][0]
             self.userShip.update(r['shipVO'])
             return r
 
@@ -1134,9 +1164,15 @@ class ZjsnEmulator(object):
             self.spoils = r['spoils']
         return r
 
-    def supply(self):
+    def supply_workingfleet(self):
         if any([s["battlePropsMax"]["oil"] - s["battleProps"]["oil"] for s in self.working_ships]):
             r = self.get(self.url_server + "/boat/supplyFleet/{}/".format(self.working_fleet))
+            self.userShip.update(r['shipVO'])
+            return r
+
+    def supplyFleet(self, fleet_id):
+        if any([s["battlePropsMax"]["oil"] - s["battleProps"]["oil"] for s in self.fleet_ships(fleet_id)]):
+            r = self.get(self.url_server + "/boat/supplyFleet/{}/".format(fleet_id))
             self.userShip.update(r['shipVO'])
             return r
 

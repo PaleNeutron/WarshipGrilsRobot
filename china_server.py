@@ -13,7 +13,7 @@ class Mission_6_1_A(zrobot.Mission):
 
     def boss_ships(self):
         # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
-        return [self.ze.userShip.name('维内托').id,
+        return [self.ze.userShip.name('Z46').id,
                 ]
         # return []
     def prepare(self):
@@ -874,15 +874,12 @@ class MissionEvent(zrobot.Mission):
 
 class ChinaRobot(zrobot.Robot):
     def __init__(self):
-        super().__init__()
-
-        self.ze.username = 'junhongbill'
-        self.ze.password = 'ouzhoutiduzjsn'
+        super().__init__('junhongbill', 'ouzhoutiduzjsn')
         self.ze.equipment_formula = [10, 90, 90, 30]
         self.ze.boat_formula = [200, 30, 200, 30]
         self.explore.explore_table = (
-            ([14091, 35442, 35500, 49333, 37890, 44175], '10003'),
-            ([52359, 329, 13663, 8452, 11497, 3877], '20002'),
+            ([11063, 329, 58584, 44607, 44538, 63100], '20002'),
+            ([7367, 3877, 13972, 11497, 8452, 3822], '10003'),
             ([128, 14094, 113, 101, 577, 7373], '40001'),
             ([123, 13973, 10800, 14138, 10706, 104], '20001')
         )

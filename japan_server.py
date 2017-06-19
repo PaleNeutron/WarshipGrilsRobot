@@ -338,7 +338,7 @@ class JapanChallenge(zrobot.Challenge):
         fish_fleet = self.battle_fleet[:]
         if fish_num > 0:
             fish_fleet[-1] = self.ze.userShip.name('宁海').id
-        self.ze.instant_fleet(fish_fleet)
+        self.ze.instant_workingfleet(fish_fleet)
 
 
 class Japan_Mission_1_5(zrobot.Mission):
@@ -435,10 +435,7 @@ class JapanRobot(zrobot.Robot):
     """docstring for Robot"""
 
     def __init__(self):
-        super().__init__()
-
-        self.ze.username = 'junhongbill'
-        self.ze.password = 'ouzhoutiduzjsn'
+        super().__init__('junhongbill', 'ouzhoutiduzjsn')
         self.ze.url_passport_hm = self.ze.url_passport_japan
         self.ze.common_lag = 50
         self.ze.equipment_formula = [10, 90, 90, 30]

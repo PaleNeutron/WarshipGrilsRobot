@@ -237,14 +237,15 @@ class Mission(object):
         return self.available
 
     def get_working_fleet(self):
-        # if len(self.ze.pveExplore) == 4:
-        #     self.available = False
-        #     return False
-        fleet_avilable = next(filter(lambda x: x['status'] == 0 and x['ships'], self.ze.fleet), None)
-        # [int(i) for i in range(1, 5) if str(
-        #     i) not in [e['fleetId'] for e in self.ze.pveExplore]][0]
-        if fleet_avilable:
-            self.ze.working_fleet = fleet_avilable['id']
+        if self.ze.version < self.ze.KEY_VERSION:
+            fleet_avilable = next(filter(lambda x: x['status'] == 0 and x['ships'], self.ze.fleet), None)
+            # [int(i) for i in range(1, 5) if str(
+            #     i) not in [e['fleetId'] for e in self.ze.pveExplore]][0]
+            if fleet_avilable:
+                self.ze.working_fleet = fleet_avilable['id']
+                return True
+        else:
+            self.ze.working_fleet = 2
             return True
 
     def _prepare(self):
@@ -252,7 +253,7 @@ class Mission(object):
             self.available = False
             return
         self.available = self.prepare()
-        self.ze.supply()
+        self.ze.supply_workingfleet()
         if self.available:
             try:
                 self.ze.go_out(self.mission_code)
@@ -349,13 +350,25 @@ class Explore(Mission):
         self.init_table()
         self.fleet_is_free = False
         exploring_fleet = [e['fleetId'] for e in self.ze.pveExplore]
-        for i, table in enumerate(self.explore_table):
-            if str(i + 1) not in exploring_fleet and 0 not in table[0]:
-                self.ze.working_fleet = str(i + 1)
-                if self.ze.working_ships_id != table[0]:
-                    self.ze.instant_fleet(table[0])
-                self.ze.supply()
-                self.ze.explore(self.ze.working_fleet, table[1])
+        if self.ze.version < self.ze.KEY_VERSION:
+            for i, table in enumerate(self.explore_table):
+                if str(i + 1) not in exploring_fleet and 0 not in table[0]:
+                    self.ze.working_fleet = str(i + 1)
+                    if self.ze.working_ships_id != table[0]:
+                        self.ze.instant_workingfleet(table[0])
+                    self.ze.supply_workingfleet()
+                    self.ze.explore(self.ze.working_fleet, table[1])
+        else:
+            self.ze.get_explore()
+            for i, table in enumerate(self.explore_table):
+                fleet_id = i + 5
+                if str(fleet_id) not in exploring_fleet and 0 not in table[0]:
+                    if self.ze.working_ships_id != table[0]:
+                        self.ze.instant_fleet(fleet_id, table[0])
+                    self.ze.supplyFleet(fleet_id)
+                    self.ze.explore(fleet_id, table[1])
+            time.sleep(10)
+
 
     def start(self):
         pass
@@ -546,7 +559,7 @@ class Challenge(Mission):
         self.battle_fleet = ships_a + ships_b + ships_c
 
         if self.challenge_list or self.friend_available:
-            self.ze.instant_fleet(self.battle_fleet)
+            self.ze.instant_workingfleet(self.battle_fleet)
             self.available = True
         else:
             self.available = False
@@ -567,11 +580,11 @@ class Challenge(Mission):
         if fish_num == 3:
             new_fleet[-2:] = [367, 1215]  # 干死那3条鱼
         if fish_num == 4:
-            new_fleet[-2:] = [11063, 1215]  # 干死那4条鱼
+            new_fleet[-2:] = [13706, 1215]  # 干死那4条鱼
         if fish_num > 4:
-            new_fleet[-3:] = [32549, 11063, 1215]
+            new_fleet[-3:] = [32549, 13706, 1215]
 
-        self.ze.instant_fleet(new_fleet)
+        self.ze.instant_workingfleet(new_fleet)
         return new_fleet
 
     def start(self):
@@ -603,7 +616,7 @@ class Challenge(Mission):
         _logger.debug(enemy_uid)
         if self.ninghai:
             ninghai_fleet = [self.ninghai]
-            self.ze.instant_fleet(ninghai_fleet)
+            self.ze.instant_workingfleet(ninghai_fleet)
             r1 = self.ze.get(
                 self.ze.url_server + "/{}/spy/{}/{}".format(api, enemy_uid, self.ze.working_fleet))
             # _logger.debug('enemy level: {}'.format([s['level'] for s in r1['enemyVO']['enemyShips']]))
@@ -623,7 +636,7 @@ class Challenge(Mission):
                 _logger.debug("****有鱼****")
             _logger.debug("\n" + staff)
         if fish_num == 0:
-            self.ze.instant_fleet(self.battle_fleet)
+            self.ze.instant_workingfleet(self.battle_fleet)
         else:
             self.formation_for_fish(fish_num)
 
@@ -686,7 +699,7 @@ class Dock(State):
         # todo change auto_explore to more strict method
         self.ze.auto_explore()
         self.ze.repair_all()
-        self.ze.supply()
+        self.ze.supply_workingfleet()
 
 
 class Mission_1_1(Mission):
@@ -853,10 +866,13 @@ class Robot(object):
     """docstring for Robot"""
 
     # todo 把thread变成一个属性 每次start重新实例化一个thread
-    def __init__(self):
+    def __init__(self, username, password):
         super(Robot, self).__init__()
         self.DEBUG = False
         self.ze = zemulator.ZjsnEmulator()
+        self.ze.username = username
+        self.ze.password = password
+        self.ze.login()
         self.thread = None
 
         self.dock = Dock(self.ze)
@@ -870,12 +886,21 @@ class Robot(object):
 
         self.add_mission(DailyTask(self.ze))
         self.set_missions()
-        self.machine.add_transition(trigger='go_out', prepare=[self.explore._prepare], source='init',
-                                    dest=self.explore.mission_name)
-        self.machine.add_transition(trigger='go_out', source=self.explore.mission_name, dest=self.explore.mission_name,
-                                    conditions=[self.campaign.prepare], after=[self.campaign.start])
-        self.machine.add_transition(trigger='go_out', source=self.explore.mission_name, dest='init',
-                                    conditions=[self.explore.get_explore])
+
+        self.ze.login()
+        if self.ze.version < self.ze.KEY_VERSION:
+            self.machine.add_transition(trigger='go_out', prepare=[self.explore._prepare], source='init',
+                                        dest=self.explore.mission_name)
+            self.machine.add_transition(trigger='go_out', source=self.explore.mission_name,
+                                        dest=self.explore.mission_name,
+                                        conditions=[self.campaign.prepare], after=[self.campaign.start])
+            self.machine.add_transition(trigger='go_out', source=self.explore.mission_name, dest='init',
+                                        conditions=[self.explore.get_explore])
+        else:
+            self.machine.add_transition(trigger='go_out', source="init", dest="init",
+                                        conditions=[self.campaign.prepare], after=[self.campaign.start])
+            self.machine.add_transition(trigger='go_out', prepare=[self.explore._prepare], source='init',
+                                        dest="init")
         # self.machine.add_transition(trigger='go_back', source='*', dest='init')
 
     def add_mission(self, mission: Mission):
@@ -966,8 +991,6 @@ class Robot(object):
     def start(self):
         from transitions import logger as transitions_logger
         from logging import handlers
-
-        self.ze.login()
 
         log_formatter = logging.Formatter(
             '%(asctime)s: %(levelname)s: %(message)s', datefmt='%H:%M:%S')
