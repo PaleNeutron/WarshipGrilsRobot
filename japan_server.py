@@ -435,8 +435,7 @@ class JapanRobot(zrobot.Robot):
     """docstring for Robot"""
 
     def __init__(self):
-        super().__init__('junhongbill', 'ouzhoutiduzjsn')
-        self.ze.url_passport_hm = self.ze.url_passport_japan
+        super().__init__('junhongbill', 'ouzhoutiduzjsn', japan_server=True)
         self.ze.common_lag = 50
         self.ze.equipment_formula = [10, 90, 90, 30]
         self.ze.boat_formula = [400, 80, 650, 101]

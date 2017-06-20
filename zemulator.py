@@ -36,13 +36,25 @@ class ZjsnError(Exception):
 
 class ZjsnApi(object):
     """docstring for ZjsnApi"""
+    CHINA = "china"
+    JAPAN = "japan"
 
     def __init__(self, host):
         super(ZjsnApi, self).__init__()
         self.host = host
+        self.location = self.CHINA
 
     def checkVer(self):
-        return "http://version.jr.moefantasy.com/index/checkVer/3.1.0/100011/2&version=3.1.0&channel=100011&market=2"
+        if self.location == self.CHINA:
+            return "http://version.jr.moefantasy.com/index/checkVer/3.0.0/100011/2&version=3.1.0&channel=100011&market=2"
+        elif self.location == self.JAPAN:
+            return "http://version.jp.warshipgirls.com/index/checkVer/3.0.0/2/0&market=2&channel=0&version=3.0.0"
+
+    def passport(self):
+        if self.location == self.CHINA:
+            return "http://login.jr.moefantasy.com/index/passportLogin"
+        elif self.location == self.JAPAN:
+            return 'http://loginand.jp.warshipgirls.com/index/passportLogin'
 
     def login(self, user_id):
         return self.host + "/index/login/{}".format(user_id)
@@ -491,8 +503,6 @@ class ZjsnEmulator(object):
         self.username = "your username"
         self.password = "your password"
 
-        self.url_passport_hm = "http://login.jr.moefantasy.com/index/passportLogin"
-        self.url_passport_japan = 'http://loginand.jp.warshipgirls.com/index/passportLogin'
         # self.url_server = 'http://s2.jr.moefantasy.com'
 
         self.working_fleet = 1
@@ -608,7 +618,7 @@ class ZjsnEmulator(object):
         r0 = self.get(self.api.checkVer())
         self.version = distutils.version.LooseVersion(r0["version"]["newVersionId"])
         self.s = requests.Session()
-        r1 = self.get(self.url_passport_hm, method='POST',
+        r1 = self.get(self.api.passport(), method='POST',
                       sleep_flag=False,
                       data={"username": self.username,
                             "pwd": self.password})

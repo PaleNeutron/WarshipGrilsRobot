@@ -739,6 +739,28 @@ class Mission_1_5(Mission_1_1):
         self.mission_name = '1-5'
         self.mission_code = 105
 
+    def prepare(self):
+        # 所有高级改造DD
+        dd_ships = []
+        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
+            conditions = [100 > ship["level"] > 20,
+                          ship.type in ['驱逐'],
+                          ]
+            if all(conditions):
+                dd_ships.append(ship.id)
+        ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
+        _logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
+
+        for i in range(1, 6):
+            self.ze.ship_groups[i] = (None, 1, False)
+        self.ze.ship_groups[0] = (dd_ships, 1, False)
+        self.ze.ship_groups[0] = (dd_ships, 1, False)
+
+        try:
+            self.ze.change_ships()
+        except zemulator.ZjsnError:
+            return False
+        return True
 class Mission_2_1(Mission):
 
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -866,12 +888,14 @@ class Robot(object):
     """docstring for Robot"""
 
     # todo 把thread变成一个属性 每次start重新实例化一个thread
-    def __init__(self, username, password):
+    def __init__(self, username, password, japan_server=False):
         super(Robot, self).__init__()
         self.DEBUG = False
         self.ze = zemulator.ZjsnEmulator()
         self.ze.username = username
         self.ze.password = password
+        if japan_server:
+            self.ze.api.location = self.ze.api.JAPAN
         self.ze.login()
         self.thread = None
 
