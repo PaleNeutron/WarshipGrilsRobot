@@ -4,6 +4,7 @@
 init.json
 shipCard.json
 dismantle.py
+shipCard.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -346,11 +346,10 @@ class Explore(Mission):
         pass
 
     def _prepare(self):
-        self.ze.go_home()
         self.init_table()
-        self.fleet_is_free = False
         exploring_fleet = [e['fleetId'] for e in self.ze.pveExplore]
         if self.ze.version < self.ze.KEY_VERSION:
+            self.ze.go_home()
             for i, table in enumerate(self.explore_table):
                 if str(i + 1) not in exploring_fleet and 0 not in table[0]:
                     self.ze.working_fleet = str(i + 1)
@@ -359,14 +358,15 @@ class Explore(Mission):
                     self.ze.supply_workingfleet()
                     self.ze.explore(self.ze.working_fleet, table[1])
         else:
-            self.ze.get_explore()
+            self.ze.get_all_explore()
             for i, table in enumerate(self.explore_table):
                 fleet_id = i + 5
                 if str(fleet_id) not in exploring_fleet and 0 not in table[0]:
-                    if self.ze.working_ships_id != table[0]:
+                    if self.ze.fleet_ships_id(fleet_id) != table[0]:
                         self.ze.instant_fleet(fleet_id, table[0])
                     self.ze.supplyFleet(fleet_id)
                     self.ze.explore(fleet_id, table[1])
+                    _logger.debug("fleet {} start explore {}".format(fleet_id, table[1]))
             time.sleep(10)
 
 
@@ -899,7 +899,7 @@ class Robot(object):
         else:
             self.machine.add_transition(trigger='go_out', source="init", dest="init",
                                         conditions=[self.campaign.prepare], after=[self.campaign.start])
-            self.machine.add_transition(trigger='go_out', prepare=[self.explore._prepare], source='init',
+            self.machine.add_transition(trigger='go_out', conditions=[self.explore._prepare], source='init',
                                         dest="init")
         # self.machine.add_transition(trigger='go_back', source='*', dest='init')
 

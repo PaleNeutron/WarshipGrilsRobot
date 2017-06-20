@@ -968,6 +968,13 @@ class ZjsnEmulator(object):
                 self.explore_result(explore_id)
                 return fleet_id
 
+    def get_all_explore(self):
+        for ex in self.pveExplore:
+            if ex["endTime"] + self.common_lag < time.time():
+                fleet_id = ex["fleetId"]
+                explore_id = ex["exploreId"]
+                self.explore_result(explore_id)
+
     def cancel_explore(self, fleet_id):
         for ex in self.pveExplore:
             fleetId = ex["fleetId"]
