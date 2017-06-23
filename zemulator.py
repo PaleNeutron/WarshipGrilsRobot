@@ -522,6 +522,7 @@ class ZjsnEmulator(object):
         # ship_groups item is (ship_group, broken_level, instant_flag)
         self.award_list = []
         self.spoils = 0
+        self.spoils_event = False
 
         self.boat_formula = [200, 30, 200, 30]
         self.equipment_formula = [20, 50, 10, 100]
@@ -639,6 +640,7 @@ class ZjsnEmulator(object):
         self.userShip.clear()
         self.userShip.update(j["userShipVO"])
         self.userShip.shipNumTop = j['userVo']['detailInfo']['shipNumTop']
+        self.spoils_event = bool(j["marketingData"]["isSpoilsShopEvent"])
 
         self.pveExplore = j["pveExploreVo"]["levels"]
         self.repairDock = j["repairDockVo"]
@@ -680,12 +682,14 @@ class ZjsnEmulator(object):
 
     def relogin(self):
         now = datetime.datetime.today()
-        if self.login_time < now.replace(hour=6, minute=0, second=0) < now:
-            self.login()
+        # if self.login_time < now.replace(hour=6, minute=0, second=0) < now:
+        #     self.login()
+        #     return True
         if self.login_time < now.replace(hour=0, minute=0, second=0) < now:
             self.login()
             self.drop500 = False
-        return True
+            return True
+        return False
 
     def kiss(self):
         pass

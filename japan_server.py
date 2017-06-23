@@ -6,38 +6,38 @@ import zrobot
 class JapanPants(china_server.MissionPants):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(ze)
-        self.pants_yesterday = 10
+        self.pants_yesterday = 80
 
-    def prepare(self):
-        if self.ze.spoils - self.pants_yesterday >= 50:
-            self.available = False
-            return
-
-        if self.count > 100:
-            zrobot._logger.warning('pants {}, SL {}'.format(self.ze.spoils - self.pants_yesterday, self.count))
-        # 所有DD
-        dd_ships = []
-        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
-            conditions = [ship.type in ['驱逐'],
-                          ship.level > 1,
-                          ship.evolved == 1 or ship.can_evo,
-                          ]
-            if all(conditions):
-                dd_ships.append(ship.id)
-        ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
-        zrobot._logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
-
-        for i in range(0, 2):
-            self.ze.ship_groups[i] = (dd_ships, 1, False)
-        self.ze.ship_groups[2] = ([422], 1, False)
-        self.ze.ship_groups[3] = ([118], 1, False)
-        self.ze.ship_groups[4] = self.ze.ship_groups[5] = (None, 1, False)
-
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+        # def prepare(self):
+        #     if not self.pants_available:
+        #         self.available = False
+        #         return
+        #
+        #     if self.count > 100:
+        #         zrobot._logger.warning('pants {}, SL {}'.format(self.ze.spoils - self.pants_yesterday, self.count))
+        #     # 所有DD
+        #     dd_ships = []
+        #     for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
+        #         conditions = [ship.type in ['驱逐'],
+        #                       ship.level > 1,
+        #                       ship.evolved == 1 or ship.can_evo,
+        #                       ]
+        #         if all(conditions):
+        #             dd_ships.append(ship.id)
+        #     ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
+        #     zrobot._logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
+        #
+        #     for i in range(0, 2):
+        #         self.ze.ship_groups[i] = (dd_ships, 1, False)
+        #     self.ze.ship_groups[2] = ([422], 1, False)
+        #     self.ze.ship_groups[3] = ([118], 1, False)
+        #     self.ze.ship_groups[4] = self.ze.ship_groups[5] = (None, 1, False)
+        #
+        #     try:
+        #         self.ze.change_ships()
+        #     except zemulator.ZjsnError:
+        #         return False
+        #     return True
 
 
 class Mission1_4(zrobot.Mission):
@@ -449,6 +449,7 @@ class JapanRobot(zrobot.Robot):
         )
         self.campaign.mission_code = 302
         # self.campaign.formation_code = 5
+        self.pants = JapanPants(self.ze)
 
     def set_missions(self):
         # self.m1_4a = Mission1_4(self.ze)
@@ -470,7 +471,7 @@ class JapanRobot(zrobot.Robot):
 
         self.add_mission(Japan_Mission_6_1_A(self.ze))
         self.add_mission(Mission3_4_A(self.ze))
-        self.add_mission(JapanPants(self.ze))
+        self.add_mission(self.pants)
 
         # self.m3_2 = Mission3_2(self.ze)
         # self.machine.add_states(self.m3_2.state)

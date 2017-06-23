@@ -13,7 +13,7 @@ class Mission_6_1_A(zrobot.Mission):
 
     def boss_ships(self):
         # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
-        return [self.ze.userShip.name('Z46').id,
+        return [self.ze.userShip.name('U96').id,
                 ]
         # return []
     def prepare(self):
@@ -389,13 +389,12 @@ class Mission_6_3(zrobot.Mission):
 
 
 class MissionPants(zrobot.Mission):
-    """暂时不知道你萌是否有event是怎么判断的
-    没有event，pevent接口返回的是byte[] arrOutput = { 0x78, 0xDA, 0x8B, 0x8E, 0x05, 0x00, 0x01, 0x15, 0x00, 0xB9 };
-    有event，接口返回的是event信息"""
+    """"""
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(MissionPants, self).__init__('pants', 201, ze)
         self.pants_num = 0
         self.pants_yesterday = 20
+        self.enable = True
 
     def set_first_nodes(self):
         self.node_b = zrobot.Node('B', node_type='resource')
@@ -406,8 +405,14 @@ class MissionPants(zrobot.Mission):
 
         return self.node_b
 
+    @property
+    def pants_available(self):
+        if self.ze.relogin():
+            self.pants_yesterday = self.ze.spoils
+        return self.ze.spoils_event and self.ze.spoils - self.pants_yesterday < 50
+
     def prepare(self):
-        if self.ze.spoils - self.pants_yesterday >= 50:
+        if not self.pants_available:
             self.available = False
             return
 
@@ -885,6 +890,8 @@ class ChinaRobot(zrobot.Robot):
         )
         self.campaign.mission_code = 402
 
+        self.pants = MissionPants(self.ze)
+
     def set_missions(self):
         challenge = zrobot.Challenge(self.ze)
         challenge.ship_list = [70968, 14091, 61131, 2914, 56604, 65646,
@@ -906,7 +913,7 @@ class ChinaRobot(zrobot.Robot):
         # self.add_mission(Mission_2_2(self.ze))
         # self.add_mission(Mission_5_5_B(self.ze))
         self.add_mission(Mission_6_4(self.ze))
-        self.add_mission(MissionPants(self.ze))
+        self.add_mission(self.pants)
         self.add_mission(Mission_6_1_A(self.ze))
         self.add_mission(MissionEvent(self.ze))
 
