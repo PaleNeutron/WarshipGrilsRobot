@@ -449,7 +449,6 @@ class JapanRobot(zrobot.Robot):
         )
         self.campaign.mission_code = 302
         # self.campaign.formation_code = 5
-        self.pants = JapanPants(self.ze)
 
     def set_missions(self):
         # self.m1_4a = Mission1_4(self.ze)
@@ -471,6 +470,7 @@ class JapanRobot(zrobot.Robot):
 
         self.add_mission(Japan_Mission_6_1_A(self.ze))
         self.add_mission(Mission3_4_A(self.ze))
+        self.pants = JapanPants(self.ze)
         self.add_mission(self.pants)
 
         # self.m3_2 = Mission3_2(self.ze)
