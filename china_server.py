@@ -397,7 +397,7 @@ class MissionPants(zrobot.Mission):
         self.pants_num = 0
         self.pants_yesterday = 20
         self.enable = True
-        self.last_pants_time = 0
+        self.last_pants_time = datetime.datetime.today()
 
     def set_first_nodes(self):
         self.node_b = zrobot.Node('B', node_type='resource')
