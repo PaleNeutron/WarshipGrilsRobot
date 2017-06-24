@@ -1,5 +1,3 @@
-import datetime
-
 import zemulator
 import zrobot
 
@@ -116,7 +114,7 @@ class Mission_5_2_C(zrobot.Mission):
 
         for i in range(0, 6):
             self.ze.ship_groups[i] = (ss_ships, 1, False)
-        self.ze.ship_groups[0][0].insert(0, 6744)  # 尽可能狼群U47旗舰
+        self.ze.ship_groups[0][0].insert(0, self.ze.userShip.name("U47").id)  # 尽可能狼群U47旗舰
         try:
             self.ze.change_ships()
         except zemulator.ZjsnError as zerror:
@@ -219,7 +217,7 @@ class Mission_5_5_C(zrobot.Mission):
 
         for i in range(0, 6):
             self.ze.ship_groups[i] = (ss_ships, 1, False)
-        self.ze.ship_groups[0][0].insert(0, 6744)  # 尽可能狼群U47旗舰
+        self.ze.ship_groups[0][0].insert(0, self.ze.userShip.name("U47").id)  # 尽可能狼群U47旗舰
         try:
             self.ze.change_ships()
         except zemulator.ZjsnError:
@@ -397,7 +395,7 @@ class MissionPants(zrobot.Mission):
         self.pants_num = 0
         self.pants_yesterday = 20
         self.enable = True
-        self.last_pants_time = datetime.datetime.today()
+        self.last_pants_time = self.ze.now
 
     def set_first_nodes(self):
         self.node_b = zrobot.Node('B', node_type='resource')
@@ -410,10 +408,10 @@ class MissionPants(zrobot.Mission):
 
     @property
     def pants_available(self):
-        now = datetime.datetime.today()
-        if self.last_pants_time < now.replace(hour=0, minute=0, second=0) < now:
+        now = self.ze.now
+        if self.last_pants_time < self.ze.now.replace(hour=0, minute=0, second=0) < now:
             self.pants_yesterday = self.ze.spoils
-        return self.ze.spoils_event and self.ze.spoils - self.pants_yesterday < 50
+        return self.ze.spoils_event and self.ze.todaySpoilsNum < 50
 
     def prepare(self):
         if not self.pants_available:
@@ -421,7 +419,7 @@ class MissionPants(zrobot.Mission):
             return
 
         if self.count > 100:
-            zrobot._logger.warning('pants {}, SL {}'.format(self.ze.spoils - self.pants_yesterday, self.count))
+            zrobot._logger.warning('pants {}, SL {}'.format(self.ze.todaySpoilsNum, self.count))
         # 所有高级改造DD
         dd_ships = []
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
@@ -464,10 +462,10 @@ class MissionPants(zrobot.Mission):
         if self.success:
             zrobot._logger.info("{} SL {} 次, 共捞{}胖次, result:{}".format(
                 self.mission_name, self.count,
-                self.ze.spoils - self.pants_yesterday,
+                self.ze.todaySpoilsNum,
                 [(i.name, i.level) for i in self.ze.working_ships]))
             self.count = 0
-            self.last_pants_time = datetime.datetime.today()
+            self.last_pants_time = self.ze.now
 
 
 class Mission_4_3(zrobot.Mission):

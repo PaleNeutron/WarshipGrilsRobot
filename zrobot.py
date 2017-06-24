@@ -465,8 +465,8 @@ class Challenge(Mission):
         self.old_fleet = []
         self.challenge_list = {}
         self.friend_available = False
-        self.last_challenge_time = datetime.fromtimestamp(0)
-        self.last_friend_time = datetime.fromtimestamp(0)
+        self.last_challenge_time = datetime.fromtimestamp(0, tz=self.ze.tz)
+        self.last_friend_time = datetime.fromtimestamp(0, tz=self.ze.tz)
 
         self.start_point = 0
         self.ninghai = None
@@ -505,11 +505,10 @@ class Challenge(Mission):
         self.challenge_list = {}
         self.friend_available = False
 
-        now = datetime.now()
-        check_points = [now.replace(hour=0, minute=0), now.replace(
-            hour=12, minute=0), now.replace(hour=18, minute=0)]
+        check_points = [self.ze.now.replace(hour=0, minute=0), self.ze.now.replace(
+            hour=12), self.ze.now.replace(hour=18, minute=0)]
         for p in check_points:
-            if self.last_challenge_time < p < now:
+            if self.last_challenge_time < p < self.ze.now:
                 self.available = True
 
         if not self.available:
@@ -564,7 +563,7 @@ class Challenge(Mission):
         else:
             self.available = False
 
-        self.last_challenge_time = datetime.today()
+        self.last_challenge_time = self.ze.now
 
     def farm_ships(self):
         farm_ships = [s.id for s in self.ze.userShip if s.name in ['罗德尼', '纳尔逊']]
@@ -983,11 +982,11 @@ class Robot(object):
 
     def is_sleep(self) -> bool:
         # sleep in 0:00 to 6:00
-        now = datetime.today()
+
         if os.name == 'nt':
             return False
 
-        if now.replace(hour=0, minute=0) < now < now.replace(hour=6):
+        if self.ze.now.replace(hour=0, minute=0) < self.ze.now < self.ze.now.replace(hour=6):
             return True
         else:
             return False

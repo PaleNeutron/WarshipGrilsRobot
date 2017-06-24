@@ -6,7 +6,7 @@ import zrobot
 class JapanPants(china_server.MissionPants):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(ze)
-        self.pants_yesterday = 80
+        self.pants_yesterday = -50
 
         # def prepare(self):
         #     if not self.pants_available:

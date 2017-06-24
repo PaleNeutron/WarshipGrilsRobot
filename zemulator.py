@@ -516,7 +516,7 @@ class ZjsnEmulator(object):
 
         self.node = 0
 
-        self.login_time = 0
+        self.login_time = self.now
 
         self.ship_groups = [([], 1, False)] * 6
         # ship_groups item is (ship_group, broken_level, instant_flag)
@@ -665,7 +665,7 @@ class ZjsnEmulator(object):
             r = self.get(self.api.loginAward())
             if 'shipVO' in r:
                 self.userShip.add_ship(r['shipVO'], ze=self)
-        self.login_time = datetime.datetime.today()
+        self.login_time = self.now
 
         self.userShip.save('{}_{}.md'.format(self.username, server_json['name']))
 
@@ -674,18 +674,32 @@ class ZjsnEmulator(object):
         r_sl = self.get(self.url_server + "/active/getUserData/", sleep_flag=False)
         r_sl = self.get(self.url_server + "/pve/getUserData/", sleep_flag=False)
         self.get_campaign_data()
+        self.bsea()
         self.get_award()
 
     def get_campaign_data(self):
         r_c = self.get(self.url_server + "/campaign/getUserData/", sleep_flag=False)
         self.campaign_num = r_c['passInfo']['remainNum']
 
+    @property
+    def tz(self):
+        if self.api.location == self.api.CHINA:
+            timezone = datetime.timezone(datetime.timedelta(hours=8))
+        elif self.api.location == self.api.JAPAN:
+            timezone = datetime.timezone(datetime.timedelta(hours=9))
+        else:
+            timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+        return timezone
+
+    @property
+    def now(self):
+        return datetime.datetime.now(self.tz)
+
     def relogin(self):
-        now = datetime.datetime.today()
-        if self.login_time < now.replace(hour=6, minute=0, second=0) < now:
+        if self.login_time < self.now.replace(hour=6, minute=0, second=0) < self.now:
             self.login()
             return True
-        if self.login_time < now.replace(hour=0, minute=0, second=0) < now:
+        if self.login_time < self.now.replace(hour=0, minute=0, second=0) < self.now:
             self.login()
             self.drop500 = False
             return True
