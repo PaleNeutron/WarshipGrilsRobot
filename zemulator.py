@@ -682,9 +682,9 @@ class ZjsnEmulator(object):
 
     def relogin(self):
         now = datetime.datetime.today()
-        # if self.login_time < now.replace(hour=6, minute=0, second=0) < now:
-        #     self.login()
-        #     return True
+        if self.login_time < now.replace(hour=6, minute=0, second=0) < now:
+            self.login()
+            return True
         if self.login_time < now.replace(hour=0, minute=0, second=0) < now:
             self.login()
             self.drop500 = False

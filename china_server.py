@@ -1,3 +1,5 @@
+import datetime
+
 import zemulator
 import zrobot
 
@@ -395,6 +397,7 @@ class MissionPants(zrobot.Mission):
         self.pants_num = 0
         self.pants_yesterday = 20
         self.enable = True
+        self.last_pants_time = 0
 
     def set_first_nodes(self):
         self.node_b = zrobot.Node('B', node_type='resource')
@@ -407,7 +410,8 @@ class MissionPants(zrobot.Mission):
 
     @property
     def pants_available(self):
-        if self.ze.relogin():
+        now = datetime.datetime.today()
+        if self.last_pants_time < now.replace(hour=0, minute=0, second=0) < now:
             self.pants_yesterday = self.ze.spoils
         return self.ze.spoils_event and self.ze.spoils - self.pants_yesterday < 50
 
@@ -463,6 +467,7 @@ class MissionPants(zrobot.Mission):
                 self.ze.spoils - self.pants_yesterday,
                 [(i.name, i.level) for i in self.ze.working_ships]))
             self.count = 0
+            self.last_pants_time = datetime.datetime.today()
 
 
 class Mission_4_3(zrobot.Mission):
