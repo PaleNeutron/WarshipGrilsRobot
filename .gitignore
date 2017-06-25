@@ -1,6 +1,7 @@
 *.ipynb
 *.md
 .*
+*.log*
 init.json
 shipCard.json
 dismantle.py

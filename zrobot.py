@@ -909,8 +909,6 @@ class Robot(object):
 
         self.add_mission(DailyTask(self.ze))
         self.set_missions()
-
-        self.ze.login()
         if self.ze.version < self.ze.KEY_VERSION:
             self.machine.add_transition(trigger='go_out', prepare=[self.explore._prepare], source='init',
                                         dest=self.explore.mission_name)
@@ -994,7 +992,6 @@ class Robot(object):
     def run(self):
         while self.command != 'stop':
             try:
-                self.ze.login()
                 self.ze.repair_all()
                 self.working_loop()
             except Exception as e:
@@ -1006,6 +1003,7 @@ class Robot(object):
                     current_mission = self.missions[self.state]
                     current_mission.enable = False
                     _logger.error("{} is disabled".format(current_mission))
+                    self.ze.login()
                     # init state
                     self.state = 'init'
                 time.sleep(10)

@@ -16,6 +16,7 @@ class Mission_6_1_A(zrobot.Mission):
         return [self.ze.userShip.name('U96').id,
                 ]
         # return []
+
     def prepare(self):
         # 所有装了声呐的反潜船
         dd_ships = []
@@ -36,7 +37,8 @@ class Mission_6_1_A(zrobot.Mission):
 
         # boss_ships = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
         if self.boss_ships():
-            boss_ships = [boss_ship for boss_ship in self.boss_ships() if self.ze.userShip[boss_ship].level < 100]
+            boss_ships = [boss_ship for boss_ship in self.boss_ships(
+            ) if self.ze.userShip[boss_ship].level < 100]
         else:
             boss_ships = []
 
@@ -49,7 +51,6 @@ class Mission_6_1_A(zrobot.Mission):
         boss_ships.sort(key=lambda x: self.ze.userShip[x].level)
         zrobot._logger.debug("boss_ships:{}".format(
             [self.ze.userShip[ship_id].name for ship_id in boss_ships]))
-
 
         for i in range(1, 5):
             self.ze.ship_groups[i] = (dd_ships, 1, False)
@@ -114,7 +115,8 @@ class Mission_5_2_C(zrobot.Mission):
 
         for i in range(0, 6):
             self.ze.ship_groups[i] = (ss_ships, 1, False)
-        self.ze.ship_groups[0][0].insert(0, self.ze.userShip.name("U47").id)  # 尽可能狼群U47旗舰
+        self.ze.ship_groups[0][0].insert(
+            0, self.ze.userShip.name("U47").id)  # 尽可能狼群U47旗舰
         try:
             self.ze.change_ships()
         except zemulator.ZjsnError as zerror:
@@ -176,7 +178,8 @@ class Mission_2_5_mid(zrobot.Mission):
 
         self.ze.ship_groups[0] = ([16523], 0.7, True)  # 飙车胡德
         self.ze.ship_groups[1] = self.ze.ship_groups[2] = (ss_ships, 0, False)
-        self.ze.ship_groups[3] = self.ze.ship_groups[5] = (cv_ships, 0.7, False)
+        self.ze.ship_groups[3] = self.ze.ship_groups[5] = (
+            cv_ships, 0.7, False)
         self.ze.ship_groups[4] = (taitai, 0.7, True)
         # self.ze.ship_groups[3][0].insert(0,13664)  # 大凤优先4号位置
         self.ze.ship_groups[3] = ([13664], 0.7, True)  # 大凤
@@ -213,11 +216,13 @@ class Mission_5_5_C(zrobot.Mission):
             if all(conditions):
                 ss_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in ss_ships]
-        zrobot._logger.debug("ss_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("ss_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         for i in range(0, 6):
             self.ze.ship_groups[i] = (ss_ships, 1, False)
-        self.ze.ship_groups[0][0].insert(0, self.ze.userShip.name("U47").id)  # 尽可能狼群U47旗舰
+        self.ze.ship_groups[0][0].insert(
+            0, self.ze.userShip.name("U47").id)  # 尽可能狼群U47旗舰
         try:
             self.ze.change_ships()
         except zemulator.ZjsnError:
@@ -230,7 +235,8 @@ class Mission_5_5_B(zrobot.Mission):
         super(Mission_5_5_B, self).__init__('5-5B', 505, ze)
 
     def set_first_nodes(self):
-        self.node_b = zrobot.Node('B', additional_spy_filter=lambda sr: '战巡' in str(sr) or '雷巡' in str(sr))
+        self.node_b = zrobot.Node(
+            'B', additional_spy_filter=lambda sr: '战巡' in str(sr) or '雷巡' in str(sr))
         return self.node_b
 
     def prepare(self):
@@ -246,7 +252,8 @@ class Mission_5_5_B(zrobot.Mission):
             if all(conditions):
                 ca_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in ca_ships]
-        zrobot._logger.debug("ca_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("ca_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         for i in range(1, 5):
             self.ze.ship_groups[i] = (ca_ships, 1, False)
@@ -271,7 +278,8 @@ class Mission_2_5_up(zrobot.Mission):
                                            zrobot.Node('g').add_next(
                                                zrobot.Node('j', night_flag=1, formation=4))),
                                        zrobot.Node('f'),
-                                       zrobot.Node('j', night_flag=1, formation=4),
+                                       zrobot.Node(
+                                           'j', night_flag=1, formation=4),
                                        ])
         return self.node_a
 
@@ -303,12 +311,14 @@ class Mission_2_5_up(zrobot.Mission):
             return False
         return True
 
+
 class Mission_2_5_down(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(Mission_2_5_down, self).__init__('2-5down', 205, ze)
 
     def set_first_nodes(self):
-        self.node_a = zrobot.Node('A', additional_spy_filter=lambda sr: len(sr['enemyVO']['enemyShips']) == 5)
+        self.node_a = zrobot.Node('A', additional_spy_filter=lambda sr: len(
+            sr['enemyVO']['enemyShips']) == 5)
         # self.node_a = Node('A', node_type='skip')
         self.node_b = zrobot.Node('B')
         self.node_e = zrobot.Node('E', node_type='resource')
@@ -335,7 +345,8 @@ class Mission_2_5_down(zrobot.Mission):
             if all(conditions):
                 ss_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in ss_ships]
-        zrobot._logger.debug("ss_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("ss_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         for i in range(0, 6):
             self.ze.ship_groups[i] = (ss_ships, 0, False)
@@ -352,7 +363,8 @@ class Mission_6_3(zrobot.Mission):
         super(Mission_6_3, self).__init__('6-3', 603, ze)
 
     def set_first_nodes(self):
-        self.node_b = zrobot.Node('B', enemy_target=zemulator.ZjsnShip.type_id('重巡'), formation=4)
+        self.node_b = zrobot.Node(
+            'B', enemy_target=zemulator.ZjsnShip.type_id('重巡'), formation=4)
         # self.node_a = Node('A', node_type='skip')
         self.node_e = zrobot.Node('E', formation=4)
         self.node_h = zrobot.Node('H', formation=4)
@@ -376,7 +388,8 @@ class Mission_6_3(zrobot.Mission):
             if all(conditions):
                 ss_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in ss_ships]
-        zrobot._logger.debug("ss_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("ss_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         for i in range(0, 6):
             self.ze.ship_groups[i] = (ss_ships, 0, False)
@@ -390,6 +403,7 @@ class Mission_6_3(zrobot.Mission):
 
 class MissionPants(zrobot.Mission):
     """"""
+
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(MissionPants, self).__init__('pants', 201, ze)
         self.pants_num = 0
@@ -400,7 +414,8 @@ class MissionPants(zrobot.Mission):
     def set_first_nodes(self):
         self.node_b = zrobot.Node('B', node_type='resource')
         self.node_d = zrobot.Node('D', node_type='resource')
-        self.node_f = zrobot.Node('F', night_flag=1, enemy_target=zemulator.ZjsnShip.type_id('补给'))
+        self.node_f = zrobot.Node(
+            'F', night_flag=1, enemy_target=zemulator.ZjsnShip.type_id('补给'))
         self.node_b.add_next(self.node_d)
         self.node_d.add_next(self.node_f)
 
@@ -419,7 +434,8 @@ class MissionPants(zrobot.Mission):
             return
 
         if self.count > 100:
-            zrobot._logger.warning('pants {}, SL {}'.format(self.ze.todaySpoilsNum, self.count))
+            zrobot._logger.warning('pants {}, SL {}'.format(
+                self.ze.todaySpoilsNum, self.count))
         # 所有高级改造DD
         dd_ships = []
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
@@ -430,8 +446,8 @@ class MissionPants(zrobot.Mission):
             if all(conditions):
                 dd_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
-        zrobot._logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
-
+        zrobot._logger.debug("dd_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         # 所有高级改造cv
         cv_ships = []
@@ -443,7 +459,8 @@ class MissionPants(zrobot.Mission):
             if all(conditions):
                 cv_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in cv_ships]
-        zrobot._logger.debug("cv_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("cv_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         for i in range(0, 4):
             self.ze.ship_groups[i] = (dd_ships, 1, False)
@@ -462,7 +479,7 @@ class MissionPants(zrobot.Mission):
         if self.success:
             zrobot._logger.info("{} SL {} 次, 共捞{}胖次, result:{}".format(
                 self.mission_name, self.count,
-                self.ze.todaySpoilsNum,
+                self.ze.todaySpoilsNum + 1,
                 [(i.name, i.level) for i in self.ze.working_ships]))
             self.count = 0
             self.last_pants_time = self.ze.now
@@ -494,7 +511,8 @@ class Mission_4_3(zrobot.Mission):
             if all(conditions):
                 dd_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
-        zrobot._logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("dd_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         self.ze.ship_groups[0] = (dd_ships, 0, False)  # 旗舰必须是完好的防止大破
         for i in range(1, 4):
@@ -513,7 +531,6 @@ class Mission_4_3(zrobot.Mission):
             if 'userResVo' in self.node_d.battle_result:
                 zrobot._logger.info("资源： 油:{0[oil]:<7} 弹:{0[ammo]:<7} 钢:{0[steel]:<7} 铝:{0[aluminium]:<7}".format(
                     self.node_d.battle_result['userResVo']))
-
 
 
 class Mission_5_3(zrobot.Mission):
@@ -542,7 +559,8 @@ class Mission_5_3(zrobot.Mission):
             if all(conditions):
                 dd_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
-        zrobot._logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("dd_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         self.ze.ship_groups[0] = (dd_ships, 0, False)  # 旗舰必须是完好的防止大破
         for i in range(1, 4):
@@ -561,6 +579,7 @@ class Mission_5_3(zrobot.Mission):
             if 'userResVo' in self.node_d.battle_result:
                 zrobot._logger.info("资源： 油:{0[oil]:<7} 弹:{0[ammo]:<7} 钢:{0[steel]:<7} 铝:{0[aluminium]:<7}".format(
                     self.node_d.battle_result['userResVo']))
+
 
 class Mission_2_2(zrobot.Mission):
     """一次17油，一小时1000油，效率高于远征，大有可为"""
@@ -587,7 +606,8 @@ class Mission_2_2(zrobot.Mission):
             if all(conditions):
                 dd_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
-        zrobot._logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("dd_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         for i in range(1, 6):
             self.ze.ship_groups[i] = (None, 1, False)
@@ -619,7 +639,8 @@ class Mission_1_1(zrobot.Mission):
             if all(conditions):
                 dd_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
-        zrobot._logger.debug("dd_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("dd_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         for i in range(1, 6):
             self.ze.ship_groups[i] = (None, 1, False)
@@ -647,7 +668,8 @@ class Mission_6_4(zrobot.Mission):
         if 10023712 in self.ze.unlockShip:
             zrobot._logger.debug('有昆特了')
             return False
-        boss_ships = [s.id for s in self.ze.userShip if s.name == '赤城' and s.level > 80]  # 赤城带队洗地
+        boss_ships = [s.id for s in self.ze.userShip if s.name ==
+                      '赤城' and s.level > 80]  # 赤城带队洗地
         cv_ships = []
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
             conditions = [20 < ship["level"] < 100,
@@ -657,7 +679,8 @@ class Mission_6_4(zrobot.Mission):
             if all(conditions):
                 cv_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in cv_ships]
-        zrobot._logger.debug("cv_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("cv_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         # 所有改造后的ca, 等级从低到高
         ca_ships = []
@@ -669,7 +692,8 @@ class Mission_6_4(zrobot.Mission):
             if all(conditions):
                 ca_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in ca_ships]
-        zrobot._logger.debug("ca_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("ca_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         for i in range(0, 6):
             self.ze.ship_groups[i] = (cv_ships, 1, True)
@@ -685,20 +709,24 @@ class Mission_6_4(zrobot.Mission):
             return False
         return True
 
+
 class Mission_6_4_fish(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(Mission_6_4_fish, self).__init__('6-4 fish', 604, ze)
 
     def set_first_nodes(self):
         # self.node_a = Node('A', additional_spy_filter=lambda sr: '战巡' in str(sr) or '航母'in str(sr))
-        self.node_c = self.node_chain([zrobot.Node('c', formation=4, night_flag=1),
-                                       zrobot.Node('f', formation=4),
-                                       zrobot.Node('h'),
-                                       zrobot.Node('j', node_type="resource"),
-                                       zrobot.Node('l', enemy_target='20100003', formation=4),
-                                       ])
+        self.node_c = self.node_chain(
+            [zrobot.Node('c', formation=4, night_flag=1),
+             zrobot.Node('f', formation=4),
+             zrobot.Node('h'),
+             zrobot.Node('j', node_type="resource"),
+             zrobot.Node('l', enemy_target='20100003', formation=4),
+            ]
+        )
         self.node_b = self.node_chain([zrobot.Node('b', formation=4, night_flag=1),
-                                       zrobot.Node('d', formation=4, night_flag=1),
+                                       zrobot.Node(
+                                           'd', formation=4, night_flag=1),
                                        ])
         self.node_a = zrobot.Node('a', enemy_avoid='驱逐')
         self.node_a.add_next(self.node_b)
@@ -708,7 +736,8 @@ class Mission_6_4_fish(zrobot.Mission):
     def prepare(self):
         target = 10023712
         if target in self.ze.unlockShip:
-            zrobot._logger.info('有{}了'.format(zemulator.shipCard[target]["title"]))
+            zrobot._logger.info('有{}了'.format(
+                zemulator.shipCard[target]["title"]))
             return False
         # 所有能开幕的水下船只
         ss_ships = []
@@ -719,7 +748,8 @@ class Mission_6_4_fish(zrobot.Mission):
             if all(conditions):
                 ss_ships.append(ship.id)
         ships = [self.ze.userShip[ship_id] for ship_id in ss_ships]
-        zrobot._logger.debug("ss_ships:{}".format([(s.name, s.level) for s in ships]))
+        zrobot._logger.debug("ss_ships:{}".format(
+            [(s.name, s.level) for s in ships]))
 
         for i in range(0, 6):
             self.ze.ship_groups[i] = (ss_ships, 0, False)
@@ -729,6 +759,7 @@ class Mission_6_4_fish(zrobot.Mission):
         except zemulator.ZjsnError:
             return False
         return True
+
 
 class MissionEvent2(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -742,7 +773,8 @@ class MissionEvent2(zrobot.Mission):
                                        zrobot.Node('f', node_type="skip"),
                                        zrobot.Node('j', node_type="resource"),
                                        zrobot.Node('p'),
-                                       zrobot.Node('q', formation=4, night_flag=1),
+                                       zrobot.Node(
+                                           'q', formation=4, night_flag=1),
                                        ])
 
         return self.node_a
@@ -767,10 +799,11 @@ class MissionEvent2(zrobot.Mission):
         super().summery()
         zrobot._logger.debug("boss hp={}".format(self.boss_hp))
 
+
 class MissionEvent_ex(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__('event_ex', 9944, ze)
-        self.battle_fleet = [13598,13674,6131,44042,115,43707]
+        self.battle_fleet = [13598, 13674, 6131, 44042, 115, 43707]
 
     def set_first_nodes(self):
         self.node_d = zrobot.Node('d', formation=5)
@@ -846,7 +879,8 @@ class MissionEvent_E7(zrobot.Mission):
 class MissionEvent(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__('event', 9948, ze)
-        self.battle_fleet = [43014,370,13664,11872,115,43707] # [16523,229,1519,11872,115,43707]
+        # [16523,229,1519,11872,115,43707]
+        self.battle_fleet = [43014, 370, 13664, 11872, 115, 43707]
 
     def set_first_nodes(self):
         self.node_a = self.node_chain([zrobot.Node('a', node_type='skip'),
@@ -879,6 +913,7 @@ class MissionEvent(zrobot.Mission):
     def summery(self):
         super().summery()
         zrobot._logger.debug("boss hp={}".format(self.boss_hp))
+
 
 class ChinaRobot(zrobot.Robot):
     def __init__(self):
@@ -927,5 +962,5 @@ if __name__ == '__main__':
     # r.missions['6-4'].switch()
     # r.missions['pants'].switch()
     # r.missions['5-5C'].enable = True
-    # r.missions['kill_fish'].enable = True
+    r.missions['kill_fish'].enable = True
     t = r.start()

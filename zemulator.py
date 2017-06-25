@@ -710,7 +710,7 @@ class ZjsnEmulator(object):
 
     def bsea(self):
         r = self.get(self.api.bsea())
-        self.todaySpoilsNum = r["bSeaData"]["todaySpoilsNum"]
+        self.todaySpoilsNum = int(r["bSeaData"]["todaySpoilsNum"])
         return r
 
     def build(self, dock_id, oil, ammo, steel, aluminum):
