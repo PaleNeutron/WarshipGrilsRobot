@@ -198,8 +198,7 @@ class Mission_5_5_C(zrobot.Mission):
         super(Mission_5_5_C, self).__init__('5-5C', 505, ze)
 
     def set_first_nodes(self):
-        self.node_c = zrobot.Node('C', formation=4,
-                                  additional_spy_filter=lambda sr: '战巡' in str(sr) or '航母' in str(sr))
+        self.node_c = zrobot.Node('C', formation=4, enemy_avoid=zemulator.ZjsnShip.type_id("轻巡"))
         self.node_f = zrobot.Node('F')
         self.node_i = zrobot.Node('I', formation=4, night_flag=1)
         self.node_c.add_next(self.node_f)
@@ -659,9 +658,9 @@ class Mission_6_4(zrobot.Mission):
         self.pants_num = 0
 
     def set_first_nodes(self):
-        self.node_a = self.node_chain([zrobot.Node('A', enemy_avoid='战巡'),
+        self.node_a = self.node_chain([zrobot.Node('A', enemy_avoid=zemulator.ZjsnShip.type_id('战巡')),
                                        zrobot.Node('B'),
-                                       zrobot.Node('e', enemy_avoid='潜艇', night_flag=1)])
+                                       zrobot.Node('e', enemy_avoid=zemulator.ZjsnShip.type_id('潜艇'), night_flag=1)])
         return self.node_a
 
     def prepare(self):
@@ -728,7 +727,7 @@ class Mission_6_4_fish(zrobot.Mission):
                                        zrobot.Node(
                                            'd', formation=4, night_flag=1),
                                        ])
-        self.node_a = zrobot.Node('a', enemy_avoid='驱逐')
+        self.node_a = zrobot.Node('a', enemy_avoid=zemulator.ZjsnShip.type_id('驱逐'))
         self.node_a.add_next(self.node_b)
         self.node_a.add_next(self.node_c)
         return self.node_a
@@ -950,10 +949,11 @@ class ChinaRobot(zrobot.Robot):
         # self.add_mission(Mission_2_2(self.ze))
         # self.add_mission(Mission_5_5_B(self.ze))
         self.add_mission(Mission_6_4(self.ze))
-        self.pants = MissionPants(self.ze)
-        self.add_mission(self.pants)
         self.add_mission(Mission_6_1_A(self.ze))
         self.add_mission(MissionEvent(self.ze))
+
+        self.pants = MissionPants(self.ze)
+        self.add_mission(self.pants)
 
 
 if __name__ == '__main__':
@@ -962,5 +962,5 @@ if __name__ == '__main__':
     # r.missions['6-4'].switch()
     # r.missions['pants'].switch()
     # r.missions['5-5C'].enable = True
-    r.missions['kill_fish'].enable = True
+    # r.missions['kill_fish'].enable = True
     t = r.start()
