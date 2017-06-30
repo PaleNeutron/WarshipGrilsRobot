@@ -960,7 +960,7 @@ class Robot(object):
                 if zerror.eid == -101:
                     self.ze.login()
                     self.state = 'init'
-                elif zerror.eid in [-9997, -9995]:
+                elif zerror.eid in [-9997, -9995, -9994]:
                     _logger.info("login on another device, input anything to continue")
                     input()
                     self.ze.login()
@@ -990,20 +990,23 @@ class Robot(object):
             return False
 
     def run(self):
-        while self.command != 'stop':
+        error_count = 0
+        while error_count < 3:
             try:
                 self.ze.repair_all()
                 self.working_loop()
             except Exception as e:
+                error_count += 1
                 _logger.error(e)
                 if self.DEBUG:
                     raise e
+                else:
+                    self.ze.login()
                 # disable mission where this error occurs
                 if self.state in self.missions:
                     current_mission = self.missions[self.state]
                     current_mission.enable = False
                     _logger.error("{} is disabled".format(current_mission))
-                    self.ze.login()
                     # init state
                     self.state = 'init'
                 time.sleep(10)
@@ -1014,7 +1017,7 @@ class Robot(object):
         from logging import handlers
 
         log_formatter = logging.Formatter(
-            '%(asctime)s: %(levelname)s: %(message)s', datefmt='%H:%M:%S')
+            '%(asctime)s: %(levelname)s: %(message)s')
         if os.name == 'nt':
             stream_handler = logging.StreamHandler()
         else:

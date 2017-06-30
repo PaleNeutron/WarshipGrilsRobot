@@ -2,8 +2,12 @@
 *.md
 .*
 *.log*
+pve.json
 init.json
 shipCard.json
+E3.json
+warship.json
+magumi.py
 dismantle.py
 shipCard.py
 
