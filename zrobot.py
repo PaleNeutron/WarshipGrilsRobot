@@ -367,7 +367,6 @@ class Explore(Mission):
                     self.ze.supplyFleet(fleet_id)
                     self.ze.explore(fleet_id, table[1])
                     _logger.debug("fleet {} start explore {}".format(fleet_id, table[1]))
-            time.sleep(10)
 
 
     def start(self):
@@ -696,9 +695,16 @@ class Dock(State):
     def go_home(self):
         self.ze.go_home()
         # todo change auto_explore to more strict method
-        self.ze.auto_explore()
-        self.ze.repair_all()
-        self.ze.supply_workingfleet()
+        if self.ze.version < self.ze.KEY_VERSION:
+            self.ze.auto_explore()
+            self.ze.supply_workingfleet()
+
+    def wait(self):
+        self.ze.relogin()
+        self.ze.repair_all(0)
+        self.ze.auto_build()
+        self.ze.auto_build_equipment()
+        time.sleep(10)
 
 
 class Mission_1_1(Mission):
@@ -821,6 +827,71 @@ class Mission_2_1(Mission):
         return True
 
 
+class Mission_6_1_A(Mission):
+    def __init__(self, ze: zemulator.ZjsnEmulator):
+        super(Mission_6_1_A, self).__init__('kill_fish', 601, ze)
+
+    def set_first_nodes(self):
+        node_a = Node('A', formation=5,
+                      additional_spy_filter=lambda x: x["enemyVO"]["enemyFleet"]["id"] == 60102003)
+        return node_a
+
+    def boss_ships(self):
+        # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
+        return []
+
+    def prepare(self):
+        # 所有装了声呐的反潜船
+        dd_ships = []
+        slow_ships = []
+        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
+            conditions = [100 > ship["level"],
+                          ship.type in ['驱逐', '轻母', '轻巡'],
+                          "10008321" in ship.equipment or "10008421" in ship.equipment
+                          or ship.type == '轻母',  # 带着声呐
+                          ]
+            if all(conditions):
+                if float(ship["battleProps"]["speed"]) > 27:  # 航速高于27
+                    dd_ships.append(ship.id)
+                else:
+                    slow_ships.append(ship.id)
+        _logger.debug(
+            "dd_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in dd_ships]))
+
+        # boss_ships = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
+        if self.boss_ships():
+            boss_ships = [boss_ship for boss_ship in self.boss_ships(
+            ) if self.ze.userShip[boss_ship].level < 100]
+        else:
+            boss_ships = []
+
+        if boss_ships:
+            self.ze.ship_groups[0] = (boss_ships, 2, True)
+        else:
+            boss_ships = dd_ships
+            self.ze.ship_groups[0] = (boss_ships, 1, False)
+        # boss_ships = [self.ze.userShip.name('赤城').id]
+        boss_ships.sort(key=lambda x: self.ze.userShip[x].level)
+        _logger.debug("boss_ships:{}".format(
+            [self.ze.userShip[ship_id].name for ship_id in boss_ships]))
+
+        for i in range(1, 5):
+            self.ze.ship_groups[i] = (dd_ships, 1, False)
+
+        if any([self.ze.userShip[s].speed > 27 for s in boss_ships]):
+            self.ze.ship_groups[5] = (slow_ships, 1, False)
+            _logger.debug("slow_ships:{}".format(
+                [self.ze.userShip[ship_id].name for ship_id in slow_ships]))
+        else:
+            self.ze.ship_groups[5] = (dd_ships, 1, False)
+
+        try:
+            self.ze.change_ships()
+        except zemulator.ZjsnError:
+            return False
+        return True
+
+
 class DailyTask(Mission):
     """日常任务"""
 
@@ -829,7 +900,9 @@ class DailyTask(Mission):
         self.enable = True
         self.task_solution = {2200132: Mission_1_1,
                               2200232: Mission_1_5,
-                              2200332: Mission_1_1, }
+                              2200332: Mission_1_1,
+                              2201932: Mission_6_1_A,  # 日常潜艇
+                              }
         for key in self.task_solution:
             self.task_solution[key] = self.task_solution[key](self.ze)
 
@@ -858,6 +931,14 @@ class DailyTask(Mission):
         if not self.enable:
             self.available = False
             return
+        # first check build tasks
+        if 5200432 in self.ze.task:
+            self.ze.build_boat_remain = max(self.ze.build_boat_remain, 1)
+        if 5200332 in self.ze.task:
+            euqipment_task_condition = self.ze.task["5200332"]["condition"][0]
+            self.ze.build_equipment_remain = max(self.ze.build_equipment_remain,
+                                                 euqipment_task_condition["totalAmount"] - euqipment_task_condition[
+                                                     "finishedAmount"])
         task_id = next(filter(lambda x: x in self.ze.task, self.task_solution), None)
         type_task_id = next(filter(lambda x: x in self.ze.task, self.type_task), None)
         if task_id or type_task_id:
@@ -921,6 +1002,8 @@ class Robot(object):
             self.machine.add_transition(trigger='go_out', source="init", dest="init",
                                         conditions=[self.campaign.prepare], after=[self.campaign.start])
             self.machine.add_transition(trigger='go_out', conditions=[self.explore._prepare], source='init',
+                                        dest="init")
+            self.machine.add_transition(trigger='go_out', conditions=[self.dock.wait], source='init',
                                         dest="init")
         # self.machine.add_transition(trigger='go_back', source='*', dest='init')
 

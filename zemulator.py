@@ -729,15 +729,15 @@ class ZjsnEmulator(object):
         for task_cid in self.award_list:
             r = self.get(self.api.getAward(task_cid))
             self.task.remove(task_cid)
-            if 'taskVo' in r:
-                self.task.update(r['taskVo'])
-                for t in r['taskVo']:
-                    if 'taskCid' in t:
-                        next_cid = t['taskCid']
-                        if next_cid == 5200432:
-                            self.build_boat_remain = max(self.build_boat_remain, 1)
-                        elif next_cid == 5200332:
-                            self.build_equipment_remain = max(self.build_equipment_remain, 1)
+            # if 'taskVo' in r:
+            #     self.task.update(r['taskVo'])
+            #     for t in r['taskVo']:
+            #         if 'taskCid' in t:
+            #             next_cid = t['taskCid']
+            #             if next_cid == 5200432:
+            #                 self.build_boat_remain = max(self.build_boat_remain, 1)
+            #             elif next_cid == 5200332:
+            #                 self.build_equipment_remain = max(self.build_equipment_remain, 1)
             if 'shipVO' in r:
                 self.userShip.add_ship(r['shipVO'], ze=self)
         self.award_list = []

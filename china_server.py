@@ -2,83 +2,11 @@ import zemulator
 import zrobot
 
 
-class Mission_6_1_A(zrobot.Mission):
-    def __init__(self, ze: zemulator.ZjsnEmulator):
-        super(Mission_6_1_A, self).__init__('kill_fish', 601, ze)
-
-    def set_first_nodes(self):
-        node_a = zrobot.Node('A', formation=5,
-                             additional_spy_filter=lambda x: x["enemyVO"]["enemyFleet"]["id"] == 60102003)
-        return node_a
-
+class Mission_6_1_A_China(zrobot.Mission_6_1_A):
     def boss_ships(self):
         # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
         return [self.ze.userShip.name('U96').id,
                 ]
-        # return []
-
-    def prepare(self):
-        # 所有装了声呐的反潜船
-        dd_ships = []
-        slow_ships = []
-        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
-            conditions = [100 > ship["level"],
-                          ship.type in ['驱逐', '轻母', '轻巡'],
-                          "10008321" in ship.equipment or "10008421" in ship.equipment
-                          or ship.type == '轻母',  # 带着声呐
-                          ]
-            if all(conditions):
-                if float(ship["battleProps"]["speed"]) > 27:  # 航速高于27
-                    dd_ships.append(ship.id)
-                else:
-                    slow_ships.append(ship.id)
-        zrobot._logger.debug(
-            "dd_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in dd_ships]))
-
-        # boss_ships = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
-        if self.boss_ships():
-            boss_ships = [boss_ship for boss_ship in self.boss_ships(
-            ) if self.ze.userShip[boss_ship].level < 100]
-        else:
-            boss_ships = []
-
-        if boss_ships:
-            self.ze.ship_groups[0] = (boss_ships, 2, True)
-        else:
-            boss_ships = dd_ships
-            self.ze.ship_groups[0] = (boss_ships, 1, False)
-        # boss_ships = [self.ze.userShip.name('赤城').id]
-        boss_ships.sort(key=lambda x: self.ze.userShip[x].level)
-        zrobot._logger.debug("boss_ships:{}".format(
-            [self.ze.userShip[ship_id].name for ship_id in boss_ships]))
-
-        for i in range(1, 5):
-            self.ze.ship_groups[i] = (dd_ships, 1, False)
-
-        if any([self.ze.userShip[s].speed > 27 for s in boss_ships]):
-            self.ze.ship_groups[5] = (slow_ships, 1, False)
-            zrobot._logger.debug("slow_ships:{}".format(
-                [self.ze.userShip[ship_id].name for ship_id in slow_ships]))
-        else:
-            self.ze.ship_groups[5] = (dd_ships, 1, False)
-
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
-
-        # def postprocessing(self):
-        #     if self.success:
-        #         target_ship = 43707
-        #         if self.ze.strengthen(target_ship) == -1:
-        #             # self.ze.auto_skill(target_ship)
-        #             _logger.info('{} 强化好了'.format(self.ze.userShip[target_ship].name))
-        #         else:
-        #             s = self.ze.userShip[target_ship]
-        #             _logger.debug("{} exp remain: {}".format(s.name, s.strength_exp))
-        #         super().postprocessing()
-
 
 class Mission_5_2_C(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -949,7 +877,7 @@ class ChinaRobot(zrobot.Robot):
         # self.add_mission(Mission_2_2(self.ze))
         # self.add_mission(Mission_5_5_B(self.ze))
         self.add_mission(Mission_6_4(self.ze))
-        self.add_mission(Mission_6_1_A(self.ze))
+        self.add_mission(Mission_6_1_A_China(self.ze))
         self.add_mission(MissionEvent(self.ze))
 
         self.pants = MissionPants(self.ze)

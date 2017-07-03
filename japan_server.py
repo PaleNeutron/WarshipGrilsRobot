@@ -423,7 +423,7 @@ class Japan_Mission_5_2_C(zrobot.Mission):
         pass
 
 
-class Japan_Mission_6_1_A(china_server.Mission_6_1_A):
+class Japan_Mission_6_1_A(china_server.Mission_6_1_A_China):
     """鱼塘 炸鱼"""
 
     def boss_ships(self):
