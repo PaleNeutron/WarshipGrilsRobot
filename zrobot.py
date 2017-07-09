@@ -992,7 +992,7 @@ class Robot(object):
         self.thread = None
 
         self.dock = Dock(self.ze)
-        self.explore = Explore(self.ze)
+        self.explore = self.dock.explore_mod
         self.campaign = Campaign(self.ze, 402)
         states = [self.dock] + [m.state for m in [self.explore, self.campaign]]
         self.missions = {}
