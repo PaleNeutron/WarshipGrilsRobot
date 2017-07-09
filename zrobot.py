@@ -7,10 +7,12 @@ import threading
 import time
 from datetime import datetime
 from itertools import zip_longest
+from logging import handlers
 from typing import List
 
 from transitions import Machine
 from transitions import State
+from transitions import logger as transitions_logger
 
 import zemulator
 
@@ -357,16 +359,18 @@ class Explore(Mission):
                         self.ze.instant_workingfleet(table[0])
                     self.ze.supply_workingfleet()
                     self.ze.explore(self.ze.working_fleet, table[1])
-        else:
-            self.ze.get_all_explore()
-            for i, table in enumerate(self.explore_table):
-                fleet_id = i + 5
-                if str(fleet_id) not in exploring_fleet and 0 not in table[0]:
-                    if self.ze.fleet_ships_id(fleet_id) != table[0]:
-                        self.ze.instant_fleet(fleet_id, table[0])
-                    self.ze.supplyFleet(fleet_id)
-                    self.ze.explore(fleet_id, table[1])
-                    _logger.debug("fleet {} start explore {}".format(fleet_id, table[1]))
+
+    def check_explore(self):
+        exploring_fleet = [e['fleetId'] for e in self.ze.pveExplore]
+        self.ze.get_all_explore()
+        for i, table in enumerate(self.explore_table):
+            fleet_id = i + 5
+            if str(fleet_id) not in exploring_fleet and 0 not in table[0]:
+                if self.ze.fleet_ships_id(fleet_id) != table[0]:
+                    self.ze.instant_fleet(fleet_id, table[0])
+                self.ze.supplyFleet(fleet_id)
+                self.ze.explore(fleet_id, table[1])
+                _logger.debug("fleet {} start explore {}".format(fleet_id, table[1]))
 
 
     def start(self):
@@ -691,19 +695,26 @@ class Dock(State):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(name='init', on_enter=self.go_home)
         self.ze = ze
+        self.explore_mod = Explore(self.ze)
 
     def go_home(self):
         self.ze.go_home()
+        self.check()
+
+    def check(self):
         # todo change auto_explore to more strict method
         if self.ze.version < self.ze.KEY_VERSION:
             self.ze.auto_explore()
             self.ze.supply_workingfleet()
-
-    def wait(self):
         self.ze.relogin()
         self.ze.repair_all(0)
+        self.ze.get_award()
         self.ze.auto_build()
         self.ze.auto_build_equipment()
+        self.explore_mod.check_explore()
+
+    def wait(self):
+        self.check()
         time.sleep(10)
 
 
@@ -935,9 +946,10 @@ class DailyTask(Mission):
         if 5200432 in self.ze.task:
             self.ze.build_boat_remain = max(self.ze.build_boat_remain, 1)
         if 5200332 in self.ze.task:
-            euqipment_task_condition = self.ze.task["5200332"]["condition"][0]
+            # euqipment_task_condition
+            etc = self.ze.task["5200332"]["condition"][0]
             self.ze.build_equipment_remain = max(self.ze.build_equipment_remain,
-                                                 euqipment_task_condition["totalAmount"] - euqipment_task_condition[
+                                                 etc["totalAmount"] - etc[
                                                      "finishedAmount"])
         task_id = next(filter(lambda x: x in self.ze.task, self.task_solution), None)
         type_task_id = next(filter(lambda x: x in self.ze.task, self.type_task), None)
@@ -989,8 +1001,8 @@ class Robot(object):
         self.command = 'run'
 
         self.add_mission(DailyTask(self.ze))
-        self.set_missions()
         if self.ze.version < self.ze.KEY_VERSION:
+            self.set_missions()
             self.machine.add_transition(trigger='go_out', prepare=[self.explore._prepare], source='init',
                                         dest=self.explore.mission_name)
             self.machine.add_transition(trigger='go_out', source=self.explore.mission_name,
@@ -1001,8 +1013,8 @@ class Robot(object):
         else:
             self.machine.add_transition(trigger='go_out', source="init", dest="init",
                                         conditions=[self.campaign.prepare], after=[self.campaign.start])
-            self.machine.add_transition(trigger='go_out', conditions=[self.explore._prepare], source='init',
-                                        dest="init")
+
+            self.set_missions()
             self.machine.add_transition(trigger='go_out', conditions=[self.dock.wait], source='init',
                                         dest="init")
         # self.machine.add_transition(trigger='go_back', source='*', dest='init')
@@ -1018,18 +1030,6 @@ class Robot(object):
 
     def set_missions(self):
         pass
-        # self.machine.add_transition(**self.m2_5_mid.trigger)
-        # self.machine.add_transition(**self.m5_5_c.trigger)
-        # self.machine.add_transition(**self.m2_5_down.trigger)
-        # self.machine.add_transition(**self.pants.trigger)
-        # self.machine.add_transition(**self.m4_3.trigger)
-        # self.machine.add_transition(**self.m2_2.trigger)
-        # self.machine.add_transition(**self.m5_5_b.trigger)
-        # self.machine.add_transition(**self.m6_4.trigger)
-        # self.machine.add_transition(**self.m6_3.trigger)
-
-        # self.machine.add_transition(**self.m1_1a.trigger)
-        # self.machine.add_transition(**self.m6_1.trigger)
 
     def working_loop(self):
         while self.command != 'stop':
@@ -1096,8 +1096,6 @@ class Robot(object):
 
 
     def start(self):
-        from transitions import logger as transitions_logger
-        from logging import handlers
 
         log_formatter = logging.Formatter(
             '%(asctime)s: %(levelname)s: %(message)s')

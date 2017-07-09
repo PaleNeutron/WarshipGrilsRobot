@@ -610,6 +610,9 @@ class ZjsnEmulator(object):
                     if all([c["totalAmount"] == c["finishedAmount"] for c in task["condition"]]):
                         self.award_list.append(task["taskCid"])
                         zlogger.debug("task {} finish".format(task["taskCid"]))
+            if 'taskVo' in r:
+                self.task.update(rj['taskVo'])
+
             if method == 'POST':
                 return r
             else:
@@ -729,8 +732,6 @@ class ZjsnEmulator(object):
         for task_cid in self.award_list:
             r = self.get(self.api.getAward(task_cid))
             self.task.remove(task_cid)
-            if 'taskVo' in r:
-                self.task.update(r['taskVo'])
             #     for t in r['taskVo']:
             #         if 'taskCid' in t:
             #             next_cid = t['taskCid']
