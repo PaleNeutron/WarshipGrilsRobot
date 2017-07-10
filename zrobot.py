@@ -993,6 +993,8 @@ class Robot(object):
 
         self.dock = Dock(self.ze)
         self.explore = self.dock.explore_mod
+        # check dock, equipment, tasks before any transitions
+        self.dock.check()
         self.campaign = Campaign(self.ze, 402)
         states = [self.dock] + [m.state for m in [self.explore, self.campaign]]
         self.missions = {}
@@ -1076,11 +1078,10 @@ class Robot(object):
         error_count = 0
         while error_count < 3:
             try:
-                self.ze.repair_all()
                 self.working_loop()
             except Exception as e:
                 error_count += 1
-                _logger.error(e)
+                _logger.exception(e)
                 if self.DEBUG:
                     raise e
                 else:

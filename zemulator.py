@@ -465,6 +465,14 @@ class ZjsnTask(dict):
         if item in self:
             del self[item]
 
+    @property
+    def finished_tasks(self):
+        award_list = [task_cid for task_cid in self 
+                      if all([c["totalAmount"] == c["finishedAmount"] 
+                      for c in self[task_cid]["condition"]])]
+        return award_list
+    
+
 
 class ZjsnEmulator(object):
     """docstring for ZjsnEmulator"""
@@ -520,7 +528,6 @@ class ZjsnEmulator(object):
 
         self.ship_groups = [([], 1, False)] * 6
         # ship_groups item is (ship_group, broken_level, instant_flag)
-        self.award_list = []
         self.spoils = 0
         self.spoils_event = False
 
@@ -608,10 +615,8 @@ class ZjsnEmulator(object):
             if "updateTaskVo" in rj:
                 for task in rj["updateTaskVo"]:
                     if int(task["taskCid"]) in self.task:
-                        self.task["taskCid"]["condition"] = task["condition"]
-                    if all([c["totalAmount"] == c["finishedAmount"] for c in task["condition"]]):
-                        self.award_list.append(task["taskCid"])
-                        zlogger.debug("task {} finish".format(task["taskCid"]))
+                        self.task[task["taskCid"]]["condition"] = task["condition"]
+
 
             if method == 'POST':
                 return r
@@ -728,22 +733,14 @@ class ZjsnEmulator(object):
         return r
 
     def get_award(self):
-        # todo 5200432是日常建造任务的ID  5200332是日常开发的
-        for task_cid in self.award_list:
+        for task_cid in self.task.finished_tasks:
+            zlogger.debug("task {} finish".format(task_cid))            
             r = self.get(self.api.getAward(task_cid))
             self.task.remove(task_cid)
             if 'taskVo' in r:
                 self.task.update(r['taskVo'])
-            #     for t in r['taskVo']:
-            #         if 'taskCid' in t:
-            #             next_cid = t['taskCid']
-            #             if next_cid == 5200432:
-            #                 self.build_boat_remain = max(self.build_boat_remain, 1)
-            #             elif next_cid == 5200332:
-            #                 self.build_equipment_remain = max(self.build_equipment_remain, 1)
             if 'shipVO' in r:
                 self.userShip.add_ship(r['shipVO'], ze=self)
-        self.award_list = []
 
     def change_ships(self):
         ship_groups = [i for i in self.ship_groups if i[0] != None]
@@ -1228,13 +1225,13 @@ class ZjsnEmulator(object):
         pass
 
 
-if __name__ == '__main__':
-    e = ZjsnEmulator()
-    # e.username = 'paleneutron1'
-    # e.url_server = 'http://s13.jr.moefantasy.com'
-    e.login()
-    for ship in e.userShip:
-        print(ship.name, ship.level, ship.id, ship.cid, ship.type, ship.locked, ship.strength_exp)
-    # e.auto_strengthen()
-    # e.cleanup_equipment()
-    e.build(500, 130, 600, 400)
+# if __name__ == '__main__':
+#     e = ZjsnEmulator()
+#     # e.username = 'paleneutron1'
+#     # e.url_server = 'http://s13.jr.moefantasy.com'
+#     e.login()
+#     for ship in e.userShip:
+#         print(ship.name, ship.level, ship.id, ship.cid, ship.type, ship.locked, ship.strength_exp)
+#     # e.auto_strengthen()
+#     # e.cleanup_equipment()
+#     e.build(500, 130, 600, 400)
