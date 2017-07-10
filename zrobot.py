@@ -944,7 +944,10 @@ class DailyTask(Mission):
             return
         # first check build tasks
         if 5200432 in self.ze.task:
-            self.ze.build_boat_remain = max(self.ze.build_boat_remain, 1)
+            etc = self.ze.task["5200432"]["condition"][0]            
+            self.ze.build_boat_remain = max(self.ze.build_boat_remain, 
+                                                 etc["totalAmount"] - etc[
+                                                     "finishedAmount"])
         if 5200332 in self.ze.task:
             # euqipment_task_condition
             etc = self.ze.task["5200332"]["condition"][0]
