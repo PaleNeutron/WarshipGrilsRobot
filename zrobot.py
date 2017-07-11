@@ -780,7 +780,7 @@ class Mission_1_5(Mission_1_1):
 class Mission_2_1(Mission):
 
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        self._target_type = "战巡"
+        self._target_type = None
         super().__init__('type_task', 201, ze)
 
     @property
@@ -831,11 +831,7 @@ class Mission_2_1(Mission):
             self.ze.ship_groups[i] = (cv_ships, 1, False)
         self.ze.ship_groups[4] = self.ze.ship_groups[5] = (None, 1, False)
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+        return self.ze.change_ships()
 
 
 class Mission_6_1_A(Mission):
@@ -896,11 +892,16 @@ class Mission_6_1_A(Mission):
         else:
             self.ze.ship_groups[5] = (dd_ships, 1, False)
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+        return self.ze.change_ships()
+
+
+class Mission_6_1_A_CV(Mission_6_1_A):
+    def set_first_nodes(self):
+        node_a = Node('A', formation=5, enemy_target=zemulator.ZjsnShip.type_id("航母"))
+        return node_a
+
+    def prepare(self):
+        pass
 
 
 class DailyTask(Mission):
@@ -910,7 +911,7 @@ class DailyTask(Mission):
         super().__init__('Task', 0, ze)
         self.enable = True
         self.task_solution = {2200132: Mission_1_1,
-                              2200232: Mission_1_5,
+                              2200232: Mission_2_1,
                               2200332: Mission_1_1,
                               2201932: Mission_6_1_A,  # 日常潜艇
                               }
@@ -996,8 +997,7 @@ class Robot(object):
 
         self.dock = Dock(self.ze)
         self.explore = self.dock.explore_mod
-        # check dock, equipment, tasks before any transitions
-        self.dock.check()
+
         self.campaign = Campaign(self.ze, 402)
         states = [self.dock] + [m.state for m in [self.explore, self.campaign]]
         self.missions = {}
@@ -1081,6 +1081,8 @@ class Robot(object):
         error_count = 0
         while error_count < 3:
             try:
+                # check dock, equipment, tasks before any transitions
+                self.dock.check()
                 self.working_loop()
             except Exception as e:
                 error_count += 1

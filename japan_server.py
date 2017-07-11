@@ -439,8 +439,6 @@ class JapanRobot(zrobot.Robot):
         self.ze.common_lag = 50
         self.ze.equipment_formula = [10, 90, 90, 30]
         self.ze.boat_formula = [400, 80, 650, 101]
-        # difference api in japan server
-        self.ze.dealto = self.ze.deal
         self.explore.explore_table = (
             ([110, 183, 710, 391, 386, 449], '20002'),
             ([121, 102, 109, 108, 107, 219], '20001'),

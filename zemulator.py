@@ -734,7 +734,7 @@ class ZjsnEmulator(object):
 
     def get_award(self):
         for task_cid in self.task.finished_tasks:
-            zlogger.debug("task {} finish".format(task_cid))            
+            zlogger.debug("task: {} finish".format(self.task[task_cid]["title"]))
             r = self.get(self.api.getAward(task_cid))
             self.task.remove(task_cid)
             if 'taskVo' in r:
@@ -746,24 +746,16 @@ class ZjsnEmulator(object):
         ship_groups = [i for i in self.ship_groups if i[0] != None]
         tmp_fleet_ships_id = []
         for i, g in enumerate(ship_groups):
-            # ship_group, b_level, instant_flag = g
-            # if len(tmp_fleet_ships_id) > i:
-            #     ship_id = tmp_fleet_ships_id[i]
-            # else:
-            #     ship_id = 0
-            # if ship_id:
-            #     ship = self.userShip[ship_id]
-            #     conditions = [ship_id not in ship_groups[i][0], ship.should_be_repair(b_level), ship.status == 2]
-            # else:
-            #     conditions = [True]
-            #
-            # if any(conditions):
-            tmp_fleet_ships_id.append(self.get_substitue(i, tmp_fleet_ships_id, ship_groups[i]))
+            new_id = self.get_substitue(i, tmp_fleet_ships_id, ship_groups[i])
+            if new_id:
+                tmp_fleet_ships_id.append(new_id)
+            else:
+                return False
 
         if tmp_fleet_ships_id != self.working_ships_id:
             new_fleet = tmp_fleet_ships_id[:len(ship_groups)]
             self.instant_workingfleet(new_fleet)
-
+        return True
     def get_substitue(self, location, tmp_fleet_ships_id, ship_group_info):
         working_ships = tmp_fleet_ships_id[:]
         ship_group, b_level, instant_flag = ship_group_info
@@ -801,10 +793,9 @@ class ZjsnEmulator(object):
                     new_ship_id = s_id
                     self.repair(new_ship_id, 0, instant=True)
                     break
-        if new_ship_id:
-            return new_ship_id
-        else:
-            raise ZjsnError("no ship to use in location {}".format(location))
+        if not new_ship_id:
+            zlogger.debug("no ship to use in location {}".format(location))
+        return new_ship_id
 
     def instant_workingfleet(self, ships_id):
         if ships_id:
@@ -1223,6 +1214,14 @@ class ZjsnEmulator(object):
 
     def war_report(self):
         pass
+
+    def unlocked_report(self):
+        base_ships = [shipCard[s_id]['title'] for s_id in (set(shipCard) - set(self.unlockShip))
+                      if s_id < 11000000]
+        evo_ships = [shipCard[s_id]['title'] for s_id in (set(shipCard) - set(self.unlockShip))
+                     if 11000000 < s_id < 20000000]
+        zlogger.info("unlocked base ships:\n{}".format('\n'.join(base_ships)))
+        zlogger.info("unlocked evo ships:\n{}".format('\n'.join(evo_ships)))
 
 
 # if __name__ == '__main__':
