@@ -1079,7 +1079,7 @@ class Robot(object):
 
     def run(self):
         error_count = 0
-        while error_count < 3:
+        while 1:
             try:
                 # check dock, equipment, tasks before any transitions
                 self.dock.check()
@@ -1087,7 +1087,7 @@ class Robot(object):
             except Exception as e:
                 error_count += 1
                 _logger.exception(e)
-                if self.DEBUG:
+                if self.DEBUG and error_count < 3:
                     raise e
                 else:
                     self.ze.login()
