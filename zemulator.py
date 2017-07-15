@@ -774,7 +774,7 @@ class ZjsnEmulator(object):
             s = self.userShip[s_id]
             conditions = (s.evoCid not in [self.userShip[si].evoCid for si in working_ships if si != 0],
                           s.locked,
-                          s.fleet_id not in self.explore_fleets,  # 没在远征队伍里
+                          s.fleet_able,  # 没在远征队伍里
                           s.status != 2,  # 没在修理
                           not s.should_be_repair(b_level),
                           )
@@ -787,7 +787,7 @@ class ZjsnEmulator(object):
                 s = self.userShip[s_id]
                 conditions = (s.evoCid not in [self.userShip[si].evoCid for si in working_ships if si != 0],
                               s.locked,
-                              s.fleet_id in (0, int(self.working_fleet)),  # 没在远征队伍里
+                              s.fleet_able,  # 没在远征队伍里
                               )
                 if all(conditions):
                     new_ship_id = s_id

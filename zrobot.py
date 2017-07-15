@@ -491,15 +491,17 @@ class Challenge(Mission):
         ships_evoCid = []
         ships = []
         # sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True)
-        for ship in self.ze.userShip:
+        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
             if ship.evoCid not in ships_evoCid:
                 ships_evoCid.append(ship.evoCid)
                 ships.append(ship)
-        return [s.id for s in ships if s.type in ['战列', '航母'] and s.level < 100]
+        return [s.id for s in ships if s.type in ['战列', '航母']]
 
     def _prepare(self):
         if not self.ship_list:
-            self.ship_list = self.generate_challenge_ships()
+            ship_list = self.generate_challenge_ships()
+        else:
+            ship_list = self.ship_list
         self.init_friends()
         if not self.get_working_fleet():
             self.available = False
@@ -532,7 +534,7 @@ class Challenge(Mission):
             self.friend_available = True
 
         # 去掉满级船和养殖结束的船
-        battle_fleet_full = [s for s in self.ship_list + self.farm_ships() if self.fleet_filter(s)]
+        battle_fleet_full = [s for s in ship_list + self.farm_ships() if self.fleet_filter(s)]
         battle_fleet = []
         evo_cids = []
         for s_id in battle_fleet_full:
@@ -541,7 +543,7 @@ class Challenge(Mission):
                 evo_cids.append(s.evoCid)
                 battle_fleet.append(s.id)
         if len(battle_fleet) < 6:
-            self.battle_fleet = self.ship_list[:6]
+            self.battle_fleet = ship_list[:6]
         else:
             self.battle_fleet = battle_fleet[:6]
 
@@ -569,7 +571,9 @@ class Challenge(Mission):
         self.last_challenge_time = self.ze.now
 
     def farm_ships(self):
-        farm_ships = [s.id for s in self.ze.userShip if s.name in ['罗德尼', '纳尔逊']]
+        farm_ships = [s.id for s in self.ze.userShip if all([s.name in ['罗德尼', '纳尔逊'],
+                                                            not s.evolved,
+                                                            s.level < s.evoLevel])]
         return farm_ships
 
     def formation_for_fish(self, fish_num):
@@ -603,8 +607,6 @@ class Challenge(Mission):
         """"""
         ship = self.ze.userShip[ship_id]
         condition = ship.level < 100 and ship.available and ship.fleet_able
-        if ship.name in ['罗德尼', '纳尔逊'] and not ship.evolved:
-            condition = ship.level < ship.evoLevel
         return condition
 
     def fight(self, enemy_uid, friend=False):
