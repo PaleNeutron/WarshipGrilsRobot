@@ -427,8 +427,8 @@ class Japan_Mission_6_1_A(china_server.Mission_6_1_A_China):
     """鱼塘 炸鱼"""
 
     def boss_ships(self):
-        return [self.ze.userShip.name("岚").id]
-        # return None
+        # return [self.ze.userShip.name("岚").id]
+        return None
 
 
 class JapanRobot(zrobot.Robot):
@@ -502,7 +502,7 @@ if __name__ == '__main__':
     # r.ze.boat_formula = [200, 30, 200, 30]
     # r.ze.build_boat_remain = 10
     # r.missions['pants'].switch()
-    r.missions['kill_fish'].switch()
+    # r.missions['kill_fish'].switch()
     # r.missions['偷钢'].switch()
     # r.missions['1-1A'].switch()
     # r.missions['mission event'].switch()
