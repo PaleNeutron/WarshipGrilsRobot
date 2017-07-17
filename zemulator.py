@@ -177,6 +177,9 @@ class ZjsnUserShip(dict):
     def __iter__(self):
         return iter(self.values())
 
+    def level_order(self, reverse=True) -> 'ZjsnShip': 
+        return iter(sorted(self.values(), key=lambda x: x["level"], reverse=True))
+
     def add_ship(self, ship_dict, ze: "ZjsnEmulator", source='get'):
         self.update(ship_dict)
         for s in ship_dict:
@@ -269,6 +272,9 @@ class ZjsnShip(dict):
 
     def __init__(self, *args, **kwargs):
         super(ZjsnShip, self).__init__(*args, **kwargs)
+    
+    def __repr__(self):
+        return self.name
 
     @property
     def id(self):

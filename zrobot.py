@@ -495,7 +495,7 @@ class Challenge(Mission):
             if ship.evoCid not in ships_evoCid:
                 ships_evoCid.append(ship.evoCid)
                 ships.append(ship)
-        return [s.id for s in ships if s.type in ['战列', '航母']]
+        return [s.id for s in ships if s.type in ['战列', '航母', '战巡']]
 
     def _prepare(self):
         if not self.ship_list:
@@ -571,7 +571,7 @@ class Challenge(Mission):
         self.last_challenge_time = self.ze.now
 
     def farm_ships(self):
-        farm_ships = [s.id for s in self.ze.userShip if all([s.name in ['罗德尼', '纳尔逊'],
+        farm_ships = [s.id for s in self.ze.userShip.level_order if all([s.name in ['罗德尼', '纳尔逊'],
                                                             not s.evolved,
                                                             s.level < s.evoLevel])]
         return farm_ships
