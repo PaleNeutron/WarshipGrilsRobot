@@ -7,6 +7,7 @@ import logging
 import math
 import os
 import time
+from typing import Iterator
 
 import requests
 import requests.exceptions
@@ -163,7 +164,7 @@ class ZjsnUserShip(dict):
         super(ZjsnUserShip, self).__init__(*args, **kwargs)
         self.shipNumTop = 0
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> 'ZjsnShip':
         if type(item) == ZjsnShip:
             return item
         elif type(item) == dict:
@@ -174,7 +175,7 @@ class ZjsnUserShip(dict):
             except KeyError:
                 raise KeyError("no such ship with id {}".format(item))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator['ZjsnShip']:
         return iter(self.values())
 
     def level_order(self, reverse=True) -> 'ZjsnShip': 
