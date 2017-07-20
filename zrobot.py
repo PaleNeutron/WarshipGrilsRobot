@@ -492,7 +492,7 @@ class Challenge(Mission):
         ships_evoCid = []
         ships = []
         # sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True)
-        for ship in sorted(self.ze.userShip, key=lambda x: (x.can_evo , x.level), reverse=True):
+        for ship in sorted(self.ze.userShip, key=lambda x: (x.can_evo or x.evolved , x.level), reverse=True):
             if ship.evoCid not in ships_evoCid:
                 ships_evoCid.append(ship.evoCid)
                 ships.append(ship)

@@ -428,7 +428,8 @@ class Japan_Mission_6_1_A(china_server.Mission_6_1_A_China):
 
     def boss_ships(self):
         # return [self.ze.userShip.name("岚").id]
-        return None
+        return [s.id for s in self.ze.userShip if s.type in ['潜艇', '炮潜']]
+        # return None
 
 
 class JapanRobot(zrobot.Robot):
