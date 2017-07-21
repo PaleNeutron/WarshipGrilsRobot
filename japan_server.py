@@ -288,6 +288,7 @@ class Mission_4_4_Boss(zrobot.Mission):
 class Mission_Event(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__('mission event', 9916, ze)
+        self.battle_fleet = []
         self.battle_fleet_name = [17263, '罗德尼', '翔鹤', '赤城', '列克星敦', '萨拉托加']
 
     def set_first_nodes(self):
