@@ -490,12 +490,8 @@ class Challenge(Mission):
 
     def generate_challenge_ships(self):
         ships_evoCid = []
-        ships = []
+        ships = self.ze.userShip.unique
         # sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True)
-        for ship in sorted(self.ze.userShip, key=lambda x: (x.can_evo or x.evolved , x.level), reverse=True):
-            if ship.evoCid not in ships_evoCid:
-                ships_evoCid.append(ship.evoCid)
-                ships.append(ship)
         return [s.id for s in ships if s.type in ['战列', '战巡', '航母']]
 
     def _prepare(self):
@@ -854,9 +850,10 @@ class Mission_6_1_A(Mission):
         # 所有装了声呐的反潜船
         dd_ships = []
         slow_ships = []
-        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=False):
-            conditions = [100 > ship["level"],
+        for ship in self.ze.userShip.unique:
+            conditions = [100 > ship.level,
                           ship.type in ['驱逐', '轻母', '轻巡'],
+                          ship.locked,
                           "10008321" in ship.equipment or "10008421" in ship.equipment
                           or ship.type == '轻母',  # 带着声呐
                           ]

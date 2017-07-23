@@ -5,9 +5,8 @@ import zrobot
 
 class Mission_6_1_A_China(zrobot.Mission_6_1_A):
     def boss_ships(self):
-        # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
-        return [self.ze.userShip.name('U96').id,
-                ]
+        return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 85]
+        # return [self.ze.userShip.name('斯佩伯爵').id,]
 
 class Mission_5_2_C(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
