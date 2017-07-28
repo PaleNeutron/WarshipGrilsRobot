@@ -578,18 +578,21 @@ class Challenge(Mission):
         return farm_ships
 
     def formation_for_fish(self, fish_num):
-        # todo define more simple antisubmarine ships
+        # 所有装了声呐的反潜船
+        as_ships = []
+        for ship in self.ze.userShip.level_order():
+            conditions = [100 > ship.level,
+                          ship.type in ['驱逐', '轻母', '轻巡'],
+                          "10008321" in ship.equipment or "10008421" in ship.equipment
+                          or ship.type == '轻母',  # 带着声呐
+                          ]
+        as_ships.append(ship.id)
+        _logger.debug(
+            "as_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in as_ships]))
+
         new_fleet = self.battle_fleet[:]
-        if fish_num == 1:
-            new_fleet[1] = 367  # 干死那条鱼
-        if fish_num == 2:
-            new_fleet[-1] = 1215  # 干死那2条鱼
-        if fish_num == 3:
-            new_fleet[-2:] = [367, 1215]  # 干死那3条鱼
-        if fish_num == 4:
-            new_fleet[-2:] = [13706, 1215]  # 干死那4条鱼
-        if fish_num > 4:
-            new_fleet[-3:] = [32549, 13706, 1215]
+        new_fleet[-(int(fish_num) + 1):] = as_ships  # 干死那条鱼
+        new_fleet = new_fleet[:6]
 
         self.ze.instant_workingfleet(new_fleet)
         return new_fleet
