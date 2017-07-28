@@ -182,6 +182,16 @@ class ZjsnUserShip(dict):
     def level_order(self, reverse=True) -> 'ZjsnShip': 
         return iter(sorted(self.values(), key=lambda x: x["level"], reverse=True))
 
+    @property
+    def unique(self):
+        ships = []
+        ships_evoCid = []
+        for ship in sorted(self, key=lambda x: (x.can_evo or x.evolved , x.level), reverse=True):
+            if ship.evoCid not in ships_evoCid:
+                ships_evoCid.append(ship.evoCid)
+                ships.append(ship)
+        return ships
+
     def add_ship(self, ship_dict, ze: "ZjsnEmulator", source='get'):
         self.update(ship_dict)
         for s in ship_dict:
@@ -231,7 +241,7 @@ class ZjsnUserShip(dict):
         if type(ship_name) == int:
             return self[ship_name]
         for ship in sorted(self, key=lambda x: x["level"], reverse=True):
-            if ship.name in ship_name:
+            if ship_name in ship.name:
                 return ship
         if default == "raise":
             raise ZjsnError("no ship called {}".format(ship_name))
