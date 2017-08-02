@@ -1121,7 +1121,7 @@ class Robot(object):
         transitions_logger.addHandler(stream_handler)
         transitions_logger.setLevel(logging.INFO)
 
-        self.thread = threading.Thread(target=self.run)
+        self.thread = threading.Thread(target=self.run, daemon=True)
         self.thread.start()
         if os.name == 'nt':
             self.thread.join()
