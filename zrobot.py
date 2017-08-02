@@ -576,7 +576,7 @@ class Challenge(Mission):
     def formation_for_fish(self, fish_num):
         # 所有装了声呐的反潜船
         as_ships = []
-        for ship in self.ze.userShip.level_order():
+        for ship in self.ze.userShip.unique:
             conditions = [100 > ship.level,
                           ship.type in ['驱逐', '轻母', '轻巡'],
                           "10008321" in ship.equipment or "10008421" in ship.equipment
