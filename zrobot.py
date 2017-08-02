@@ -1126,4 +1126,6 @@ class Robot(object):
         if os.name == 'nt':
             self.thread.join()
         else:
+            import signal
+            signal.signal(signal.SIGTSTP, lambda x,y: exit())            
             return self.thread
