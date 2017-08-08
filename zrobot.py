@@ -732,7 +732,7 @@ class Mission_1_1(Mission):
         # 所有高级改造DD
         dd_ships = []
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
-            conditions = [100 > ship["level"] > 20,
+            conditions = [ship["level"] > 20,
                           ship.type in ['驱逐'],
                           ]
             if all(conditions):

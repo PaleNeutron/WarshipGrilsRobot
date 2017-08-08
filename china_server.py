@@ -547,37 +547,37 @@ class Mission_2_2(zrobot.Mission):
         return True
 
 
-class Mission_1_1(zrobot.Mission):
-    def __init__(self, ze: zemulator.ZjsnEmulator):
-        super(Mission_1_1, self).__init__('1-1A', 101, ze)
+# class Mission_1_1(zrobot.Mission):
+#     def __init__(self, ze: zemulator.ZjsnEmulator):
+#         super(Mission_1_1, self).__init__('1-1A', 101, ze)
 
-    def set_first_nodes(self):
-        self.node_a = zrobot.Node('A')
-        return self.node_a
+#     def set_first_nodes(self):
+#         self.node_a = zrobot.Node('A')
+#         return self.node_a
 
-    def prepare(self):
-        # 所有高级改造DD
-        dd_ships = []
-        for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
-            conditions = [100 > ship["level"] > 20,
-                          ship.type in ['驱逐'],
-                          ship.evolved == 1,
-                          ]
-            if all(conditions):
-                dd_ships.append(ship.id)
-        ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
-        zrobot._logger.debug("dd_ships:{}".format(
-            [(s.name, s.level) for s in ships]))
+#     def prepare(self):
+#         # 所有高级改造DD
+#         dd_ships = []
+#         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
+#             conditions = [100 > ship["level"] > 20,
+#                           ship.type in ['驱逐'],
+#                           ship.evolved == 1,
+#                           ]
+#             if all(conditions):
+#                 dd_ships.append(ship.id)
+#         ships = [self.ze.userShip[ship_id] for ship_id in dd_ships]
+#         zrobot._logger.debug("dd_ships:{}".format(
+#             [(s.name, s.level) for s in ships]))
 
-        for i in range(1, 6):
-            self.ze.ship_groups[i] = (None, 1, False)
-        self.ze.ship_groups[0] = (dd_ships, 1, False)
+#         for i in range(1, 6):
+#             self.ze.ship_groups[i] = (None, 1, False)
+#         self.ze.ship_groups[0] = (dd_ships, 1, False)
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+#         try:
+#             self.ze.change_ships()
+#         except zemulator.ZjsnError:
+#             return False
+#         return True
 
 
 class Mission_6_4(zrobot.Mission):
@@ -869,7 +869,7 @@ class ChinaRobot(zrobot.Robot):
         # self.add_mission(Mission_2_5_down(self.ze))
         # self.add_mission(Mission_2_5_up(self.ze))
         self.add_mission(Mission_5_5_C(self.ze))
-        # self.add_mission(Mission_1_1(self.ze))
+        self.add_mission(zrobot.Mission_1_1(self.ze))
         # self.add_mission(Mission_4_3(self.ze))
         # self.add_mission(Mission_2_2(self.ze))
         # self.add_mission(Mission_5_5_B(self.ze))
