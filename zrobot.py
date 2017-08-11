@@ -582,12 +582,13 @@ class Challenge(Mission):
                           "10008321" in ship.equipment or "10008421" in ship.equipment
                           or ship.type == '轻母',  # 带着声呐
                           ]
-        as_ships.append(ship.id)
+            if all(conditions):
+                as_ships.append(ship.id)
         _logger.debug(
             "as_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in as_ships]))
 
         new_fleet = self.battle_fleet[:]
-        new_fleet[-(int(fish_num) + 1):] = as_ships  # 干死那条鱼
+        new_fleet[-(int((fish_num + 1)/2)):] = as_ships  # 干死那条鱼
         new_fleet = new_fleet[:6]
 
         self.ze.instant_workingfleet(new_fleet)
