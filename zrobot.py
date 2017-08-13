@@ -31,7 +31,8 @@ class Node(object):
                  big_broken_protect=True,
                  enemy_target=None,
                  enemy_avoid=None,
-                 additional_spy_filter=None):
+                 additional_spy_filter=None,
+                 sleep_time = 30):
         """we have 3 node_types: simple, resource, skip"""
         super(Node, self).__init__()
         self.name = str.upper(name)
@@ -50,7 +51,7 @@ class Node(object):
         self.skip_rate_limit = 0
         self.skip_rate = 0
 
-        self.sleep_mu = 30
+        self.sleep_mu = sleep_time
         self.sleep_sigma = 2
         rd = random.normalvariate(self.sleep_mu, self.sleep_sigma)
         if rd < self.sleep_mu - 3 * self.sleep_sigma or rd > self.sleep_mu + 3 * self.sleep_sigma:

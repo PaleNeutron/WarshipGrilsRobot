@@ -287,28 +287,29 @@ class Mission_4_4_Boss(zrobot.Mission):
 
 class Mission_Event(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super().__init__('mission event', 9916, ze)
+        super().__init__('mission event', 9918, ze)
         self.battle_fleet = []
-        self.battle_fleet_name = [17263, '罗德尼', '翔鹤', '赤城', '列克星敦', '萨拉托加']
+        self.battle_fleet_name = ["胡德", '提尔比茨', '大凤', '翔鹤', '列克星敦', '萨拉托加']
+        self.enable = True
 
     def set_first_nodes(self):
         self.node_a = self.node_chain([
             zrobot.Node('a'),
-            zrobot.Node('d'),
-            zrobot.Node('g', night_flag=1),
-            # zrobot.Node('k', night_flag=1),
+            zrobot.Node('b'),
+            zrobot.Node('e'),
+            zrobot.Node('f'),
         ])
 
         return self.node_a
 
     def prepare(self):
-        # if self.boss_hp == 0:
-        #     zrobot._logger.debug("boss dead, over")
-        #     return False
-        target_ship = '奥班农'
-        if self.ze.userShip.name(target_ship, 0):
-            zrobot._logger.debug("got {}, over".format(target_ship))
+        if self.boss_hp == 0:
+            zrobot._logger.debug("boss dead, over")
             return False
+        # target_ship = '奥班农'
+        # if self.ze.userShip.name(target_ship, 0):
+        #     zrobot._logger.debug("got {}, over".format(target_ship))
+        #     return False
         self.battle_fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet_name]
         if not self.battle_fleet:
             self.battle_fleet = self.ze.working_ships_id
@@ -325,6 +326,45 @@ class Mission_Event(zrobot.Mission):
         super().summery()
         zrobot._logger.debug("boss hp={}".format(self.boss_hp))
 
+class Mission_Event_2(zrobot.Mission):
+    def __init__(self, ze: zemulator.ZjsnEmulator):
+        super().__init__('mission event', 9919, ze)
+        self.battle_fleet = []
+        self.enable = True
+
+    def set_first_nodes(self):
+        self.node_a = self.node_chain([
+            zrobot.Node('a', node_type='resource'),
+            zrobot.Node('d', formation=3, sleep_time=15),
+            zrobot.Node('g', formation=5, sleep_time=15),
+            zrobot.Node('k', formation=5, sleep_time=15),
+        ])
+
+        return self.node_a
+
+    def prepare(self):
+        # 所有装了声呐的反潜船
+        as_ships = []
+        for ship in self.ze.userShip.unique:
+            conditions = [
+                          ship.type in ['驱逐', '轻巡'],
+                          "10008321" in ship.equipment or "10008421" in ship.equipment,
+                          ]
+            if all(conditions):
+                as_ships.append(ship.id)
+        zrobot._logger.debug(
+            "as_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in as_ships]))
+
+        for i in range(0, 4):
+            self.ze.ship_groups[i] = (as_ships, 1, True)
+        for i in range(4, 6):
+            self.ze.ship_groups[i] = (None, 1, False)
+
+        return self.ze.change_ships()
+
+    def summery(self):
+        super().summery()
+        zrobot._logger.debug("boss hp={}".format(self.boss_hp))
 
 class JapanChallenge(zrobot.Challenge):
     """docstring for JapanChallenge"""
@@ -457,7 +497,8 @@ class JapanRobot(zrobot.Robot):
 
         self.add_mission(JapanChallenge(self.ze))
 
-        self.add_mission(Mission_Event(self.ze))
+        # self.add_mission(Mission_Event(self.ze))
+        # self.add_mission(Mission_Event_2(self.ze))
         self.add_mission(zrobot.Mission_1_1(self.ze))
         self.add_mission(china_server.Mission_5_3(self.ze))
         # self.challenge = JapanChallenge(self.ze)
