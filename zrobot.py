@@ -20,19 +20,23 @@ import zemulator
 _logger = logging.getLogger('zjsn.zrobot')
 
 
+NODE_SIMPLE = 'simple'
+NODE_RESOURCE = 'resource'
+NODE_SKIP = 'skip'
 class Node(object):
     """docstring for Node"""
-    _node_types = ['simple', 'resource', 'skip']
+    _node_types = [NODE_SIMPLE, NODE_RESOURCE, NODE_SKIP]
+    DEFAULT_SLEEP_TIME = 30
 
     def __init__(self, name,
-                 node_type='simple',
+                 node_type=NODE_SIMPLE,
                  formation=2,
                  night_flag=0,
                  big_broken_protect=True,
                  enemy_target=None,
                  enemy_avoid=None,
                  additional_spy_filter=None,
-                 sleep_time = 30):
+                 sleep_time = None):
         """we have 3 node_types: simple, resource, skip"""
         super(Node, self).__init__()
         self.name = str.upper(name)
@@ -51,7 +55,10 @@ class Node(object):
         self.skip_rate_limit = 0
         self.skip_rate = 0
 
-        self.sleep_mu = sleep_time
+        if sleep_time:
+            self.sleep_mu = sleep_time
+        else:
+            self.sleep_mu = Node.DEFAULT_SLEEP_TIME
         self.sleep_sigma = 2
         rd = random.normalvariate(self.sleep_mu, self.sleep_sigma)
         if rd < self.sleep_mu - 3 * self.sleep_sigma or rd > self.sleep_mu + 3 * self.sleep_sigma:
