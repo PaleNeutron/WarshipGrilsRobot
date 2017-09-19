@@ -533,15 +533,15 @@ class JapanRobot(zrobot.Robot):
     def __init__(self):
         super().__init__('junhongbill', 'ouzhoutiduzjsn', japan_server=True)
         self.ze.common_lag = 50
-        self.ze.equipment_formula = [10, 90, 90, 30]
-        self.ze.boat_formula = [400, 80, 650, 101]
+        self.ze.equipment_formula = [20, 50, 10, 130]
+        self.ze.boat_formula = [50, 200, 100, 30]
         self.explore.explore_table = (
             ([110, 183, 710, 391, 386, 449], '20002'),
             ([121, 102, 109, 108, 107, 219], '20001'),
             ([105, 143, 2891, 9005, 3002, 120], '40001'),
             ([3305, 550, 211, 187, 185, 258], '50003'),
         )
-        self.campaign.mission_code = 302
+        self.campaign.mission_code = 402
         # self.campaign.formation_code = 5
 
     def set_missions(self):
