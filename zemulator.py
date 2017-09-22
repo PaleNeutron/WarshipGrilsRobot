@@ -559,6 +559,7 @@ class ZjsnEmulator(object):
         self.last_request = None
 
         self.version = distutils.version.LooseVersion("3.1.0")
+        self.max_level = 110
 
     @property
     def working_ships_id(self):
@@ -694,6 +695,9 @@ class ZjsnEmulator(object):
         self.login_time = self.now
 
         self.userShip.save('{}_{}.md'.format(self.username, server_json['name']))
+
+        if self.api.location == self.api.JAPAN:
+            self.max_level = 100
 
     def go_home(self):
         self.relogin()

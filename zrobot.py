@@ -23,6 +23,7 @@ _logger = logging.getLogger('zjsn.zrobot')
 NODE_SIMPLE = 'simple'
 NODE_RESOURCE = 'resource'
 NODE_SKIP = 'skip'
+
 class Node(object):
     """docstring for Node"""
     _node_types = [NODE_SIMPLE, NODE_RESOURCE, NODE_SKIP]
@@ -585,7 +586,7 @@ class Challenge(Mission):
         # 所有装了声呐的反潜船
         as_ships = []
         for ship in self.ze.userShip.unique:
-            conditions = [100 > ship.level,
+            conditions = [self.ze.max_level > ship.level,
                           ship.type in ['驱逐', '轻母', '轻巡'],
                           "10008321" in ship.equipment or "10008421" in ship.equipment
                           or ship.type == '轻母',  # 带着声呐
@@ -615,7 +616,7 @@ class Challenge(Mission):
     def fleet_filter(self, ship_id):
         """"""
         ship = self.ze.userShip[ship_id]
-        condition = ship.level < 100 and ship.available and ship.fleet_able
+        condition = ship.level < self.ze.max_level and ship.available and ship.fleet_able
         return condition
 
     def fight(self, enemy_uid, friend=False):
@@ -770,7 +771,7 @@ class Mission_1_5(Mission_1_1):
         # 所有高级改造DD
         dd_ships = []
         for ship in sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True):
-            conditions = [100 > ship["level"] > 20,
+            conditions = [self.ze.max_level > ship["level"] > 20,
                           ship.type in ['驱逐'],
                           ]
             if all(conditions):
@@ -863,7 +864,7 @@ class Mission_6_1_A(Mission):
         dd_ships = []
         slow_ships = []
         for ship in self.ze.userShip.unique:
-            conditions = [100 > ship.level,
+            conditions = [self.ze.max_level > ship.level,
                           ship.type in ['驱逐', '轻母', '轻巡'],
                           ship.locked,
                           "10008321" in ship.equipment or "10008421" in ship.equipment
@@ -880,7 +881,7 @@ class Mission_6_1_A(Mission):
         # boss_ships = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
         if self.boss_ships():
             boss_ships = [boss_ship for boss_ship in self.boss_ships(
-            ) if self.ze.userShip[boss_ship].level < 100]
+            ) if self.ze.userShip[boss_ship].level < self.ze.max_level]
         else:
             boss_ships = []
 
