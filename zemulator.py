@@ -8,6 +8,7 @@ import logging
 import math
 import os
 import time
+import base64
 from typing import Iterator
 
 import requests
@@ -179,7 +180,8 @@ class ZjsnUserShip(dict):
     def __iter__(self) -> Iterator['ZjsnShip']:
         return iter(self.values())
 
-    def level_order(self, reverse=True) -> 'ZjsnShip': 
+    def level_order(self, reverse=True) -> 'ZjsnShip':
+        """sorted ship objects from z to a"""
         return iter(sorted(self.values(), key=lambda x: x["level"], reverse=True))
 
     @property
@@ -502,6 +504,7 @@ class ZjsnEmulator(object):
                    'C',
                    'D']
     KEY_VERSION = distutils.version.LooseVersion("3.1.0")
+    ENCODE_USERNAME_VERSION = distutils.version.LooseVersion("3.3.0")
 
     def __init__(self):
         super(ZjsnEmulator, self).__init__()
@@ -646,10 +649,16 @@ class ZjsnEmulator(object):
         r0 = self.get(self.api.checkVer())
         self.version = distutils.version.LooseVersion(r0["version"]["newVersionId"])
         self.s = requests.Session()
+        if self.version >= self.ENCODE_USERNAME_VERSION:
+            username = base64.encodebytes(self.username.encode())
+            password = base64.encodebytes(self.password.encode())
+        else:
+            username = self.username
+            password = self.password
         r1 = self.get(self.api.passport(), method='POST',
                       sleep_flag=False,
-                      data={"username": self.username,
-                            "pwd": self.password})
+                      data={"username": username,
+                            "pwd": password})
         self.s.cookies = requests.utils.cookiejar_from_dict(dict(r1.cookies))
         self.s.cookies.update({'path': '/'})
         defaultServer = r1.json()['defaultServer']
@@ -696,7 +705,7 @@ class ZjsnEmulator(object):
 
         self.userShip.save('{}_{}.md'.format(self.username, server_json['name']))
 
-        if self.api.location == self.api.JAPAN:
+        if self.version >= self.ENCODE_USERNAME_VERSION:
             self.max_level = 100
 
     def go_home(self):
