@@ -578,8 +578,8 @@ class Challenge(Mission):
 
     def farm_ships(self):
         farm_ships = [s.id for s in self.ze.userShip.level_order() if all([s.name in ['罗德尼', '纳尔逊'],
-                                                            not s.evolved,
-                                                            s.level < s.evoLevel])]
+                                                                           not s.evolved,
+                                                                           s.level < s.evoLevel])]
         return farm_ships
 
     def formation_for_fish(self, fish_num):

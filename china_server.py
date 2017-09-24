@@ -6,7 +6,7 @@ import zrobot
 class Mission_6_1_A_China(zrobot.Mission_6_1_A):
     def boss_ships(self):
         # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 85]
-        return [self.ze.userShip.name('北上').id, self.ze.userShip.name('大井').id]
+        return [self.ze.userShip.name('维内托').id]
 
 class Mission_5_2_C(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -664,7 +664,7 @@ class Mission_6_4_fish(zrobot.Mission):
         target = 10023712
         if target in self.ze.unlockShip:
             zrobot._logger.info('有{}了'.format(
-                zemulator.shipCard[target]["title"]))
+                zemulator.SHIP_CARD[target]["title"]))
             return False
         # 所有能开幕的水下船只
         ss_ships = []
@@ -849,11 +849,17 @@ class ChinaRobot(zrobot.Robot):
         self.ze.boat_formula = [200, 30, 200, 30]
         self.explore.explore_table = (
             ([11063, 329, 58584, 44607, 44538, 63100], '20002'),
-            ([7367, 3877, 13972, 11497, 8452, 3822], '10003'),
-            ([128, 14094, 113, 101, 577, 7373], '40001'),
-            ([123, 13973, 10800, 14138, 10706, 104], '20001')
+            ([7367, 13972, 11497, 8452, 3822, 53932], '10003'),
+            ([128, 14094, 113, 101, 52334, 7373], '40001'),
+            ([123, 13973, 10800, 53659, 10706, 104], '20001')
         )
-        self.campaign.mission_code = 302
+        self.campaign.mission_code = 102
+        # self.ze.unlocked_report()
+        # for ship in self.ze.userShip:
+        #     n = ship.name.replace("日", "曰")
+        #     if ship.nick_name != n:
+        #         print("{} renamed to {}".format(ship.nick_name, ship.name))
+        #         self.ze.rename_ship(ship.id, n)
 
     def set_missions(self):
         challenge = zrobot.Challenge(self.ze)
