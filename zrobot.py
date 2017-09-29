@@ -993,13 +993,13 @@ class Robot(object):
     def __init__(self, username, password, japan_server=False):
         super(Robot, self).__init__()
         self.DEBUG = False
-        self.set_logger()
         self.ze = zemulator.ZjsnEmulator()
         self.ze.username = username
         self.ze.password = password
         if japan_server:
             self.ze.api.location = self.ze.api.JAPAN
         self.ze.login()
+        self.set_logger()
         self.thread = None
 
         self.dock = Dock(self.ze)
