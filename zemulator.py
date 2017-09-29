@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import base64
 import collections
 import datetime
 import distutils.version
@@ -8,7 +9,6 @@ import logging
 import math
 import os
 import time
-import base64
 from typing import Iterator
 
 import requests
@@ -29,12 +29,14 @@ with open(os.path.dirname(os.path.realpath(__file__)) + os.sep + "init_japan.txt
 SHIP_CARD.update({int(i['cid']): i for i in __ZJSN_DATA["shipCard"] if int(i['cid']) not in SHIP_CARD})
 EQUIPMENT_CARD.update({int(i['cid']): i for i in __ZJSN_DATA["shipEquipmnt"] if int(i['cid']) not in EQUIPMENT_CARD})
 
+
 class ZjsnError(Exception):
     """docstring for ZjsnError"""
 
-    def __init__(self, message, eid=0):
-        super(ZjsnError, self).__init__(message)
+    def __init__(self, message, eid=0, last_url=""):
+        super(ZjsnError, self).__init__("{}, code:{}, url:{}".format(message, eid, last_url))
         self.eid = int(eid)
+        self.last_request = last_url
 
 
 class ZjsnApi(object):
@@ -191,7 +193,7 @@ class ZjsnUserShip(dict):
     def unique(self):
         ships = []
         ships_evoCid = []
-        for ship in sorted(self, key=lambda x: (x.can_evo or x.evolved , x.level), reverse=True):
+        for ship in sorted(self, key=lambda x: (x.can_evo or x.evolved, x.level), reverse=True):
             if ship.evoCid not in ships_evoCid:
                 ships_evoCid.append(ship.evoCid)
                 ships.append(ship)
@@ -273,10 +275,9 @@ class ZjsnShip(dict):
                  '炮潜',
                  '补给',
                  '导驱',
-                 '防驱',]
+                 '防驱', ]
 
-    type_id_list = list(range(1,17)) + [23, 24] # 导驱的ID是23，防驱是24
-
+    type_id_list = list(range(1, 17)) + [23, 24]  # 导驱的ID是23，防驱是24
 
     white_list = [
                      10003912,  # 不是欧派塔
@@ -289,7 +290,7 @@ class ZjsnShip(dict):
 
     def __init__(self, *args, **kwargs):
         super(ZjsnShip, self).__init__(*args, **kwargs)
-    
+
     def __repr__(self):
         return self.name
 
@@ -315,7 +316,7 @@ class ZjsnShip(dict):
     @property
     def name(self):
         if self.cid in SHIP_CARD:
-            return SHIP_CARD[self.cid]['title'].replace(' ','')
+            return SHIP_CARD[self.cid]['title'].replace(' ', '')
         else:
             return "unknown ship {}".format(self.cid)
 
@@ -497,11 +498,10 @@ class ZjsnTask(dict):
 
     @property
     def finished_tasks(self):
-        award_list = [task_cid for task_cid in self 
-                      if all([c["totalAmount"] == c["finishedAmount"] 
-                      for c in self[task_cid]["condition"]])]
+        award_list = [task_cid for task_cid in self
+                      if all([c["totalAmount"] == c["finishedAmount"]
+                              for c in self[task_cid]["condition"]])]
         return award_list
-    
 
 
 class ZjsnEmulator(object):
@@ -603,7 +603,7 @@ class ZjsnEmulator(object):
     def get(self, url, error_count=0, sleep_flag=True, method='GET', **kwargs):
         """kwargs: sleep=True"""
         if error_count:
-            time.sleep(error_count**3)
+            time.sleep(error_count ** 3)
         if error_count > 10:
             raise ConnectionError("lost connection")
         error_count += 1
@@ -642,13 +642,12 @@ class ZjsnEmulator(object):
                 error_count -= 1
                 return self.get(url, error_count, sleep_flag, method, **kwargs)
             else:
-                raise ZjsnError(ERROR_CODE[str(eid)], rj["eid"])
+                raise ZjsnError(ERROR_CODE[str(eid)], rj["eid"], self.last_request.url)
         else:
             if "updateTaskVo" in rj:
                 for task in rj["updateTaskVo"]:
                     if int(task["taskCid"]) in self.task:
                         self.task[task["taskCid"]]["condition"] = task["condition"]
-
 
             if method == 'POST':
                 return r
@@ -797,6 +796,7 @@ class ZjsnEmulator(object):
             new_fleet = tmp_fleet_ships_id[:len(ship_groups)]
             self.instant_workingfleet(new_fleet)
         return True
+
     def get_substitue(self, location, tmp_fleet_ships_id, ship_group_info):
         working_ships = tmp_fleet_ships_id[:]
         ship_group, b_level, instant_flag = ship_group_info
@@ -808,7 +808,8 @@ class ZjsnEmulator(object):
         new_ship_id = None
 
         if not ship_group:
-            raise ZjsnError("no ship to use in location {}".format(location))
+            zlogger.info("no ship to use in location {}".format(location))
+            return False
         if len(self.working_ships_id) > location and self.working_ships_id[location] in ship_group:
             ship_group.insert(0, self.working_ships_id[location])
         for s_id in ship_group:
@@ -829,6 +830,7 @@ class ZjsnEmulator(object):
                 conditions = (s.evoCid not in [self.userShip[si].evoCid for si in working_ships if si != 0],
                               s.locked,
                               s.fleet_able,  # 没在远征队伍里
+                              s.should_be_repair(b_level),
                               )
                 if all(conditions):
                     new_ship_id = s_id
@@ -840,16 +842,18 @@ class ZjsnEmulator(object):
 
     def instant_workingfleet(self, ships_id):
         if ships_id:
-            zlogger.debug('编队 {}'.format([self.userShip[i].name for i in ships_id]))
-            r = self.get(self.api.instantFleet(self.working_fleet, ships_id))
-            self.fleet[int(self.working_fleet) - 1] = r["fleetVo"][0]
-            self.userShip.update(r['shipVO'])
+            for new_id in ships_id:
+                current_fid = self.userShip[new_id].fleet_id
+                if current_fid not in [self.working_fleet, 0]:
+                    r1 = self.instant_fleet(current_fid, [s for s in self.fleet_ships_id(current_fid) if s != new_id])
+
+            r = self.instant_fleet(self.working_fleet, ships_id)
             return r
 
     def instant_fleet(self, fleet_id, ships_id):
         fleet_id = int(fleet_id)
         if ships_id:
-            zlogger.debug('编队 {}'.format([self.userShip[i].name for i in ships_id]))
+            zlogger.debug('编队{}: {}'.format(fleet_id, [self.userShip[i].name for i in ships_id]))
             r = self.get(self.api.instantFleet(fleet_id, ships_id))
             self.fleet[fleet_id - 1] = r["fleetVo"][0]
             self.userShip.update(r['shipVO'])
@@ -1045,8 +1049,6 @@ class ZjsnEmulator(object):
                 self.fleet = r["fleetVo"]
                 return True
 
-
-
     def get_boat(self, dock_id):
         if len(self.userShip) < self.userShip.shipNumTop:
             r = self.get(self.api.getBoat(dock_id))
@@ -1107,10 +1109,16 @@ class ZjsnEmulator(object):
     #         for ship in userShip:
     #             self.update_ship_info(ship)
 
-    def repair_all(self, broken_level=0, instant=False):
+    def repair_all(self, broken_level=0, instant=False, working_flag=False):
         """broken level 0 : 擦伤, 1 : 中破,  2 : 大破
         不会修理正在远征和修理的船"""
-        ships = [i.id for i in self.userShip.broken_ships(broken_level) if i.status == 0 and i.id not in self.explore_ships_id]
+        if working_flag:
+            avoid_ships_id = self.explore_ships_id + self.working_ships_id
+        else:
+            avoid_ships_id = self.explore_ships_id
+
+        ships = [i.id for i in self.userShip.broken_ships(broken_level) if
+                 i.status == 0 and i.id not in avoid_ships_id]
         # 先修时间最短的
         ships.sort(key=lambda x: self.userShip[x].repair_time, reverse=True)
         for dock_index, dock in enumerate(self.repairDock):
@@ -1118,7 +1126,7 @@ class ZjsnEmulator(object):
                 if dock["endTime"] + self.common_lag < time.time():
                     self.repair_complete(dock["shipId"], dock_index)
             if "endTime" not in dock and dock["locked"] == 0 and len(ships) > 0:
-                    self.repair(ships.pop(), dock_index, instant)
+                self.repair(ships.pop(), dock_index, instant)
 
     def repair_instant(self, broken_level=1):
         """对第一舰队用快修修理"""
@@ -1203,7 +1211,6 @@ class ZjsnEmulator(object):
         r = self.get(
             self.url_server + "/pve/deal/{0}/{1}/{2}".format(node, self.working_fleet, formation_code))
         return r
-
 
     def lock(self, ship_id):
         r = self.get(self.api.lock(ship_id))

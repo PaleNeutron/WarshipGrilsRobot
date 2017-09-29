@@ -45,12 +45,8 @@ class Mission_5_2_C(zrobot.Mission):
             self.ze.ship_groups[i] = (ss_ships, 1, False)
         self.ze.ship_groups[0][0].insert(
             0, self.ze.userShip.name("U47").id)  # 尽可能狼群U47旗舰
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError as zerror:
-            zrobot._logger.critical(zerror)
-            return False
-        return True
+
+        return self.ze.change_ships()
 
 
 class Mission_2_5_mid(zrobot.Mission):
@@ -114,11 +110,7 @@ class Mission_2_5_mid(zrobot.Mission):
         self.ze.ship_groups[4] = ([115], 0.7, True)  # 太太
         self.ze.ship_groups[5] = ([43707], 0.7, True)  # 加加
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+        return self.ze.change_ships()
 
 
 class Mission_5_5_C(zrobot.Mission):
@@ -150,11 +142,8 @@ class Mission_5_5_C(zrobot.Mission):
             self.ze.ship_groups[i] = (ss_ships, 1, False)
         self.ze.ship_groups[0][0].insert(
             0, self.ze.userShip.name("U47").id)  # 尽可能狼群U47旗舰
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+
+        return self.ze.change_ships()
 
 
 class Mission_5_5_B(zrobot.Mission):
@@ -187,11 +176,8 @@ class Mission_5_5_B(zrobot.Mission):
 
         self.ze.ship_groups[0] = (boss_ships, 1, True)
         self.ze.ship_groups[5] = (cv_ship, 1, True)
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+
+        return self.ze.change_ships()
 
 
 class Mission_2_5_up(zrobot.Mission):
@@ -231,12 +217,7 @@ class Mission_2_5_up(zrobot.Mission):
         self.ze.ship_groups[4] = ([115], 0.8, True)
         self.ze.ship_groups[5] = ([43707], 0.8, True)
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError as ze:
-            zrobot._logger.debug(ze)
-            return False
-        return True
+        return self.ze.change_ships()
 
 
 class Mission_2_5_down(zrobot.Mission):
@@ -278,11 +259,8 @@ class Mission_2_5_down(zrobot.Mission):
         for i in range(0, 6):
             self.ze.ship_groups[i] = (ss_ships, 0, False)
         self.ze.ship_groups[0][0].insert(0, 6744)  # 尽可能狼群U47旗舰
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+
+        return self.ze.change_ships()
 
 
 class Mission_6_3(zrobot.Mission):
@@ -321,11 +299,8 @@ class Mission_6_3(zrobot.Mission):
         for i in range(0, 6):
             self.ze.ship_groups[i] = (ss_ships, 0, False)
         self.ze.ship_groups[0][0].insert(0, 6744)  # 尽可能狼群U47旗舰
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+
+        return self.ze.change_ships()
 
 
 class MissionPants(zrobot.Mission):
@@ -396,11 +371,7 @@ class MissionPants(zrobot.Mission):
         # self.ze.ship_groups[2] = ([self.ze.userShip.name("约克城").id], 1, True)
         self.ze.ship_groups[4] = self.ze.ship_groups[5] = (None, 1, False)
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+        return self.ze.change_ships()
 
     def summery(self):
         if self.success:
@@ -446,11 +417,7 @@ class Mission_4_3(zrobot.Mission):
             self.ze.ship_groups[i] = (dd_ships, 1, False)
         self.ze.ship_groups[4] = self.ze.ship_groups[5] = (None, 1, False)
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+        return self.ze.change_ships()
 
     def summery(self):
         super().summery()
@@ -494,11 +461,7 @@ class Mission_5_3(zrobot.Mission):
             self.ze.ship_groups[i] = (dd_ships, 1, False)
         self.ze.ship_groups[4] = self.ze.ship_groups[5] = (None, 1, False)
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+        return self.ze.change_ships()
 
     def summery(self):
         super().summery()
@@ -540,11 +503,7 @@ class Mission_2_2(zrobot.Mission):
             self.ze.ship_groups[i] = (None, 1, False)
         self.ze.ship_groups[0] = (dd_ships, 0, False)
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+        return self.ze.change_ships()
 
 
 # class Mission_1_1(zrobot.Mission):
@@ -629,12 +588,7 @@ class Mission_6_4(zrobot.Mission):
         self.ze.ship_groups[1] = ([229], 1, True)
         self.ze.ship_groups[2] = (ca_ships, 1, True)
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError as ze:
-            zrobot._logger.debug(ze)
-            return False
-        return True
+        return self.ze.change_ships()
 
 
 class Mission_6_4_fish(zrobot.Mission):
@@ -681,11 +635,8 @@ class Mission_6_4_fish(zrobot.Mission):
         for i in range(0, 6):
             self.ze.ship_groups[i] = (ss_ships, 0, False)
         self.ze.ship_groups[0][0].insert(0, 6744)  # 尽可能狼群U47旗舰
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+
+        return self.ze.change_ships()
 
 
 class MissionEvent2(zrobot.Mission):
@@ -716,11 +667,8 @@ class MissionEvent2(zrobot.Mission):
         fleet = self.battle_fleet
         fleet_group = [([i], 0.9, True) for i in fleet]
         self.ze.ship_groups = fleet_group
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+
+        return self.ze.change_ships()
 
     def summery(self):
         super().summery()
@@ -760,11 +708,8 @@ class MissionEvent_ex(zrobot.Mission):
         fleet = self.battle_fleet
         fleet_group = [([i], 0.85, True) for i in fleet]
         self.ze.ship_groups = fleet_group
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+
+        return self.ze.change_ships()
 
 
 class MissionEvent_E7(zrobot.Mission):
@@ -796,11 +741,8 @@ class MissionEvent_E7(zrobot.Mission):
         fleet = self.battle_fleet
         fleet_group = [([i], 0.85, True) for i in fleet]
         self.ze.ship_groups = fleet_group
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+
+        return self.ze.change_ships()
 
 
 class MissionEvent(zrobot.Mission):
@@ -831,11 +773,8 @@ class MissionEvent(zrobot.Mission):
         fleet = self.battle_fleet
         fleet_group = [([i], 0.85, True) for i in fleet]
         self.ze.ship_groups = fleet_group
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+
+        return self.ze.change_ships()
 
     def summery(self):
         super().summery()

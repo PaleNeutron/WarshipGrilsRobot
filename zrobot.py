@@ -711,6 +711,7 @@ class Dock(State):
 
     def go_home(self):
         self.ze.go_home()
+        self.ze.repair_all(0, working_flag=True)
         self.check()
 
     def check(self):
@@ -719,7 +720,6 @@ class Dock(State):
             self.ze.auto_explore()
             self.ze.supply_workingfleet()
         self.ze.relogin()
-        self.ze.repair_all(0)
         self.ze.get_award()
         self.ze.auto_build()
         self.ze.auto_build_equipment()
@@ -727,6 +727,7 @@ class Dock(State):
 
     def wait(self):
         self.check()
+        self.ze.repair_all(0)
         time.sleep(10)
 
 
@@ -754,11 +755,7 @@ class Mission_1_1(Mission):
             self.ze.ship_groups[i] = (None, 1, False)
         self.ze.ship_groups[0] = (dd_ships, 1, False)
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+        return self.ze.change_ships()
 
 
 class Mission_1_5(Mission_1_1):
@@ -784,11 +781,7 @@ class Mission_1_5(Mission_1_1):
         self.ze.ship_groups[0] = (dd_ships, 1, False)
         self.ze.ship_groups[0] = (dd_ships, 1, False)
 
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
+        return self.ze.change_ships()
 class Mission_2_1(Mission):
 
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -1000,6 +993,7 @@ class Robot(object):
     def __init__(self, username, password, japan_server=False):
         super(Robot, self).__init__()
         self.DEBUG = False
+        self.set_logger()
         self.ze = zemulator.ZjsnEmulator()
         self.ze.username = username
         self.ze.password = password
@@ -1048,6 +1042,22 @@ class Robot(object):
 
     def set_missions(self):
         pass
+
+    def set_logger(self):
+        if os.name == 'nt':
+            stream_handler = logging.StreamHandler()
+        else:
+            stream_handler = handlers.TimedRotatingFileHandler(
+                '{}.log'.format(self.ze.uid), when='midnight', backupCount=3, encoding='utf8')
+        log_formatter = logging.Formatter(
+            '%(asctime)s: %(levelname)s: %(name)s: %(message)s')
+        stream_handler.setFormatter(log_formatter)
+
+        _logger.addHandler(stream_handler)
+        _logger.setLevel(logging.DEBUG)
+
+        transitions_logger.addHandler(stream_handler)
+        transitions_logger.setLevel(logging.INFO)
 
     def working_loop(self):
         while self.command != 'stop':
@@ -1115,22 +1125,6 @@ class Robot(object):
 
 
     def start(self):
-
-        log_formatter = logging.Formatter(
-            '%(asctime)s: %(levelname)s: %(message)s')
-        if os.name == 'nt':
-            stream_handler = logging.StreamHandler()
-        else:
-            stream_handler = handlers.TimedRotatingFileHandler(
-                '{}.log'.format(self.ze.uid), when='midnight', backupCount=3, encoding='utf8')
-        stream_handler.setFormatter(log_formatter)
-
-        _logger.addHandler(stream_handler)
-        _logger.setLevel(logging.DEBUG)
-
-        transitions_logger.addHandler(stream_handler)
-        transitions_logger.setLevel(logging.INFO)
-
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.thread.start()
         if os.name == 'nt':
