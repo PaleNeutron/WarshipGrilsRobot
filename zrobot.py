@@ -6,6 +6,7 @@ import random
 import string
 import threading
 import time
+import argparse
 from datetime import datetime
 from itertools import zip_longest
 from logging import handlers
@@ -711,7 +712,7 @@ class Dock(State):
 
     def go_home(self):
         self.ze.go_home()
-        self.ze.repair_all(0, working_flag=True)
+        self.ze.repair_all(0, avoid_working_flag=True)
         self.check()
 
     def check(self):
@@ -992,7 +993,10 @@ class Robot(object):
     # todo 把thread变成一个属性 每次start重新实例化一个thread
     def __init__(self, username, password, japan_server=False):
         super(Robot, self).__init__()
-        self.DEBUG = False
+        parser = argparse.ArgumentParser("config")
+        parser.add_argument("--debug", help="enable debug model", action="store_true")
+        args = parser.parse_args()
+        self.DEBUG = args.debug
         self.ze = zemulator.ZjsnEmulator()
         self.ze.username = username
         self.ze.password = password
@@ -1044,7 +1048,7 @@ class Robot(object):
         pass
 
     def set_logger(self):
-        if os.name == 'nt':
+        if os.name == 'nt' or self.DEBUG:
             stream_handler = logging.StreamHandler()
         else:
             stream_handler = handlers.TimedRotatingFileHandler(
@@ -1127,7 +1131,7 @@ class Robot(object):
     def start(self):
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.thread.start()
-        if os.name == 'nt':
+        if os.name == 'nt' or self.DEBUG:
             self.thread.join()
         else:
             import signal

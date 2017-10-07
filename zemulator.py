@@ -544,7 +544,7 @@ class ZjsnEmulator(object):
 
         # self.url_server = 'http://s2.jr.moefantasy.com'
 
-        self.working_fleet = 1
+        self.working_fleet = 2
         self.drop500 = False
         self.todaySpoilsNum = 0
 
@@ -716,6 +716,8 @@ class ZjsnEmulator(object):
 
         if self.version >= self.ENCODE_USERNAME_VERSION:
             self.max_level = 110
+        zlogger.debug("login finished")
+        return True
 
     def go_home(self):
         self.relogin()
@@ -855,7 +857,7 @@ class ZjsnEmulator(object):
         if ships_id:
             zlogger.debug('编队{}: {}'.format(fleet_id, [self.userShip[i].name for i in ships_id]))
             r = self.get(self.api.instantFleet(fleet_id, ships_id))
-            self.fleet[fleet_id - 1] = r["fleetVo"][0]
+            self.fleet[fleet_id - 1] = r["fleetVo"][fleet_id - 1]
             self.userShip.update(r['shipVO'])
             return r
 
@@ -1109,10 +1111,10 @@ class ZjsnEmulator(object):
     #         for ship in userShip:
     #             self.update_ship_info(ship)
 
-    def repair_all(self, broken_level=0, instant=False, working_flag=False):
+    def repair_all(self, broken_level=0, instant=False, avoid_working_flag=False):
         """broken level 0 : 擦伤, 1 : 中破,  2 : 大破
         不会修理正在远征和修理的船"""
-        if working_flag:
+        if avoid_working_flag:
             avoid_ships_id = self.explore_ships_id + self.working_ships_id
         else:
             avoid_ships_id = self.explore_ships_id
