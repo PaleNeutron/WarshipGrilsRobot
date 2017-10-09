@@ -406,11 +406,11 @@ class ZjsnShip(dict):
 
     @property
     def status(self):
-        fleet_status = self.emulator.fleet[self.fleet_id - 1]['status']
-        if fleet_status != 0:
-            return fleet_status
-        else:
-            return int(self['status'])
+        if self.fleet_id:
+            fleet_status = self.emulator.fleet[self.fleet_id - 1]['status']
+            if fleet_status != 0:
+                return fleet_status
+        return int(self['status'])
 
     @property
     def available(self):
