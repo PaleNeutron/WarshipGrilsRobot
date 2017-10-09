@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import collections
 import logging
 import os
@@ -6,7 +7,6 @@ import random
 import string
 import threading
 import time
-import argparse
 from datetime import datetime
 from itertools import zip_longest
 from logging import handlers
@@ -499,7 +499,6 @@ class Challenge(Mission):
             self.friends = [i['uid'] for i in f_list][:3]
 
     def generate_challenge_ships(self):
-        ships_evoCid = []
         ships = self.ze.userShip.unique
         # sorted(self.ze.userShip, key=lambda x: x["level"], reverse=True)
         return [s.id for s in ships if s.type in ['战列', '战巡', '航母']]
@@ -1129,11 +1128,11 @@ class Robot(object):
 
 
     def start(self):
-        self.thread = threading.Thread(target=self.run, daemon=True)
-        self.thread.start()
         if os.name == 'nt' or self.DEBUG:
-            self.thread.join()
+            self.run()
         else:
+            self.thread = threading.Thread(target=self.run, daemon=True)
+            self.thread.start()
             import signal
             signal.signal(signal.SIGTSTP, lambda x,y: exit())            
             return self.thread

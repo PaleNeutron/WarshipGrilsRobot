@@ -406,8 +406,9 @@ class ZjsnShip(dict):
 
     @property
     def status(self):
-        if self.fleet_id in self.emulator.explore_fleets:
-            return 1
+        fleet_status = self.emulator.fleet[self.fleet_id - 1]['status']
+        if fleet_status != 0:
+            return fleet_status
         else:
             return int(self['status'])
 
@@ -570,6 +571,7 @@ class ZjsnEmulator(object):
         self.build_equipment_remain = 0
 
         self.last_request = None
+        self.last_request_time = 0
 
         self.version = distutils.version.LooseVersion("3.1.0")
         self.max_level = 100
@@ -621,7 +623,11 @@ class ZjsnEmulator(object):
                 requests.exceptions.ChunkedEncodingError):
             return self.get(url, error_count, sleep_flag, method, **kwargs)
         if sleep_flag:
-            time.sleep(self.operation_lag)
+            t = self.operation_lag - (time.time() - self.last_request_time)
+            if t > 0:
+                time.sleep(t)
+            self.last_request_time = time.time()
+
 
         try:
             rj = r.json()
@@ -1142,6 +1148,9 @@ class ZjsnEmulator(object):
         return broken_ships
 
     def repair(self, ship_id, dock_id, instant=False):
+        ship = self.userShip[ship_id]
+        if ship.status != 0:
+            return False
         time.sleep(1)
         if not instant:
             r = self.get(self.api.repair(ship_id, dock_id + 1))
