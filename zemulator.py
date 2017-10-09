@@ -863,7 +863,11 @@ class ZjsnEmulator(object):
         if ships_id:
             zlogger.debug('编队{}: {}'.format(fleet_id, [self.userShip[i].name for i in ships_id]))
             r = self.get(self.api.instantFleet(fleet_id, ships_id))
-            self.fleet[fleet_id - 1] = r["fleetVo"][fleet_id - 1]
+            if len(r["fleetVo"]) == 1:
+                f = r["fleetVo"][0]
+            else:
+                f = r["fleetVo"][fleet_id - 1]
+            self.fleet[fleet_id - 1] = f
             self.userShip.update(r['shipVO'])
             return r
 
