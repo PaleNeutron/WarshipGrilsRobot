@@ -406,6 +406,7 @@ class ZjsnShip(dict):
 
     @property
     def status(self):
+        """0 is free, 1 is explore, 2 is guard, """
         if self.fleet_id:
             fleet_status = self.emulator.fleet[self.fleet_id - 1]['status']
             if fleet_status != 0:
@@ -418,7 +419,11 @@ class ZjsnShip(dict):
 
     @property
     def fleet_able(self):
-        return self.fleet_id == 0 or self.fleet_id == self.emulator.working_fleet
+        if self.fleet_id:
+            fleet_status = self.emulator.fleet[self.fleet_id - 1]['status']
+            if fleet_status != 0:
+                return False
+        return True
 
     @property
     def can_evo(self):
