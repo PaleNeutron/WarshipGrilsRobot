@@ -1152,8 +1152,6 @@ class ZjsnEmulator(object):
             if self.userShip[ship_id].should_be_repair(broken_level):
                 self.repair(ship_id, 0, instant=True)
                 broken_ships.append(self.userShip[ship_id].name)
-                zlogger.debug(
-                    "instant repair {}".format(self.userShip[ship_id].name))
         return broken_ships
 
     def repair(self, ship_id, dock_id, instant=False):
@@ -1163,10 +1161,14 @@ class ZjsnEmulator(object):
         time.sleep(1)
         if not instant:
             r = self.get(self.api.repair(ship_id, dock_id + 1))
+            zlogger.debug(
+                    "repair {}".format(self.userShip[ship_id].name))
             self.repairDock = r["repairDockVo"]
             self.userShip.update(r["shipVO"])
         else:
             r = self.get(self.api.instantRepairShips([ship_id]))
+            zlogger.debug(
+                    "instant repair {}".format(self.userShip[ship_id].name))
             self.userShip.update(r["shipVOs"])
             if "repairDockVo" in r:
                 self.repairDock = r["repairDockVo"]
