@@ -1076,7 +1076,9 @@ class Robot(object):
                     self.state = 'init'
                 elif zerror.eid in [-9997, -9995, -9994]:
                     _logger.info("login on another device, input anything to continue")
-                    input()
+                    wait_thread = threading.Thread(target=input)
+                    wait_thread.start()
+                    wait_thread.join(timeout=7200)
                     self.ze.login()
                     self.state = 'init'
                 else:
