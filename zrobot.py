@@ -365,11 +365,11 @@ class Explore(Mission):
             self.ze.go_home()
             for i, table in enumerate(self.explore_table):
                 if str(i + 1) not in exploring_fleet and 0 not in table[0]:
-                    self.ze.working_fleet = str(i + 1)
-                    if self.ze.working_ships_id != table[0]:
-                        self.ze.instant_workingfleet(table[0])
-                    self.ze.supply_workingfleet()
-                    self.ze.explore(self.ze.working_fleet, table[1])
+                    explore_fleet = str(i + 1)
+                    if self.ze.fleet_ships_id(explore_fleet) != table[0]:
+                        self.ze.instant_fleet(explore_fleet, table[0])
+                    self.ze.supply_fleet(explore_fleet)
+                    self.ze.explore(explore_fleet, table[1])
 
     def check_explore(self):
         exploring_fleet = [e['fleetId'] for e in self.ze.pveExplore]
@@ -842,15 +842,16 @@ class Mission_2_1(Mission):
 class Mission_6_1_A(Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(Mission_6_1_A, self).__init__('kill_fish', 601, ze)
+        self.boss_ships = []
 
     def set_first_nodes(self):
         node_a = Node('A', formation=5,
                       additional_spy_filter=lambda x: x["enemyVO"]["enemyFleet"]["id"] == 60102003)
         return node_a
 
-    def boss_ships(self):
-        # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
-        return []
+    # def boss_ships(self):
+    #     # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
+    #     return []
 
     def prepare(self):
         # 所有装了声呐的反潜船
@@ -872,9 +873,14 @@ class Mission_6_1_A(Mission):
             "dd_ships:{}".format([self.ze.userShip[ship_id].name for ship_id in dd_ships]))
 
         # boss_ships = [s.id for s in self.ze.userShip if s.type == '重炮' and s.locked]
-        if self.boss_ships():
-            boss_ships = [boss_ship for boss_ship in self.boss_ships(
-            ) if self.ze.userShip[boss_ship].level < self.ze.max_level]
+        if self.boss_ships:
+            if type(self.boss_ships) == list:
+                boss_ships = [self.ze.userShip.name(boss_ship) for boss_ship in self.boss_ships]
+            elif type(self.boss_ships) == str:
+                boss_ships = [self.ze.userShip.name(self.boss_ships)]
+            else:
+                raise ValueError("boss_ships should be list or str")
+            boss_ships = [bs.id for bs in boss_ships if self.ze.userShip[bs].level < self.ze.max_level]
         else:
             boss_ships = []
 
@@ -1016,6 +1022,9 @@ class Robot(object):
         self.command = 'run'
 
         self.add_mission(DailyTask(self.ze))
+        #kill_fish
+        self.kill_fish = Mission_6_1_A(self.ze)
+        self.add_mission(self.kill_fish)
         if self.ze.version < self.ze.KEY_VERSION:
             self.set_missions()
             self.machine.add_transition(trigger='go_out', prepare=[self.explore._prepare], source='init',

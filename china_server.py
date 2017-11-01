@@ -3,10 +3,9 @@ import zemulator
 import zrobot
 
 
-class Mission_6_1_A_China(zrobot.Mission_6_1_A):
-    def boss_ships(self):
-        # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 85]
-        return [self.ze.userShip.name('维内托').id]
+# class Mission_6_1_A_China(zrobot.Mission_6_1_A):
+#     def __init__():
+#     self.boss_ships = '射水鱼'
 
 class Mission_5_2_C(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -813,7 +812,6 @@ class ChinaRobot(zrobot.Robot):
         # self.add_mission(Mission_2_2(self.ze))
         # self.add_mission(Mission_5_5_B(self.ze))
         self.add_mission(Mission_6_4(self.ze))
-        self.add_mission(Mission_6_1_A_China(self.ze))
         self.add_mission(MissionEvent(self.ze))
 
         self.pants = MissionPants(self.ze)
@@ -826,5 +824,6 @@ if __name__ == '__main__':
     # r.missions['6-4'].switch()
     # r.missions['pants'].switch()
     # r.missions['5-5C'].enable = True
-    # r.missions['kill_fish'].enable = True
+    # r.missions['kill_fish'].switch()
+    # r.kill_fish.boss_ships = '长春'
     t = r.start()

@@ -464,7 +464,7 @@ class ZjsnShip(dict):
         t = math.ceil(((l * 5 + a) * r * d + 30) * m)
         return t
 
-    def should_be_repair(self, broken_level=0):
+    def is_broken(self, broken_level=0):
         """broken level 0 : 擦伤, 1 : 中破,  2 : 大破"""
         conditions = False
         if broken_level == 0:
@@ -475,7 +475,10 @@ class ZjsnShip(dict):
             conditions = self["battleProps"]["hp"] * 4 < self["battlePropsMax"]["hp"]
         elif 0 < broken_level < 1:
             conditions = self["battleProps"]["hp"] < self["battlePropsMax"]["hp"] * broken_level
-        return self.status != 2 and conditions
+        return conditions
+    def should_be_repair(self, broken_level=0):
+        """broken level 0 : 擦伤, 1 : 中破,  2 : 大破"""
+        return self.status != 2 and self.is_broken(broken_level)
 
 
 class ZjsnTask(dict):
@@ -823,8 +826,8 @@ class ZjsnEmulator(object):
         if not ship_group:
             zlogger.info("no ship to use in location {}".format(location))
             return False
-        if len(self.working_ships_id) > location and self.working_ships_id[location] in ship_group:
-            ship_group.insert(0, self.working_ships_id[location])
+        # if len(self.working_ships_id) > location and self.working_ships_id[location] in ship_group:
+        #     ship_group.insert(0, self.working_ships_id[location])
         for s_id in ship_group:
             s = self.userShip[s_id]
             conditions = (s.evoCid not in [self.userShip[si].evoCid for si in working_ships if si != 0],
@@ -843,7 +846,7 @@ class ZjsnEmulator(object):
                 conditions = (s.evoCid not in [self.userShip[si].evoCid for si in working_ships if si != 0],
                               s.locked,
                               s.fleet_able,  # 没在远征队伍里
-                              s.should_be_repair(b_level),
+                              s.is_broken(0),
                               )
                 if all(conditions):
                     new_ship_id = s_id
@@ -855,17 +858,17 @@ class ZjsnEmulator(object):
 
     def instant_workingfleet(self, ships_id):
         if ships_id:
-            for new_id in ships_id:
-                current_fid = self.userShip[new_id].fleet_id
-                if current_fid not in [self.working_fleet, 0]:
-                    r1 = self.instant_fleet(current_fid, [s for s in self.fleet_ships_id(current_fid) if s != new_id])
-
             r = self.instant_fleet(self.working_fleet, ships_id)
             return r
 
     def instant_fleet(self, fleet_id, ships_id):
         fleet_id = int(fleet_id)
         if ships_id:
+            for new_id in ships_id:
+                current_fid = self.userShip[new_id].fleet_id
+                if current_fid not in [fleet_id, 0]:
+                    r1 = self.instant_fleet(current_fid, [s for s in self.fleet_ships_id(current_fid) if s != new_id])
+
             zlogger.debug('编队{}: {}'.format(fleet_id, [self.userShip[i].name for i in ships_id]))
             r = self.get(self.api.instantFleet(fleet_id, ships_id))
             if len(r["fleetVo"]) == 1:
@@ -1149,23 +1152,21 @@ class ZjsnEmulator(object):
         """对第一舰队用快修修理"""
         broken_ships = []
         for ship_id in self.working_ships_id:
-            if self.userShip[ship_id].should_be_repair(broken_level):
+            if self.userShip[ship_id].is_broken(broken_level):
                 self.repair(ship_id, 0, instant=True)
                 broken_ships.append(self.userShip[ship_id].name)
         return broken_ships
 
     def repair(self, ship_id, dock_id, instant=False):
         ship = self.userShip[ship_id]
-        if ship.status != 0:
-            return False
         time.sleep(1)
-        if not instant:
+        if not instant and ship.status == 0:
             r = self.get(self.api.repair(ship_id, dock_id + 1))
             zlogger.debug(
                     "repair {}".format(self.userShip[ship_id].name))
             self.repairDock = r["repairDockVo"]
             self.userShip.update(r["shipVO"])
-        else:
+        elif ship.status in [0, 2]:
             r = self.get(self.api.instantRepairShips([ship_id]))
             zlogger.debug(
                     "instant repair {}".format(self.userShip[ship_id].name))
@@ -1261,10 +1262,8 @@ class ZjsnEmulator(object):
         return r
 
     def supply_workingfleet(self):
-        if any([s["battlePropsMax"]["oil"] - s["battleProps"]["oil"] for s in self.working_ships]):
-            r = self.get(self.url_server + "/boat/supplyFleet/{}/".format(self.working_fleet))
-            self.userShip.update(r['shipVO'])
-            return r
+        r = self.supplyFleet(self.working_fleet)
+        return r
 
     def supplyFleet(self, fleet_id):
         if any([s["battlePropsMax"]["oil"] - s["battleProps"]["oil"] for s in self.fleet_ships(fleet_id)]):

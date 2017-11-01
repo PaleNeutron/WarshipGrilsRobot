@@ -287,26 +287,20 @@ class Mission_4_4_Boss(zrobot.Mission):
 
 class Mission_Event(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super().__init__('mission event', 9925, ze)
-        self.battle_fleet = []
-        self.battle_fleet_name = []
-        # self.battle_fleet_name = ['胡德', '提尔比茨', '绫波', '大凤', '列克星敦', '萨拉托加']
-        self.enable = True
+        E1 = 9926
+        super().__init__('event', E1 + 5, ze)
+        # self.battle_fleet_name = ['胡德', '俾斯麦', '威尔士亲王', '黎塞留', '罗德尼', '声望']
+        self.battle_fleet_name = ['胡德', '俾斯麦', '马里兰', '黎塞留', '声望', '罗德尼']
 
     def set_first_nodes(self):
-        zrobot.Node.DEFAULT_SLEEP_TIME = 15
-        self.node_a = zrobot.Node('b')
-        self.node__boss = self.node_chain([
-            zrobot.Node('l', node_type=zrobot.NODE_RESOURCE),
-            zrobot.Node('n'),
-            zrobot.Node('p', formation=4, night_flag=1),
+        self.node_a = self.node_chain([
+            zrobot.Node('a', formation=4, night_flag=1, additional_spy_filter=lambda x: int(x['enemyVO']['enemyFleet']['formation'])==3),
+            # zrobot.Node('a'),
+            # zrobot.Node('d'),
+            # zrobot.Node('i', node_type=zrobot.NODE_RESOURCE),
+            # zrobot.Node('m'),
+            # zrobot.Node('p', formation=1, night_flag=1),
         ])
-        self.node_e = zrobot.Node('e').add_next(self.node__boss)
-        self.node_f = zrobot.Node('f').add_next(self.node__boss)
-        self.node_a.add_next(self.node_e)
-        self.node_a.add_next(self.node_f)
-
-        zrobot.Node.DEFAULT_SLEEP_TIME = 30
 
         return self.node_a
 
@@ -518,13 +512,12 @@ class Japan_Mission_5_2_C(zrobot.Mission):
         pass
 
 
-class Japan_Mission_6_1_A(china_server.Mission_6_1_A_China):
+class Japan_Mission_6_1_A(zrobot.Mission_6_1_A):
     """鱼塘 炸鱼"""
 
-    def boss_ships(self):
-        return [self.ze.userShip.name("昆西").id]
-        # return [s.id for s in self.ze.userShip if s.type in ['潜艇', '炮潜']]
-        # return None
+    def __init__(self, ze: zemulator):
+        super().__init__(ze)
+        self.boss_ships = 'U96'
 
 
 class JapanRobot(zrobot.Robot):
@@ -553,6 +546,7 @@ class JapanRobot(zrobot.Robot):
 
         # self.add_mission(MissionEventCollection(self.ze))
         # self.add_mission(Mission_Event_2(self.ze))
+        self.add_mission(Mission_Event(self.ze))
         self.add_mission(zrobot.Mission_1_1(self.ze))
         self.add_mission(china_server.Mission_5_3(self.ze))
         # self.challenge = JapanChallenge(self.ze)
@@ -563,7 +557,6 @@ class JapanRobot(zrobot.Robot):
         # self.machine.add_states(self.m3_4.state)
         # self.machine.add_transition(**self.m3_4.trigger)
 
-        self.add_mission(Japan_Mission_6_1_A(self.ze))
         self.add_mission(Mission3_4_A(self.ze))
         self.pants = JapanPants(self.ze)
         self.add_mission(self.pants)
@@ -602,7 +595,7 @@ if __name__ == '__main__':
     # r.missions['kill_fish'].switch()
     # r.missions['偷钢'].switch()
     # r.missions['1-1A'].switch()
-    # r.missions['mission event'].switch()
+    # r.missions['event'].switch()
     r.start()
     # r.ze.login()
     # print(r.ze.fleet)
