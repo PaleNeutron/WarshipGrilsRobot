@@ -534,7 +534,7 @@ class JapanRobot(zrobot.Robot):
             ([105, 143, 2891, 9005, 3002, 120], '40001'),
             ([3305, 550, 211, 187, 185, 258], '50003'),
         )
-        self.campaign.mission_code = 402
+        self.campaign.target_mission = 202
         # self.campaign.formation_code = 5
 
     def set_missions(self):
@@ -596,6 +596,8 @@ if __name__ == '__main__':
     # r.missions['偷钢'].switch()
     # r.missions['1-1A'].switch()
     # r.missions['event'].switch()
+    # r.kill_fish.switch()
+    # r.kill_fish.boss_ships = '射水鱼'
     r.start()
     # r.ze.login()
     # print(r.ze.fleet)

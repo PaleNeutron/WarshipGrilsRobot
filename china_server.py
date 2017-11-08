@@ -785,7 +785,7 @@ class ChinaRobot(zrobot.Robot):
             ([128, 14094, 113, 101, 52334, 7373], '40001'),
             ([123, 13973, 10800, 53659, 10706, 104], '20001')
         )
-        self.campaign.mission_code = 102
+        # self.campaign.mission_code = 102
         # self.ze.unlocked_report()
         # for ship in self.ze.userShip:
         #     n = ship.name.replace("日", "曰")

@@ -743,7 +743,7 @@ class ZjsnEmulator(object):
 
     def get_campaign_data(self):
         r_c = self.get(self.url_server + "/campaign/getUserData/", sleep_flag=False)
-        self.campaign_num = r_c['passInfo']['remainNum']
+        self.campaign_num = int(r_c['passInfo']['remainNum'])
 
     @property
     def tz(self):

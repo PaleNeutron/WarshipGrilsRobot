@@ -411,9 +411,14 @@ class Campaign(Mission):
         self.state.ignore_invalid_triggers = True
         self.ships_id = []
         self.formation_code = formation_code
+        self.target_mission = None
 
     def prepare(self):
         if self.ze.campaign_num > 0:
+            if self.target_mission:
+                self.mission_code = self.target_mission
+            else:
+                self.mission_code = (self.ze.campaign_num // 2 + 1) * 100 + 2
             if not self.ships_id:
                 rsp = self.ze.get(self.ze.api.campaignGetFleet(self.mission_code))
                 self.ships_id = [int(i) for i in rsp['campaignLevelFleet']]
@@ -462,7 +467,7 @@ class Campaign(Mission):
         _logger.debug(
             '\n' + "\n".join(["{}     {}".format(a, b) for a, b in result]))
         if 'campaignVo' in self.battle_result:
-            self.ze.campaign_num = self.battle_result['campaignVo']['passInfo']['remainNum']
+            self.ze.campaign_num = int(self.battle_result['campaignVo']['passInfo']['remainNum'])
         else:
             self.ze.get_campaign_data()
 
