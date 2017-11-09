@@ -60,6 +60,9 @@ class ZjsnApi(object):
             return "http://login.jr.moefantasy.com/index/passportLogin"
         elif self.location == self.JAPAN:
             return 'http://loginand.jp.warshipgirls.com/index/passportLogin'
+    
+    def get_init(self):
+        return "http://login.jr.moefantasy.com/index/getInitConfigs/"
 
     def login(self, user_id):
         return self.host + "/index/login/{}".format(user_id)
