@@ -418,7 +418,8 @@ class Campaign(Mission):
             if self.target_mission:
                 self.mission_code = self.target_mission
             else:
-                self.mission_code = ((self.ze.campaign_num + 1)  // 2) * 100 + 2
+                mc = ((self.ze.campaign_num + 1)  // 2) * 100 + 2
+                self.mission_code = min(mc, 4)
             if not self.ships_id:
                 rsp = self.ze.get(self.ze.api.campaignGetFleet(self.mission_code))
                 self.ships_id = [int(i) for i in rsp['campaignLevelFleet'] if i != 0]
