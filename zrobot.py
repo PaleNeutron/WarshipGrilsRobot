@@ -404,22 +404,22 @@ class Explore(Mission):
 class Campaign(Mission):
     """docstring for Campaign"""
 
-    def __init__(self, ze: zemulator.ZjsnEmulator, mission_code=202, formation_code=None):
-        super().__init__('campaign', mission_code, ze)
+    def __init__(self, ze: zemulator.ZjsnEmulator, target_mission=None, formation_code=None):
+        super().__init__('campaign', target_mission, ze)
         self.ze = ze
         self.avilable = True
         self.state.ignore_invalid_triggers = True
         self.ships_id = []
         self.formation_code = formation_code
-        self.target_mission = None
+        self.target_mission = target_mission
 
     def prepare(self):
         if self.ze.campaign_num > 0:
             if self.target_mission:
                 self.mission_code = self.target_mission
             else:
-                mc = ((self.ze.campaign_num + 1)  // 2) * 100 + 2
-                self.mission_code = min(mc, 4)
+                mc = ((self.ze.campaign_num + 1)  // 2)
+                self.mission_code = min(mc, 4) * 100 + 2
             if not self.ships_id:
                 rsp = self.ze.get(self.ze.api.campaignGetFleet(self.mission_code))
                 self.ships_id = [int(i) for i in rsp['campaignLevelFleet'] if i != 0]
@@ -1020,7 +1020,7 @@ class Robot(object):
         self.dock = Dock(self.ze)
         self.explore = self.dock.explore_mod
 
-        self.campaign = Campaign(self.ze, 402)
+        self.campaign = Campaign(self.ze)
         states = [self.dock] + [m.state for m in [self.explore, self.campaign]]
         self.missions = {}
 
