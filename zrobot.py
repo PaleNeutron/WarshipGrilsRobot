@@ -420,9 +420,8 @@ class Campaign(Mission):
             else:
                 mc = ((self.ze.campaign_num + 1)  // 2)
                 self.mission_code = min(mc, 4) * 100 + 2
-            if not self.ships_id:
-                rsp = self.ze.get(self.ze.api.campaignGetFleet(self.mission_code))
-                self.ships_id = [int(i) for i in rsp['campaignLevelFleet'] if i != 0]
+            rsp = self.ze.get(self.ze.api.campaignGetFleet(self.mission_code))
+            self.ships_id = [int(i) for i in rsp['campaignLevelFleet'] if i != 0]
             if not any([self.ze.userShip[i].should_be_repair(1) or self.ze.userShip[i].status == 2 for i in
                         self.ships_id]):
                 try:
