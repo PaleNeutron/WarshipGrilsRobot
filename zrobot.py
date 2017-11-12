@@ -1129,7 +1129,7 @@ class Robot(object):
             except Exception as e:
                 error_count += 1
                 _logger.exception(e)
-                if self.DEBUG and error_count < 3:
+                if self.DEBUG or error_count > 3:
                     raise e
                 else:
                     self.ze.login()
