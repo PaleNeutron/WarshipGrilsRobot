@@ -1005,6 +1005,7 @@ class Robot(object):
     # todo 把thread变成一个属性 每次start重新实例化一个thread
     def __init__(self, username, password, japan_server=False):
         super(Robot, self).__init__()
+        self.set_logger()
         parser = argparse.ArgumentParser("config")
         parser.add_argument("--debug", help="enable debug model", action="store_true")
         args = parser.parse_args()
@@ -1015,7 +1016,6 @@ class Robot(object):
         if japan_server:
             self.ze.api.location = self.ze.api.JAPAN
         self.ze.login()
-        self.set_logger()
         self.thread = None
 
         self.dock = Dock(self.ze)
