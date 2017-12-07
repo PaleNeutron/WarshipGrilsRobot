@@ -258,6 +258,8 @@ class Mission(object):
                 self.ze.working_fleet = fleet_avilable['id']
                 return True
         else:
+            if self.ze.drop500:
+                return False
             self.ze.working_fleet = 2
             return True
 
@@ -1120,6 +1122,7 @@ class Robot(object):
             return False
 
     def run(self):
+        last_error_time = 0
         error_count = 0
         while 1:
             try:
@@ -1127,6 +1130,10 @@ class Robot(object):
                 self.dock.check()
                 self.working_loop()
             except Exception as e:
+                # reset error count everyday
+                if last_error_time - time.time() > 24 * 60 * 60:
+                    error_count = 0
+                last_error_time = time.time()
                 error_count += 1
                 _logger.exception(e)
                 if self.DEBUG or error_count > 3:

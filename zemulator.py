@@ -16,19 +16,93 @@ import requests.exceptions
 
 zlogger = logging.getLogger('zjsn.zrobot.zemulator')
 
-with open(os.path.dirname(os.path.realpath(__file__)) + os.sep + "init.txt", encoding="utf8") as f:
-    __ZJSN_DATA = json.load(f)
 
-SHIP_CARD = {int(i['cid']): i for i in __ZJSN_DATA["shipCard"]}
-ERROR_CODE = __ZJSN_DATA['errorCode']
-EQUIPMENT_CARD = {int(i['cid']): i for i in __ZJSN_DATA["shipEquipmnt"]}
+# with open(os.path.dirname(os.path.realpath(__file__)) + os.sep + "init.txt", encoding="utf8") as f:
+#     __ZJSN_DATA = json.load(f)
+#
+# _INIT_DATA_.ship_card = {int(i['cid']): i for i in __ZJSN_DATA["shipCard"]}
+# _INIT_DATA_.error_code = __ZJSN_DATA['errorCode']
+# _INIT_DATA_.equipment_card = {int(i['cid']): i for i in __ZJSN_DATA["shipEquipmnt"]}
+# 
+# with open(os.path.dirname(os.path.realpath(__file__)) + os.sep + "init_japan.txt", encoding="utf8") as f:
+#     __ZJSN_DATA = json.load(f)
+# 
+# _INIT_DATA_.ship_card.update({int(i['cid']): i for i in __ZJSN_DATA["shipCard"] if int(i['cid']) not in _INIT_DATA_.ship_card})
+# _INIT_DATA_.equipment_card.update({int(i['cid']): i for i in __ZJSN_DATA["shipEquipmnt"] if int(i['cid']) not in _INIT_DATA_.equipment_card})
 
-with open(os.path.dirname(os.path.realpath(__file__)) + os.sep + "init_japan.txt", encoding="utf8") as f:
-    __ZJSN_DATA = json.load(f)
+class InitData(object):
+    """init data for zjsn"""
 
-SHIP_CARD.update({int(i['cid']): i for i in __ZJSN_DATA["shipCard"] if int(i['cid']) not in SHIP_CARD})
-EQUIPMENT_CARD.update({int(i['cid']): i for i in __ZJSN_DATA["shipEquipmnt"] if int(i['cid']) not in EQUIPMENT_CARD})
+    def __init__(self):
+        self.__data__ = None
+        self.ship_card = None
+        self.error_code = None
+        self.equipment_card = None
+        self.version = distutils.version.LooseVersion("0")
+        self.init_file_path = os.path.dirname(os.path.realpath(__file__)) + os.sep + "init.txt"
+        self.init_file_path_japan = os.path.dirname(os.path.realpath(__file__)) + os.sep + "init_japan.txt"
 
+        self.load()
+
+    def load(self):
+        if os.path.exists(self.init_file_path):
+            # get china server data
+            with open(self.init_file_path, encoding="utf8") as f:
+                self.__data__ = json.load(f)
+            self.ship_card = {int(i['cid']): i for i in self.__data__["shipCard"]}
+            self.error_code = self.__data__['errorCode']
+            self.equipment_card = {int(i['cid']): i for i in self.__data__["shipEquipmnt"]}
+            self.version = distutils.version.LooseVersion(self.__data__["DataVersion"])
+            # get japan server data
+            if os.path.exists(self.init_file_path_japan):
+                with open(self.init_file_path_japan, encoding="utf8") as f:
+                    self.__data__ = json.load(f)
+
+                self.ship_card.update(
+                    {int(i['cid']): i for i in self.__data__["shipCard"] if int(i['cid']) not in self.ship_card})
+                self.equipment_card.update({int(i['cid']): i for i in self.__data__["shipEquipmnt"] if
+                                            int(i['cid']) not in self.equipment_card})
+        else:
+            self.version = distutils.version.LooseVersion("000")
+
+    def update(self, data, japan=False):
+        self.__data__ = data
+        if not japan:
+            self.rename()
+            with open(self.init_file_path, "w", encoding="utf8") as f:
+                json.dump(self.__data__, f)
+        else:
+            with open(self.init_file_path_japan, "w", encoding="utf8") as f:
+                json.dump(self.__data__, f)
+        self.load()
+
+    def get_trans_table(self):
+        from pyquery import PyQuery as pq
+        name_table = {}
+        r = requests.get(
+            "https://www.zjsnrwiki.com/wiki/%E6%97%A5%E7%B3%BB%E8%88%B0%E5%90%8D%E5%AF%B9%E7%85%A7%E8%A1%A8")
+        p = pq(r.text)
+        table = p(".wikitable")
+
+        for t in table("tr")[1:]:
+            p = pq(t)("td a")
+            real_name = p[0].text
+            animal_name = p[1].text
+            name_table[animal_name] = real_name
+
+        return name_table
+
+    def rename(self):
+        tb = self.get_trans_table()
+        new_girl = {}
+        for girl in self.__data__["shipCard"]:
+            new_girl[girl["cid"]] = girl
+            if girl["title"] in tb:
+                zlogger.info(girl["title"], " ==> ", tb[girl["title"]])
+                girl["title"] = tb[girl["title"]]
+
+
+_INIT_DATA_ = InitData()
 
 class ZjsnError(Exception):
     """docstring for ZjsnError"""
@@ -62,7 +136,10 @@ class ZjsnApi(object):
             return 'http://loginand.jp.warshipgirls.com/index/passportLogin'
     
     def get_init(self):
-        return "http://login.jr.moefantasy.com/index/getInitConfigs/"
+        if self.location == self.CHINA:
+            return "http://login.jr.moefantasy.com/index/getInitConfigs/"
+        elif self.location == self.JAPAN:
+            return 'http://loginand.jp.warshipgirls.com/index/getInitConfigs/'
 
     def login(self, user_id):
         return self.host + "/index/login/{}".format(user_id)
@@ -318,8 +395,8 @@ class ZjsnShip(dict):
 
     @property
     def name(self):
-        if self.cid in SHIP_CARD:
-            return SHIP_CARD[self.cid]['title'].replace(' ', '')
+        if self.cid in _INIT_DATA_.ship_card:
+            return _INIT_DATA_.ship_card[self.cid]['title'].replace(' ', '')
         else:
             return "unknown ship {}".format(self.cid)
 
@@ -332,8 +409,8 @@ class ZjsnShip(dict):
 
     @property
     def type(self):
-        if self.cid in SHIP_CARD:
-            type_trans_code = ZjsnShip.type_id_list.index(int(SHIP_CARD[self.cid]['type']))
+        if self.cid in _INIT_DATA_.ship_card:
+            type_trans_code = ZjsnShip.type_id_list.index(int(_INIT_DATA_.ship_card[self.cid]['type']))
             return ZjsnShip.type_list[type_trans_code]
         else:
             return 0
@@ -360,21 +437,21 @@ class ZjsnShip(dict):
     @property
     def evoLevel(self):
         if self.evolved:
-            return int(SHIP_CARD[int(self.card['evoCid'])]['evoLevel'])
+            return int(_INIT_DATA_.ship_card[int(self.card['evoCid'])]['evoLevel'])
         else:
             return int(self.card['evoLevel'])
 
     @property
     def card(self):
-        if self.cid in SHIP_CARD:
-            return SHIP_CARD[self.cid]
+        if self.cid in _INIT_DATA_.ship_card:
+            return _INIT_DATA_.ship_card[self.cid]
         else:
             return 0
 
     @property
     def star(self):
-        if self.cid in SHIP_CARD:
-            return int(SHIP_CARD[self.cid]['star'])
+        if self.cid in _INIT_DATA_.ship_card:
+            return int(_INIT_DATA_.ship_card[self.cid]['star'])
         else:
             return 99
 
@@ -402,7 +479,7 @@ class ZjsnShip(dict):
     def strength_exp(self):
         current_attribute = list(collections.OrderedDict(sorted(self['strengthenAttribute'].items())).values())
         max_attribute = list(
-            collections.OrderedDict(sorted(SHIP_CARD[self.cid]['strengthenTop'].items())).values())
+            collections.OrderedDict(sorted(_INIT_DATA_.ship_card[self.cid]['strengthenTop'].items())).values())
         tmp = [m - c for m, c in zip(max_attribute, current_attribute)]
         result = [tmp[1], tmp[3], tmp[2], tmp[0]]
         return result
@@ -430,15 +507,15 @@ class ZjsnShip(dict):
 
     @property
     def can_evo(self):
-        return int(SHIP_CARD[self.cid]['canEvo'])
+        return int(_INIT_DATA_.ship_card[self.cid]['canEvo'])
 
     @property
     def evoCid(self):
-        return SHIP_CARD[self.cid]['evoCid']
+        return _INIT_DATA_.ship_card[self.cid]['evoCid']
 
     @property
     def evolved(self):
-        return int(SHIP_CARD[self.cid]['evoClass'])
+        return int(_INIT_DATA_.ship_card[self.cid]['evoClass'])
 
     @property
     def fleet_id(self):
@@ -453,7 +530,7 @@ class ZjsnShip(dict):
         if self["battlePropsMax"]["hp"] == self["battleProps"]["hp"]:
             return 0
 
-        r = SHIP_CARD[self.cid]['repairTime']
+        r = _INIT_DATA_.ship_card[self.cid]['repairTime']
         l = self.level
         d = self["battlePropsMax"]["hp"] - self["battleProps"]["hp"]
         if self.married:
@@ -659,7 +736,7 @@ class ZjsnEmulator(object):
                 error_count -= 1
                 return self.get(url, error_count, sleep_flag, method, **kwargs)
             else:
-                raise ZjsnError(ERROR_CODE[str(eid)], rj["eid"], self.last_request.url)
+                raise ZjsnError(_INIT_DATA_.error_code[str(eid)], rj["eid"], self.last_request.url)
         else:
             if "updateTaskVo" in rj:
                 for task in rj["updateTaskVo"]:
@@ -674,6 +751,9 @@ class ZjsnEmulator(object):
     def login(self):
         r0 = self.get(self.api.checkVer())
         self.version = distutils.version.LooseVersion(r0["version"]["newVersionId"])
+        if distutils.version.LooseVersion(r0["version"]["DataVersion"]) > _INIT_DATA_.version:
+            r_data = self.get(self.api.get_init())
+            _INIT_DATA_.update(r_data, japan=self.api.location == self.api.JAPAN)
         self.s = requests.Session()
         if self.version >= self.ENCODE_USERNAME_VERSION:
             username = base64.encodebytes(self.username.encode())
@@ -906,12 +986,13 @@ class ZjsnEmulator(object):
 
     def auto_strengthen(self):
         # cid_table = [ship.cid for ship in self.userShip if ship.level > 1]
+        u_ships = self.userShip.unique
         for ship in sorted(self.userShip, key=lambda x: (bool(x.evolved), int(x.level)), reverse=True):
             self.auto_skill(ship)
             conditions = (
                 ship.locked == 1,
                 not (ship.name in ['罗德尼', '纳尔逊', '大凤', '空想', '萤火虫'] and ship.level < ship.evoLevel + 10),
-                (not ship.can_evo and ship.level > 1) or ship.evolved == 1 or ship.type in ['潜艇', '炮潜'],  # 不能改造或者已经改造
+                (not ship.can_evo and ship in u_ships) or ship.evolved == 1 or ship.type in ['潜艇', '炮潜'],  # 不能改造或者已经改造
                 ship.fleet_id not in self.explore_fleets,  # 不在远征舰队中
                 any(ship.strength_exp),
             )
@@ -989,8 +1070,8 @@ class ZjsnEmulator(object):
         for i in self.equipment:
             if i['num'] > 0:
                 cid = int(i['equipmentCid'])
-                if cid in EQUIPMENT_CARD:
-                    if (EQUIPMENT_CARD[cid]['star'] < 3 and cid not in white_list) or cid in black_list:
+                if cid in _INIT_DATA_.equipment_card:
+                    if (_INIT_DATA_.equipment_card[cid]['star'] < 3 and cid not in white_list) or cid in black_list:
                         d = ('content=' + str('{{"{}":{}}}')).format(cid, i['num']).encode()
                         r = self.get(self.api.dismantleEquipment(), method='POST',
                                      headers={'Content-Type': 'application/x-www-form-urlencoded'}, data=d)
@@ -1084,7 +1165,7 @@ class ZjsnEmulator(object):
         self.equipmentDock = r['equipmentDockVo']
         # if r['equipmentCid'] in [i['equipmentCid']
         get_flag = False  # 是否增加了一个新装备
-        equipment_name = EQUIPMENT_CARD[int(r['equipmentCid'])]['title']
+        equipment_name = _INIT_DATA_.equipment_card[int(r['equipmentCid'])]['title']
         # todo 判断是否解锁了一件新装备
         for i in self.equipment:
             if r['equipmentCid'] == i['equipmentCid']:
@@ -1186,7 +1267,7 @@ class ZjsnEmulator(object):
 
     def go_out(self, map_code, ignore500=False):
         # try:
-        if self.drop500 or ignore500:
+        if self.drop500 and not ignore500:
             raise ZjsnError('500已满', eid=-215)
         if len(self.userShip) < self.userShip.shipNumTop:
             r = self.get(
@@ -1288,9 +1369,11 @@ class ZjsnEmulator(object):
         pass
 
     def unlocked_report(self):
-        base_ships = [SHIP_CARD[s_id]['title'] for s_id in (set(SHIP_CARD) - set(self.unlockShip))
+        base_ships = [_INIT_DATA_.ship_card[s_id]['title'] for s_id in
+                      (set(_INIT_DATA_.ship_card) - set(self.unlockShip))
                       if s_id < 11000000]
-        evo_ships = [SHIP_CARD[s_id]['title'] for s_id in (set(SHIP_CARD) - set(self.unlockShip))
+        evo_ships = [_INIT_DATA_.ship_card[s_id]['title'] for s_id in
+                     (set(_INIT_DATA_.ship_card) - set(self.unlockShip))
                      if 11000000 < s_id < 18000000]
         zlogger.info("unlocked base ships:\n{}".format('\n'.join(base_ships)))
         zlogger.info("unlocked evo ships:\n{}".format('\n'.join(evo_ships)))

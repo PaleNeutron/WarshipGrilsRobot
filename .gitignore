@@ -10,6 +10,8 @@ warship.json
 magumi.py
 dismantle.py
 shipCard.py
+init.txt
+init_japan.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
