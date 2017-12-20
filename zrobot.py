@@ -1011,7 +1011,7 @@ class Robot(object):
         parser.add_argument("--debug", help="enable debug model", action="store_true")
         args = parser.parse_args()
         self.DEBUG = args.debug
-        self.set_logger()        
+        self.set_logger(username, japan_server)
         self.ze = zemulator.ZjsnEmulator()
         self.ze.username = username
         self.ze.password = password
@@ -1064,12 +1064,16 @@ class Robot(object):
     def set_missions(self):
         pass
 
-    def set_logger(self):
+    def set_logger(self, username, is_japan):
+        if is_japan:
+            suffix = "_japan"
+        else:
+            suffix = ""
         if os.name == 'nt' or self.DEBUG:
             stream_handler = logging.StreamHandler()
         else:
             stream_handler = handlers.TimedRotatingFileHandler(
-                '{}.log'.format(self.ze.uid), when='midnight', backupCount=3, encoding='utf8')
+                '{}.log'.format(username + suffix), when='midnight', backupCount=3, encoding='utf8')
         log_formatter = logging.Formatter(
             '%(asctime)s: %(levelname)s: %(name)s: %(message)s')
         stream_handler.setFormatter(log_formatter)
