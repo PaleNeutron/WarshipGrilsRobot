@@ -737,19 +737,26 @@ class MissionEvent_E7(zrobot.Mission):
 
 class MissionEvent(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super().__init__('event', 9952, ze)
+        event_base = 9954
+        super().__init__('event', event_base + 6, ze)
         # [16523,229,1519,11872,115,43707]
         self.battle_fleet = []
 
     def set_first_nodes(self):
         # temp = zrobot.Node.DEFAULT_SLEEP_TIME
         # zrobot.Node.DEFAULT_SLEEP_TIME = 20
-        self.node_a = self.node_chain([zrobot.Node('a'),
-                                       zrobot.Node('c'),
-                                       zrobot.Node('e', node_type='resource'),
-                                       zrobot.Node('h'),
-                                       zrobot.Node('j', night_flag=4, formation=1),
-                                       ])
+        # self.ze.working_fleet = 3
+        # self.node_a = self.node_chain([zrobot.Node('a'),
+        #                             #    zrobot.Node('d', node_type='resource'),
+        #                                zrobot.Node('f'),
+        #                                zrobot.Node('m', node_type=zrobot.NODE_SKIP),
+        #                                zrobot.Node('o', night_flag=1, formation=4),
+        #                                ])
+        self.node_k = zrobot.Node('k').add_next(zrobot.Node('n', night_flag=1, formation=4))
+        self.node_h = zrobot.Node('h').add_next(self.node_k)
+        self.node_g = zrobot.Node('g').add_next(self.node_k)
+        self.node_a = zrobot.Node('b').add_next(self.node_g)
+        self.node_a.add_next(self.node_h)
         # self.node_a.skip_rate_limit = 0.8
         # zrobot.Node.DEFAULT_SLEEP_TIME = temp
         
@@ -820,7 +827,7 @@ class ChinaRobot(zrobot.Robot):
 
 if __name__ == '__main__':
     r = ChinaRobot()
-    # r.missions['event_ex'].switch()
+    # r.missions['event'].switch()
     # r.missions['6-4'].switch()
     # r.missions['pants'].switch()
     # r.missions['5-5C'].enable = True

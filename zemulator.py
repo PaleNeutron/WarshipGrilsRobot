@@ -98,7 +98,7 @@ class InitData(object):
         for girl in self.__data__["shipCard"]:
             new_girl[girl["cid"]] = girl
             if girl["title"] in tb:
-                zlogger.info(girl["title"], " ==> ", tb[girl["title"]])
+                zlogger.info(girl["title"] + " ==> " + tb[girl["title"]])
                 girl["title"] = tb[girl["title"]]
 
 

@@ -260,7 +260,7 @@ class Mission(object):
         else:
             if self.ze.drop500:
                 return False
-            self.ze.working_fleet = 2
+            # self.ze.working_fleet = 2
             return True
 
     def _prepare(self):
@@ -360,6 +360,7 @@ class Explore(Mission):
     def set_first_nodes(self):
         pass
 
+    # DeprecationWarning
     def _prepare(self):
         self.init_table()
         exploring_fleet = [e['fleetId'] for e in self.ze.pveExplore]
@@ -374,11 +375,12 @@ class Explore(Mission):
                     self.ze.explore(explore_fleet, table[1])
 
     def check_explore(self):
+        self.ze.get_all_explore()        
         exploring_fleet = [e['fleetId'] for e in self.ze.pveExplore]
-        self.ze.get_all_explore()
+        running_explore = [e['exploreId'] for e in self.ze.pveExplore]
         for i, table in enumerate(self.explore_table):
             fleet_id = i + 5
-            if str(fleet_id) not in exploring_fleet and 0 not in table[0]:
+            if str(fleet_id) not in exploring_fleet and 0 not in table[0] and table[1] not in running_explore:
                 if self.ze.fleet_ships_id(fleet_id) != table[0]:
                     self.ze.instant_fleet(fleet_id, table[0])
                 self.ze.supplyFleet(fleet_id)
