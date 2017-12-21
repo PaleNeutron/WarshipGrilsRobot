@@ -745,18 +745,14 @@ class MissionEvent(zrobot.Mission):
     def set_first_nodes(self):
         # temp = zrobot.Node.DEFAULT_SLEEP_TIME
         # zrobot.Node.DEFAULT_SLEEP_TIME = 20
-        # self.ze.working_fleet = 3
-        # self.node_a = self.node_chain([zrobot.Node('a'),
-        #                             #    zrobot.Node('d', node_type='resource'),
-        #                                zrobot.Node('f'),
-        #                                zrobot.Node('m', node_type=zrobot.NODE_SKIP),
-        #                                zrobot.Node('o', night_flag=1, formation=4),
-        #                                ])
-        self.node_k = zrobot.Node('k').add_next(zrobot.Node('n', night_flag=1, formation=4))
-        self.node_h = zrobot.Node('h').add_next(self.node_k)
-        self.node_g = zrobot.Node('g').add_next(self.node_k)
-        self.node_a = zrobot.Node('b').add_next(self.node_g)
-        self.node_a.add_next(self.node_h)
+        self.ze.working_fleet = 3
+        self.node_a = self.node_chain([zrobot.Node('b'),
+                                       zrobot.Node('d'),
+                                       zrobot.Node('k', node_type='resource'),
+                                    #    zrobot.Node('o', node_type=zrobot.NODE_SKIP),
+                                       zrobot.Node('p'),
+                                       zrobot.Node('r', night_flag=1, formation=4),
+                                       ])
         # self.node_a.skip_rate_limit = 0.8
         # zrobot.Node.DEFAULT_SLEEP_TIME = temp
         
@@ -770,6 +766,7 @@ class MissionEvent(zrobot.Mission):
         # fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet]
         if not self.battle_fleet:
             self.battle_fleet = self.ze.working_ships_id
+            zrobot._logger.debug("current battle ships are : {}".format([s.name for s in self.ze.working_ships]))
         fleet = self.battle_fleet
         fleet_group = [([i], 0.85, True) for i in fleet]
         self.ze.ship_groups = fleet_group
