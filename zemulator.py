@@ -34,46 +34,53 @@ class InitData(object):
     """init data for zjsn"""
 
     def __init__(self):
-        self.__data__ = None
+        self._data = None
+        self._data_j = None
         self.ship_card = None
         self.error_code = None
         self.equipment_card = None
         self.version = distutils.version.LooseVersion("0")
+        self.version_japan = distutils.version.LooseVersion("0")
         self.init_file_path = os.path.dirname(os.path.realpath(__file__)) + os.sep + "init.txt"
         self.init_file_path_japan = os.path.dirname(os.path.realpath(__file__)) + os.sep + "init_japan.txt"
 
         self.load()
 
     def load(self):
+        """load init.txt and parse the json format data"""
         if os.path.exists(self.init_file_path):
             # get china server data
-            with open(self.init_file_path, encoding="utf8") as f:
-                self.__data__ = json.load(f)
-            self.ship_card = {int(i['cid']): i for i in self.__data__["shipCard"]}
-            self.error_code = self.__data__['errorCode']
-            self.equipment_card = {int(i['cid']): i for i in self.__data__["shipEquipmnt"]}
-            self.version = distutils.version.LooseVersion(self.__data__["DataVersion"])
-            # get japan server data
-            if os.path.exists(self.init_file_path_japan):
-                with open(self.init_file_path_japan, encoding="utf8") as f:
-                    self.__data__ = json.load(f)
-
-                self.ship_card.update(
-                    {int(i['cid']): i for i in self.__data__["shipCard"] if int(i['cid']) not in self.ship_card})
-                self.equipment_card.update({int(i['cid']): i for i in self.__data__["shipEquipmnt"] if
-                                            int(i['cid']) not in self.equipment_card})
+            try:
+                with open(self.init_file_path, encoding="utf8") as f:
+                    self._data = json.load(f)
+                self.ship_card = {int(i['cid']): i for i in self._data["shipCard"]}
+                self.error_code = self._data['errorCode']
+                self.equipment_card = {int(i['cid']): i for i in self._data["shipEquipmnt"]}
+                self.version = distutils.version.LooseVersion(self._data["DataVersion"])
+                # get japan server data
+                if os.path.exists(self.init_file_path_japan):
+                    with open(self.init_file_path_japan, encoding="utf8") as f:
+                        self._data_j = json.load(f)
+            except json.decoder.JSONDecodeError:
+                self.version = distutils.version.LooseVersion("000")
+                return
+            self.version = distutils.version.LooseVersion(self._data_j["DataVersion"])
+            self.ship_card.update(
+                {int(i['cid']): i for i in self._data_j["shipCard"] if int(i['cid']) not in self.ship_card})
+            self.equipment_card.update({int(i['cid']): i for i in self._data_j["shipEquipmnt"] if
+                                        int(i['cid']) not in self.equipment_card})
         else:
             self.version = distutils.version.LooseVersion("000")
 
     def update(self, data, japan=False):
-        self.__data__ = data
+        self._data = data
         if not japan:
             self.rename()
             with open(self.init_file_path, "w", encoding="utf8") as f:
-                json.dump(self.__data__, f)
+                json.dump(self._data, f)
         else:
             with open(self.init_file_path_japan, "w", encoding="utf8") as f:
-                json.dump(self.__data__, f)
+                json.dump(self._data, f)
         self.load()
 
     def get_trans_table(self):
@@ -95,7 +102,7 @@ class InitData(object):
     def rename(self):
         tb = self.get_trans_table()
         new_girl = {}
-        for girl in self.__data__["shipCard"]:
+        for girl in self._data["shipCard"]:
             new_girl[girl["cid"]] = girl
             if girl["title"] in tb:
                 zlogger.info(girl["title"] + " ==> " + tb[girl["title"]])
@@ -750,10 +757,15 @@ class ZjsnEmulator(object):
 
     def login(self):
         r0 = self.get(self.api.checkVer())
+        # get client version
         self.version = distutils.version.LooseVersion(r0["version"]["newVersionId"])
-        if distutils.version.LooseVersion(r0["version"]["DataVersion"]) > _INIT_DATA_.version:
-            r_data = self.get(self.api.get_init())
-            _INIT_DATA_.update(r_data, japan=self.api.location == self.api.JAPAN)
+        # check data version
+        if self.api.location == self.api.JAPAN:
+            i_v = _INIT_DATA_.version_japan
+        else:
+            i_v = _INIT_DATA_.version
+        if distutils.version.LooseVersion(r0["ResVersion"]) > i_v:
+            self.update_data()
         self.s = requests.Session()
         if self.version >= self.ENCODE_USERNAME_VERSION:
             username = base64.encodebytes(self.username.encode())
@@ -816,6 +828,9 @@ class ZjsnEmulator(object):
         zlogger.debug("login finished")
         return True
 
+    def update_data():
+        r_data = self.get(self.api.get_init())
+        _INIT_DATA_.update(r_data, japan=self.api.location == self.api.JAPAN)
     def go_home(self):
         self.relogin()
         r_sl = self.get(self.url_server + "/active/getUserData/", sleep_flag=False)

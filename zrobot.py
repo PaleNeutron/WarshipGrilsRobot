@@ -14,7 +14,7 @@ from typing import List
 
 from transitions import Machine
 from transitions import State
-from transitions import logger as transitions_logger
+# from transitions import logger as transitions_logger
 
 import zemulator
 
@@ -1081,8 +1081,8 @@ class Robot(object):
         _logger.addHandler(stream_handler)
         _logger.setLevel(logging.DEBUG)
 
-        transitions_logger.addHandler(stream_handler)
-        transitions_logger.setLevel(logging.INFO)
+        logging.getLogger('transitions').addHandler(stream_handler)
+        logging.getLogger('transitions').setLevel(logging.INFO)
 
     def working_loop(self):
         while self.command != 'stop':
