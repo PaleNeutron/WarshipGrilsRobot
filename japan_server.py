@@ -331,25 +331,25 @@ class Mission_Event(zrobot.Mission):
 
 class MissionEventCollection(zrobot.Mission):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super().__init__('mission event collection', 9925, ze)
+        super().__init__('event_ex', 9936, ze)
         self.battle_fleet = []
         self.battle_fleet_name = []
-        self.battle_fleet_name = ['胡德', '提尔比茨', '声望', '大凤', '列克星敦', '萨拉托加']
-        self.enable = True
+        self.battle_fleet_name = ['胡德', '声望', '罗德尼', '前卫', '拉菲', '信赖']
+        # self.enable = True
+        self.target_ship = '约翰斯顿'
 
     def set_first_nodes(self):
-        zrobot.Node.DEFAULT_SLEEP_TIME = 15
-        self.node_a = zrobot.Node('b')
-        self.node__boss = self.node_chain([
-            zrobot.Node('l', node_type=zrobot.NODE_RESOURCE),
-            zrobot.Node('o'),
+        # zrobot.Node.DEFAULT_SLEEP_TIME = 15
+        self.node_a = self.node_chain([
+            zrobot.Node("b"),
+            zrobot.Node("e", node_type=zrobot.NODE_RESOURCE),
+            zrobot.Node("i", node_type=zrobot.NODE_RESOURCE),
+            zrobot.Node("j", node_type=zrobot.NODE_RESOURCE),
+            zrobot.Node("p"),
+            zrobot.Node("q", formation=4, night_flag=1),
         ])
-        self.node_e = zrobot.Node('e').add_next(self.node__boss)
-        self.node_f = zrobot.Node('f').add_next(self.node__boss)
-        self.node_a.add_next(self.node_e)
-        self.node_a.add_next(self.node_f)
 
-        zrobot.Node.DEFAULT_SLEEP_TIME = 30
+        # zrobot.Node.DEFAULT_SLEEP_TIME = 30
 
         return self.node_a
 
@@ -357,7 +357,7 @@ class MissionEventCollection(zrobot.Mission):
         # if self.boss_hp == 0:
         #     zrobot._logger.debug("boss dead, over")
         #     return False
-        target_ship = '齐柏林'
+        target_ship = self.target_ship
         if self.ze.userShip.name(target_ship, 0):
             zrobot._logger.debug("got {}, over".format(target_ship))
             return False
