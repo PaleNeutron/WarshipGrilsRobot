@@ -363,6 +363,7 @@ class MissionPants(zrobot.Mission):
         zrobot._logger.debug("cv_ships:{}".format(
             [(s.name, s.level) for s in ships]))
 
+        self.ze.ship_groups = [()]*6
         for i in range(0, 4):
             self.ze.ship_groups[i] = (dd_ships, 1, False)
         for i in range(2, 4):
@@ -745,7 +746,7 @@ class MissionEvent(zrobot.Mission):
     def set_first_nodes(self):
         # temp = zrobot.Node.DEFAULT_SLEEP_TIME
         # zrobot.Node.DEFAULT_SLEEP_TIME = 20
-        self.ze.working_fleet = 3
+        # self.ze.working_fleet = 3
         self.node_a = self.node_chain([zrobot.Node('b'),
                                        zrobot.Node('d'),
                                        zrobot.Node('k', node_type='resource'),
@@ -803,6 +804,7 @@ class ChinaRobot(zrobot.Robot):
         challenge.friends = [2593850, 74851, 2827412]
 
         self.add_mission(challenge)
+        self.add_mission(zrobot.TacticTrain(self.ze))
         self.add_mission(Mission_6_3(self.ze))
         self.add_mission(MissionEvent_ex(self.ze))
         # self.add_mission(Mission_6_4_fish(self.ze))
@@ -828,6 +830,7 @@ if __name__ == '__main__':
     # r.missions['6-4'].switch()
     # r.missions['pants'].switch()
     # r.missions['5-5C'].enable = True
-    # r.missions['kill_fish'].switch()
-    # r.kill_fish.boss_ships = '长春'
+    r.missions['kill_fish'].switch()
+    r.kill_fish.boss_ships = '密苏里'
+    # r.missions['TacticTrain'].switch()
     t = r.start()

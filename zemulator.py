@@ -64,11 +64,12 @@ class InitData(object):
             except json.decoder.JSONDecodeError:
                 self.version = distutils.version.LooseVersion("000")
                 return
-            self.version = distutils.version.LooseVersion(self._data_j["DataVersion"])
-            self.ship_card.update(
-                {int(i['cid']): i for i in self._data_j["shipCard"] if int(i['cid']) not in self.ship_card})
-            self.equipment_card.update({int(i['cid']): i for i in self._data_j["shipEquipmnt"] if
-                                        int(i['cid']) not in self.equipment_card})
+            self.version = distutils.version.LooseVersion(self._data["DataVersion"])
+            if self._data_j:
+                self.ship_card.update(
+                    {int(i['cid']): i for i in self._data_j["shipCard"] if int(i['cid']) not in self.ship_card})
+                self.equipment_card.update({int(i['cid']): i for i in self._data_j["shipEquipmnt"] if
+                                            int(i['cid']) not in self.equipment_card})
         else:
             self.version = distutils.version.LooseVersion("000")
 
@@ -250,6 +251,8 @@ class ZjsnApi(object):
     def rename(self, ship_id, new_name):
         return self.host + '/boat/renameShip/{ship_id}/{new_name}/'.format(ship_id=ship_id, new_name=new_name)
 
+    def getTactics(self):
+        return self.host + '/live/getTactics'
 
 class ZjsnUserShip(dict):
     """docstring for ZjsnUserShip"""
@@ -764,7 +767,7 @@ class ZjsnEmulator(object):
             i_v = _INIT_DATA_.version_japan
         else:
             i_v = _INIT_DATA_.version
-        if distutils.version.LooseVersion(r0["ResVersion"]) > i_v:
+        if distutils.version.LooseVersion(r0["version"]['DataVersion']) > i_v:
             self.update_data()
         self.s = requests.Session()
         if self.version >= self.ENCODE_USERNAME_VERSION:
@@ -828,7 +831,7 @@ class ZjsnEmulator(object):
         zlogger.debug("login finished")
         return True
 
-    def update_data():
+    def update_data(self):
         r_data = self.get(self.api.get_init())
         _INIT_DATA_.update(r_data, japan=self.api.location == self.api.JAPAN)
     def go_home(self):

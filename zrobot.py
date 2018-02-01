@@ -71,6 +71,7 @@ class Node(object):
         self.additional_spy_filter = additional_spy_filter
 
         self.boss_hp = -1
+        self.ze = None
 
     def add_next(self, next_nodes):
         if isinstance(next_nodes, collections.Iterable):
@@ -117,7 +118,8 @@ class Node(object):
             return False
 
     def deal(self, mission: 'Mission'):
-        ze = mission.ze
+        self.ze = mission.ze
+        ze = self.ze
         _logger.info('进入 {} 点'.format(self._node_name(ze.node)))
         if self.node_type == 'resource':
             if ze.working_ships[0].should_be_repair(2):
@@ -163,17 +165,8 @@ class Node(object):
                     else:
                         night_flag = 0
 
-                    self.battle_result = ze.getWarResult(night_flag)
-                    if "bossHp" in self.battle_result:
-                        self.boss_hp = int(self.battle_result['bossHp'])
-                    elif 'bossHpLeft' in self.battle_result:
-                        self.boss_hp = int(self.battle_result['bossHpLeft'])
-                    battle_report = self.battle_result["warResult"]
-                    result = zip_longest([ship['hp'] for ship in battle_report["selfShipResults"]],
-                                 [i['hp'] for i in battle_report['enemyShipResults']])
-                    _logger.debug(
-                        '\n' + "\n".join(["{}     {}".format(a, b) for a, b in result]))
-
+                    # get War result
+                    self.get_result(night_flag)
                     # if 'newShipVO' in self.battle_result:
                     #     new_ship = zemulator.ZjsnShip(
                     #         self.battle_result['newShipVO'][0])
@@ -193,6 +186,18 @@ class Node(object):
             return 0
         else:
             return None
+
+    def get_result(self, night_flag):
+        self.battle_result = self.ze.getWarResult(night_flag)
+        if "bossHp" in self.battle_result:
+            self.boss_hp = int(self.battle_result['bossHp'])
+        elif 'bossHpLeft' in self.battle_result:
+            self.boss_hp = int(self.battle_result['bossHpLeft'])
+        battle_report = self.battle_result["warResult"]
+        result = zip_longest([ship['hp'] for ship in battle_report["selfShipResults"]],
+                        [i['hp'] for i in battle_report['enemyShipResults']])
+        _logger.debug(
+            '\n' + "\n".join(["{}     {}".format(a, b) for a, b in result]))
 
 
 class Mission(object):
@@ -741,8 +746,8 @@ class Dock(State):
 
 
 class Mission_1_1(Mission):
-    def __init__(self, ze: zemulator.ZjsnEmulator):
-        super(Mission_1_1, self).__init__('1-1A', 101, ze)
+    def __init__(self, ze: zemulator.ZjsnEmulator, mission_name = '1-1A'):
+        super(Mission_1_1, self).__init__(mission_name, 101, ze)
 
     def set_first_nodes(self):
         self.node_a = Node('A')
@@ -767,10 +772,30 @@ class Mission_1_1(Mission):
         return self.ze.change_ships()
 
 
+class TacticTrain(Mission):
+    """docstring for Campaign"""
+    def __init__(self, ze):
+        super().__init__('TacticTrain', 101, ze)
+
+    def set_first_nodes(self):
+        self.node_a = Node('A')
+        self.node_a.get_result = lambda x: True
+        return self.node_a
+
+    def prepare(self):
+        # 所有练后备蛋的船
+        t_r = self.ze.get(self.ze.api.getTactics())
+        tt_ships = [int(i['boat_id']) for i in t_r['tactics'] if i['tactics_id']==10001774]
+        ships = [self.ze.userShip[ship_id] for ship_id in tt_ships]
+        _logger.debug("tt_ships:{}".format([(s.name, s.level) for s in ships]))
+
+        self.ze.ship_groups= [(tt_ships, 2, True)] * len(tt_ships)
+
+        return bool(self.ze.change_ships() and self.ze.get(self.ze.api.supplyBoats(tt_ships)))
+
 class Mission_1_5(Mission_1_1):
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super(Mission_1_5, self).__init__(ze)
-        self.mission_name = '1-5'
+        super(Mission_1_5, self).__init__(ze, mission_name = '1-5')
         self.mission_code = 105
 
     def prepare(self):
