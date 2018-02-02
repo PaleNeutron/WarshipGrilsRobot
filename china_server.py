@@ -830,7 +830,7 @@ if __name__ == '__main__':
     # r.missions['6-4'].switch()
     # r.missions['pants'].switch()
     # r.missions['5-5C'].enable = True
-    r.missions['kill_fish'].switch()
-    r.kill_fish.boss_ships = '密苏里'
+    # r.missions['kill_fish'].switch()
+    # r.kill_fish.boss_ships = '密苏里'
     # r.missions['TacticTrain'].switch()
     t = r.start()

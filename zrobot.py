@@ -785,7 +785,7 @@ class TacticTrain(Mission):
     def prepare(self):
         # 所有练后备蛋的船
         t_r = self.ze.get(self.ze.api.getTactics())
-        tt_ships = [int(i['boat_id']) for i in t_r['tactics'] if i['tactics_id']==10001774]
+        tt_ships = [int(i['boat_id']) for i in t_r['tactics'] if i['tactics_id']==10001774 and i['status']==1]
         ships = [self.ze.userShip[ship_id] for ship_id in tt_ships]
         _logger.debug("tt_ships:{}".format([(s.name, s.level) for s in ships]))
 
