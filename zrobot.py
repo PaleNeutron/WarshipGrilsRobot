@@ -793,6 +793,62 @@ class TacticTrain(Mission):
 
         return bool(self.ze.change_ships() and self.ze.get(self.ze.api.supplyBoats(tt_ships)))
 
+
+class TacticTrain_Campaign(Mission):
+    """docstring for Campaign"""
+
+    def __init__(self, ze: zemulator.ZjsnEmulator, target_mission=201, formation_code=None):
+        super().__init__('TacticTrain_Campaign', target_mission, ze)
+        self.ze = ze
+        self.ships_id = []
+        self.formation_code = formation_code
+        self.target_mission = target_mission
+
+    def prepare(self):
+        if self.ze.campaign_num > 0:
+            if self.target_mission:
+                self.mission_code = self.target_mission
+            else:
+                mc = ((self.ze.campaign_num + 1)  // 2)
+                self.mission_code = min(mc, 4) * 100 + 2
+            rsp = self.ze.get(self.ze.api.campaignGetFleet(self.mission_code))
+            self.ships_id = [int(i) for i in rsp['campaignLevelFleet'] if i != 0]
+            broken_ships = [s.id for s in self.ze.userShip.select(self.ships_id) if s.should_be_repair(2)]
+            if not self.ze.repair_ships_instant(broken_ships):
+                return False
+
+            try:
+                self.ze.get(self.ze.api.supplyBoats(self.ships_id))
+                return True
+            except zemulator.ZjsnError as zerror:
+                _logger.warning(zerror)
+                return False
+
+    def set_first_nodes(self):
+        pass
+
+    def _prepare(self):
+        if self.enable:
+            self.available = self.prepare()
+
+    def start(self):
+
+        if not self.formation_code:
+            if self.mission_code == 302:
+                self.formation_code = 5
+            else:
+                self.formation_code = 2
+
+        _logger.info('start campaign {}, remain {} times'.format(self.mission_code, self.ze.campaign_num))
+        self.ze.get(self.ze.api.campaignSpy(self.mission_code))
+        result_before_night = self.ze.get(self.ze.api.campaignDeal(self.mission_code, self.formation_code))
+        self.ze.userShip.update(result_before_night["shipVO"])
+        time.sleep(30)
+        self.success = True
+        self.success_count += 1
+        self.summery()
+
+
 class Mission_1_5(Mission_1_1):
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super(Mission_1_5, self).__init__(ze, mission_name = '1-5')

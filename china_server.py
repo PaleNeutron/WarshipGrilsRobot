@@ -804,7 +804,7 @@ class ChinaRobot(zrobot.Robot):
         challenge.friends = [2593850, 74851, 2827412]
 
         self.add_mission(challenge)
-        self.add_mission(zrobot.TacticTrain(self.ze))
+        self.add_mission(zrobot.TacticTrain_Campaign(self.ze))
         self.add_mission(Mission_6_3(self.ze))
         self.add_mission(MissionEvent_ex(self.ze))
         # self.add_mission(Mission_6_4_fish(self.ze))
@@ -831,6 +831,6 @@ if __name__ == '__main__':
     # r.missions['pants'].switch()
     # r.missions['5-5C'].enable = True
     # r.missions['kill_fish'].switch()
-    # r.kill_fish.boss_ships = '密苏里'
-    # r.missions['TacticTrain'].switch()
+    # r.kill_fish.boss_ships = '无比'
+    # r.missions['TacticTrain_Campaign'].switch()
     t = r.start()

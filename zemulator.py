@@ -283,7 +283,7 @@ class ZjsnUserShip(dict):
     def unique(self):
         ships = []
         ships_evoCid = []
-        for ship in sorted(self, key=lambda x: (x.can_evo or x.evolved, x.level), reverse=True):
+        for ship in sorted(self, key=lambda x: (x.can_evo or x.evolved, x.level, x.locked), reverse=True):
             if ship.evoCid not in ships_evoCid:
                 ships_evoCid.append(ship.evoCid)
                 ships.append(ship)
@@ -337,13 +337,16 @@ class ZjsnUserShip(dict):
         """查找船名，返回船对象，不必全称"""
         if type(ship_name) == int:
             return self[ship_name]
-        for ship in sorted(self, key=lambda x: x["level"], reverse=True):
+        for ship in self.unique:
             if ship_name in ship.name:
                 return ship
         if default == "raise":
             raise ZjsnError("no ship called {}".format(ship_name))
         else:
             return default
+
+    def select(self, ships_id) -> 'List[ZjsnShip]':
+        return [self[i] for i in ships_id]
 
 
 class ZjsnShip(dict):
@@ -1025,7 +1028,7 @@ class ZjsnEmulator(object):
         ships_strengthen = []
         ship_types = []
         # 分别是火力，装甲，鱼雷，对空
-        food_type = [['重巡', '战巡'],
+        food_type = [['重巡', '战巡', '战列'],
                      ['驱逐'],
                      ['驱逐'],
                      ['轻巡']]
@@ -1039,8 +1042,9 @@ class ZjsnEmulator(object):
             return -1  # 没必要强化
 
         for ship in self.userShip:
-            conditions = (not ship.protected(),
-                          ship.type in ship_types)
+            conditions = [not ship.protected(),
+                          ship.type != '战列' or ship.star < 4,
+                          ship.type in ship_types]
             if all(conditions):
                 ships_strengthen.append(ship.id)
         if len(ships_strengthen) > 0:
@@ -1251,7 +1255,7 @@ class ZjsnEmulator(object):
                 self.repair(ships.pop(), dock_index, instant)
 
     def repair_instant(self, broken_level=1):
-        """对第一舰队用快修修理"""
+        """对工作舰队用快修修理"""
         broken_ships = []
         for ship_id in self.working_ships_id:
             if self.userShip[ship_id].is_broken(broken_level):
@@ -1275,6 +1279,21 @@ class ZjsnEmulator(object):
             self.userShip.update(r["shipVOs"])
             if "repairDockVo" in r:
                 self.repairDock = r["repairDockVo"]
+
+    def repair_ships_instant(self, ships_id):
+        if not ships_id:
+            return True
+        if not all([self.userShip[i].status in [0, 2] for i in ships_id]):
+            return False
+        broken_ships = self.userShip.select(ships_id)
+        broken_ships_id = [s.id for s in broken_ships]
+        broken_ships_name = [s.name for s in broken_ships]
+        r = self.get(self.api.instantRepairShips(broken_ships_id))
+        zlogger.debug("instant repair {}".format(broken_ships_name))
+        self.userShip.update(r["shipVOs"])
+        if "repairDockVo" in r:
+            self.repairDock = r["repairDockVo"]
+        return r
 
     def repair_complete(self, ship_id, dock_id):
         r = self.get(self.api.repairComplete(ship_id, dock_id + 1))
