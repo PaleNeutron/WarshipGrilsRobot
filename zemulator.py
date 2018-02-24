@@ -346,7 +346,7 @@ class ZjsnUserShip(dict):
             return default
 
     def select(self, ships_id) -> 'List[ZjsnShip]':
-        return [self[i] for i in ships_id]
+        return [self[i] for i in ships_id if i != 0]
 
 
 class ZjsnShip(dict):

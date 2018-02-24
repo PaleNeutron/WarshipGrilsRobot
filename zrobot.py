@@ -786,7 +786,9 @@ class TacticTrain(Mission):
         # 所有练后备蛋的船
         t_r = self.ze.get(self.ze.api.getTactics())
         tt_ships = [int(i['boat_id']) for i in t_r['tactics'] if i['tactics_id']==10001774 and i['status']==1]
-        ships = [self.ze.userShip[ship_id] for ship_id in tt_ships]
+        if not tt_ships:
+            return False
+        ships = self.ze.userShip.select(tt_ships)
         _logger.debug("tt_ships:{}".format([(s.name, s.level) for s in ships]))
 
         self.ze.ship_groups= [(tt_ships, 2, True)] * len(tt_ships)
@@ -806,19 +808,34 @@ class TacticTrain_Campaign(Mission):
 
     def prepare(self):
         if self.ze.campaign_num > 0:
+            t_r = self.ze.get(self.ze.api.getTactics())
+            tt_ships = [[int(i['boat_id']), i['level'], i['exp']] for i in t_r['tactics'] if i['tactics_id']==10000974 and i['status']==1]
+            if not tt_ships:
+                return False
+            self.ships_id = list(list(zip(*tt_ships))[0])
+            ships_count = len(self.ships_id)
+            if ships_count > 6:
+                self.ships_id = self.ships_id[:6]
+            elif ships_count < 6:
+                self.ships_id.extend([0]*(6-ships_count))
+            _logger.debug("tt_ships:{}".format([(self.ze.userShip[s].name, l, e) for s,l,e in tt_ships]))
             if self.target_mission:
                 self.mission_code = self.target_mission
             else:
                 mc = ((self.ze.campaign_num + 1)  // 2)
                 self.mission_code = min(mc, 4) * 100 + 2
             rsp = self.ze.get(self.ze.api.campaignGetFleet(self.mission_code))
-            self.ships_id = [int(i) for i in rsp['campaignLevelFleet'] if i != 0]
+            cur_ships_id = [int(i) for i in rsp['campaignLevelFleet']]
+            cur_ships_id.extend([0]*(6-len(cur_ships_id)))
+            for i in range(6):                
+                if cur_ships_id[i] != self.ships_id[i]:
+                    self.ze.get(self.ze.api.campaignChangeFleet(self.mission_code, self.ships_id[i], i))
             broken_ships = [s.id for s in self.ze.userShip.select(self.ships_id) if s.should_be_repair(2)]
             if not self.ze.repair_ships_instant(broken_ships):
                 return False
 
             try:
-                self.ze.get(self.ze.api.supplyBoats(self.ships_id))
+                self.ze.get(self.ze.api.supplyBoats([i for i in self.ships_id if i != 0]))
                 return True
             except zemulator.ZjsnError as zerror:
                 _logger.warning(zerror)
@@ -848,6 +865,12 @@ class TacticTrain_Campaign(Mission):
         self.success_count += 1
         self.summery()
 
+    def summery(self):
+        if self.success:
+            _logger.info("{} {} 次, 共有{}船, result:{}".format(
+                self.mission_name, self.success_count,
+                len(self.ze.userShip),
+                [(i.name, i.level) for i in self.ze.userShip.select(self.ships_id)]))
 
 class Mission_1_5(Mission_1_1):
     def __init__(self, ze: zemulator.ZjsnEmulator):
@@ -939,9 +962,8 @@ class Mission_6_1_A(Mission):
                       additional_spy_filter=lambda x: x["enemyVO"]["enemyFleet"]["id"] == 60102003)
         return node_a
 
-    # def boss_ships(self):
-    #     # return [s.id for s in self.ze.userShip if s.type == '潜艇' and s.level < 70]
-    #     return []
+    def auto_boss_ships(self):
+        return [s.id for s in self.ze.userShip.unique if s.level < self.ze.max_level]
 
     def prepare(self):
         # 所有装了声呐的反潜船
@@ -977,12 +999,12 @@ class Mission_6_1_A(Mission):
         if boss_ships:
             self.ze.ship_groups[0] = (boss_ships, 2, True)
         else:
-            boss_ships = dd_ships
+            boss_ships = self.auto_boss_ships()
             self.ze.ship_groups[0] = (boss_ships, 1, False)
         # boss_ships = [self.ze.userShip.name('赤城').id]
         boss_ships.sort(key=lambda x: self.ze.userShip[x].level)
-        _logger.debug("boss_ships:{}".format(
-            [self.ze.userShip[ship_id].name for ship_id in boss_ships]))
+        _logger.debug("boss_ships:{:.60}".format(
+            str([self.ze.userShip[ship_id].name for ship_id in boss_ships])))
 
         for i in range(1, 5):
             self.ze.ship_groups[i] = (dd_ships, 1, False)
@@ -1145,25 +1167,32 @@ class Robot(object):
     def set_missions(self):
         pass
 
+    def go_out(self):
+        # dummy trigger method, implemented by transitions module
+        pass
+
     def set_logger(self, username, is_japan):
         if is_japan:
             suffix = "_japan"
         else:
             suffix = ""
-        if os.name == 'nt' or self.DEBUG:
-            stream_handler = logging.StreamHandler()
-        else:
-            stream_handler = handlers.TimedRotatingFileHandler(
-                '{}.log'.format(username + suffix), when='midnight', backupCount=3, encoding='utf8')
         log_formatter = logging.Formatter(
             '%(asctime)s: %(levelname)s: %(name)s: %(message)s')
-        stream_handler.setFormatter(log_formatter)
+        if os.name == 'nt' or self.DEBUG:
+            stream_handler = logging.StreamHandler()
+            stream_handler.setFormatter(log_formatter)
+            logging.getLogger('transitions').addHandler(stream_handler)
+            logging.getLogger('transitions').setLevel(logging.INFO)
+            _logger.addHandler(stream_handler)
 
-        _logger.addHandler(stream_handler)
+        file_handler = handlers.TimedRotatingFileHandler(
+            '{}.log'.format(username + suffix), when='midnight', backupCount=3, encoding='utf8')
+        file_handler.setFormatter(log_formatter)
+        _logger.addHandler(file_handler)
+        
         _logger.setLevel(logging.DEBUG)
 
-        logging.getLogger('transitions').addHandler(stream_handler)
-        logging.getLogger('transitions').setLevel(logging.INFO)
+
 
     def working_loop(self):
         while self.command != 'stop':

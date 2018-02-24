@@ -618,7 +618,7 @@ class Mission_6_4_fish(zrobot.Mission):
         target = 10023712
         if target in self.ze.unlockShip:
             zrobot._logger.info('有{}了'.format(
-                zemulator.SHIP_CARD[target]["title"]))
+                zemulator._INIT_DATA_.ship_card[target]["title"]))
             return False
         # 所有能开幕的水下船只
         ss_ships = []
@@ -805,6 +805,7 @@ class ChinaRobot(zrobot.Robot):
 
         self.add_mission(challenge)
         self.add_mission(zrobot.TacticTrain_Campaign(self.ze))
+        self.add_mission(zrobot.TacticTrain(self.ze))
         self.add_mission(Mission_6_3(self.ze))
         self.add_mission(MissionEvent_ex(self.ze))
         # self.add_mission(Mission_6_4_fish(self.ze))
@@ -832,5 +833,6 @@ if __name__ == '__main__':
     # r.missions['5-5C'].enable = True
     # r.missions['kill_fish'].switch()
     # r.kill_fish.boss_ships = '无比'
+    # r.missions['TacticTrain'].switch()
     # r.missions['TacticTrain_Campaign'].switch()
     t = r.start()
