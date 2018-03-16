@@ -743,7 +743,7 @@ class MissionEvent(zrobot.Mission):
         super().__init__('event', self.event_base + self.event_num, ze)
         # [16523,229,1519,11872,115,43707]
         self.battle_fleet = []
-        self.battle_fleet_name = ['赤城', '列克星敦', '长春']
+        self.battle_fleet_name = []
 
     def set_first_nodes(self):
         # temp = zrobot.Node.DEFAULT_SLEEP_TIME

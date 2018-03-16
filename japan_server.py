@@ -287,20 +287,35 @@ class Mission_4_4_Boss(zrobot.Mission):
 
 class Mission_Event(china_server.MissionEvent):
     event_base = 9940
-    event_num = 1
+    event_num = 3
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__(ze)
         # self.battle_fleet_name = ['胡德', '俾斯麦', '威尔士亲王', '黎塞留', '罗德尼', '声望']
-        self.battle_fleet_name = ['赤城', '列克星敦', '长春']
+        self.battle_fleet_name = ['赤城', '海伦娜', '亚特兰大', '大凤', '追赶者', '普林斯顿']
 
     def set_first_nodes(self):
+        # nm = zrobot.Node('m', formation=1, night_flag=1)
+        # nk = zrobot.Node('k')
+        # nf = zrobot.Node('f')
+        # ng = zrobot.Node('g')
+        # nc = zrobot.Node('c', node_type=zrobot.NODE_RESOURCE)
+        # nb = zrobot.Node('b', node_type=zrobot.NODE_RESOURCE)
+        # na = zrobot.Node('a', formation=5)
+
+        # na.add_next(nb)
+        # nb.add_next(nc)
+        # nc.add_next(ng)
+        # nc.add_next(nf)
+        # ng.add_next(nk)
+        # nf.add_next(nk)
+        # nk.add_next(nm)
         self.node_a = self.node_chain([
-            zrobot.Node('a', formation=4, night_flag=1, additional_spy_filter=lambda x: int(x['enemyVO']['enemyFleet']['formation'])==3),
-            # zrobot.Node('a'),
-            # zrobot.Node('d'),
-            # zrobot.Node('i', node_type=zrobot.NODE_RESOURCE),
-            # zrobot.Node('m'),
-            # zrobot.Node('p', formation=1, night_flag=1),
+            # zrobot.Node('a', formation=4, night_flag=1, additional_spy_filter=lambda x: int(x['enemyVO']['enemyFleet']['formation'])==3),
+            zrobot.Node('a'),
+            zrobot.Node('d'),
+            zrobot.Node('f'),
+            zrobot.Node('l', node_type=zrobot.NODE_RESOURCE),
+            zrobot.Node('m', night_flag=1),
         ])
 
         return self.node_a
@@ -509,9 +524,9 @@ class JapanRobot(zrobot.Robot):
             ([110, 183, 710, 391, 386, 449], '20002'),
             ([121, 102, 109, 108, 107, 219], '20001'),
             ([105, 143, 2891, 9005, 3002, 120], '40001'),
-            ([3305, 550, 211, 187, 185, 258], '50003'),
+            ([1475, 550, 211, 187, 185, 258], '50003'),
         )
-        self.campaign.target_mission = 202
+        # self.campaign.target_mission = 202
         # self.campaign.formation_code = 5
 
     def set_missions(self):

@@ -1358,6 +1358,7 @@ class ZjsnEmulator(object):
 
     def lock(self, ship_id):
         r = self.get(self.api.lock(ship_id))
+        # TODO figure out why "locked" info no updated
         self.userShip.update(r['shipVO'])
         return r
 
