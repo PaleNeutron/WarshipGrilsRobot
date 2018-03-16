@@ -400,7 +400,7 @@ class ZjsnShip(dict):
 
     @property
     def locked(self):
-        return self["isLocked"]
+        return bool(self["isLocked"])
 
     @locked.setter
     def locked(self, value):
@@ -906,7 +906,7 @@ class ZjsnEmulator(object):
         ship_groups = [i for i in self.ship_groups if i[0] != None]
         tmp_fleet_ships_id = []
         for i, g in enumerate(ship_groups):
-            new_id = self.get_substitue(i, tmp_fleet_ships_id, ship_groups[i])
+            new_id = self.get_substitue(i, tmp_fleet_ships_id, g)
             if new_id:
                 tmp_fleet_ships_id.append(new_id)
             else:

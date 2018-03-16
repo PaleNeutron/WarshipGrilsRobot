@@ -963,7 +963,17 @@ class Mission_6_1_A(Mission):
         return node_a
 
     def auto_boss_ships(self):
-        return [s.id for s in self.ze.userShip.unique if s.level < self.ze.max_level]
+        boss_ships = [s for s in self.ze.userShip.unique if s.level < self.ze.max_level and s.type not in ['驱逐', '轻巡']]
+        boss_ships.sort(key=lambda x: (
+                x.type == '导驱',
+                x.type == '战列',
+                x.type == '战巡',
+                x.type == '航母',
+                x.type == '重巡',
+            ),
+            reverse=True
+        )
+        return [s.id for s in boss_ships]
 
     def prepare(self):
         # 所有装了声呐的反潜船
@@ -997,12 +1007,12 @@ class Mission_6_1_A(Mission):
             boss_ships = []
 
         if boss_ships:
+            boss_ships.sort(key=lambda x: self.ze.userShip[x].level)
             self.ze.ship_groups[0] = (boss_ships, 2, True)
         else:
             boss_ships = self.auto_boss_ships()
             self.ze.ship_groups[0] = (boss_ships, 1, False)
         # boss_ships = [self.ze.userShip.name('赤城').id]
-        boss_ships.sort(key=lambda x: self.ze.userShip[x].level)
         _logger.debug("boss_ships:{:.60}".format(
             str([self.ze.userShip[ship_id].name for ship_id in boss_ships])))
 
