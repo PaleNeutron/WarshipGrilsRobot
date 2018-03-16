@@ -285,12 +285,13 @@ class Mission_4_4_Boss(zrobot.Mission):
         zrobot._logger.debug("boss hp={}".format(self.boss_hp))
 
 
-class Mission_Event(zrobot.Mission):
+class Mission_Event(china_server.MissionEvent):
+    event_base = 9940
+    event_num = 1
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        E1 = 9926
-        super().__init__('event', E1 + 5, ze)
+        super().__init__(ze)
         # self.battle_fleet_name = ['胡德', '俾斯麦', '威尔士亲王', '黎塞留', '罗德尼', '声望']
-        self.battle_fleet_name = ['胡德', '俾斯麦', '马里兰', '黎塞留', '声望', '罗德尼']
+        self.battle_fleet_name = ['赤城', '列克星敦', '长春']
 
     def set_first_nodes(self):
         self.node_a = self.node_chain([
@@ -303,30 +304,6 @@ class Mission_Event(zrobot.Mission):
         ])
 
         return self.node_a
-
-    def prepare(self):
-        if self.boss_hp == 0:
-            zrobot._logger.debug("boss dead, over")
-            return False
-        # target_ship = '奥班农'
-        # if self.ze.userShip.name(target_ship, 0):
-        #     zrobot._logger.debug("got {}, over".format(target_ship))
-        #     return False
-        self.battle_fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet_name]
-        if not self.battle_fleet:
-            self.battle_fleet = self.ze.working_ships_id
-        fleet = self.battle_fleet
-        fleet_group = [([i], 0.85, True) for i in fleet]
-        self.ze.ship_groups = fleet_group
-        try:
-            self.ze.change_ships()
-        except zemulator.ZjsnError:
-            return False
-        return True
-
-    def summery(self):
-        super().summery()
-        zrobot._logger.debug("boss hp={}".format(self.boss_hp))
 
 
 class MissionEventCollection(zrobot.Mission):

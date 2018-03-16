@@ -737,11 +737,13 @@ class MissionEvent_E7(zrobot.Mission):
 
 
 class MissionEvent(zrobot.Mission):
+    event_base = 9954
+    event_num = 6
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        event_base = 9954
-        super().__init__('event', event_base + 6, ze)
+        super().__init__('event', self.event_base + self.event_num, ze)
         # [16523,229,1519,11872,115,43707]
         self.battle_fleet = []
+        self.battle_fleet_name = ['赤城', '列克星敦', '长春']
 
     def set_first_nodes(self):
         # temp = zrobot.Node.DEFAULT_SLEEP_TIME
@@ -765,6 +767,8 @@ class MissionEvent(zrobot.Mission):
             return False
 
         # fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet]
+        if self.battle_fleet_name:
+            self.battle_fleet = [self.ze.userShip.name(name).id for name in self.battle_fleet_name]
         if not self.battle_fleet:
             self.battle_fleet = self.ze.working_ships_id
             zrobot._logger.debug("current battle ships are : {}".format([s.name for s in self.ze.working_ships]))
