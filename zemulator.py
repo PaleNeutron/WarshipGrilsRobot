@@ -61,7 +61,7 @@ class InitData(object):
                 if os.path.exists(self.init_file_path_japan):
                     with open(self.init_file_path_japan, encoding="utf8") as f:
                         self._data_j = json.load(f)
-            except json.JSONDecodeError:
+            except ValueError:
                 self.version = distutils.version.LooseVersion("000")
                 return
             self.version = distutils.version.LooseVersion(self._data["DataVersion"])
