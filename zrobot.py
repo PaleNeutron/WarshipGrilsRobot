@@ -953,9 +953,13 @@ class Mission_2_1(Mission):
 
 
 class Mission_6_1_A(Mission):
+    max_num_1_day = 500
+    mission_name = 'kill_fish'
     def __init__(self, ze: zemulator.ZjsnEmulator):
-        super(Mission_6_1_A, self).__init__('kill_fish', 601, ze)
+        super(Mission_6_1_A, self).__init__(self.mission_name, 601, ze)
         self.boss_ships = []
+        self.last_success = 0
+        self.success_count_today = 0
 
     def set_first_nodes(self):
         node_a = Node('A', formation=5,
@@ -965,6 +969,8 @@ class Mission_6_1_A(Mission):
     def auto_boss_ships(self):
         boss_ships = [s for s in self.ze.userShip.unique if s.level < self.ze.max_level and s.type not in ['驱逐', '轻巡']]
         boss_ships.sort(key=lambda x: (
+                x.can_evo,
+                x.evolved,
                 x.type == '导驱',
                 x.type == '战列',
                 x.type == '战巡',
@@ -976,6 +982,11 @@ class Mission_6_1_A(Mission):
         return [s.id for s in boss_ships]
 
     def prepare(self):
+        if self.last_success and datetime.today().date() > self.last_success:
+            self.success_count_today = 0
+        if self.success_count_today > self.max_num_1_day:
+            return False
+
         # 所有装了声呐的反潜船
         dd_ships = []
         slow_ships = []
@@ -1027,6 +1038,20 @@ class Mission_6_1_A(Mission):
             self.ze.ship_groups[5] = (dd_ships, 1, False)
 
         return self.ze.change_ships()
+
+    def summery(self):
+        super().summery()
+        if self.success:
+            self.success_count_today += 1
+        self.last_success = datetime.today().date()
+
+
+class DailyKillFish(Mission_6_1_A):
+    max_num_1_day = 300
+    mission_name = 'daily_kill_fish'    
+    def __init__(self, ze: zemulator.ZjsnEmulator):
+        super().__init__(ze)
+        self.enable = True
 
 
 class Mission_6_1_A_CV(Mission_6_1_A):
@@ -1146,6 +1171,8 @@ class Robot(object):
         self.add_mission(DailyTask(self.ze))
         #kill_fish
         self.kill_fish = Mission_6_1_A(self.ze)
+        self.daily_kill_fish = DailyKillFish(self.ze)
+        
         self.add_mission(self.kill_fish)
         if self.ze.version < self.ze.KEY_VERSION:
             self.set_missions()
@@ -1161,6 +1188,7 @@ class Robot(object):
                                         conditions=[self.campaign.prepare], after=[self.campaign.start])
 
             self.set_missions()
+            self.add_mission(self.daily_kill_fish)
             self.machine.add_transition(trigger='go_out', conditions=[self.dock.wait], source='init',
                                         dest="init")
         # self.machine.add_transition(trigger='go_back', source='*', dest='init')
