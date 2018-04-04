@@ -1281,7 +1281,5 @@ class Robot(object):
             self.run()
         else:
             self.thread = threading.Thread(target=self.run, daemon=True)
-            self.thread.start()
-            import signal
-            signal.signal(signal.SIGTSTP, lambda x,y: exit())            
+            self.thread.start()      
             return self.thread
