@@ -737,24 +737,28 @@ class MissionEvent_E7(zrobot.Mission):
 
 
 class MissionEvent(zrobot.Mission):
-    event_base = 9954
-    event_num = 6
+    event_base = 9959
+    event_num = 7
     def __init__(self, ze: zemulator.ZjsnEmulator):
         super().__init__('event', self.event_base + self.event_num, ze)
         # [16523,229,1519,11872,115,43707]
         self.battle_fleet = []
-        self.battle_fleet_name = []
+        self.battle_fleet_name = ['吹雪', '信赖', '白雪', '绫波', '晓', '雷']
 
     def set_first_nodes(self):
         # temp = zrobot.Node.DEFAULT_SLEEP_TIME
         # zrobot.Node.DEFAULT_SLEEP_TIME = 20
         # self.ze.working_fleet = 3
+        self.node_q = zrobot.Node('q', night_flag=1)
+        self.node_n = zrobot.Node('n', night_flag=1, formation=4).add_next(self.node_q)
+        self.node_o = zrobot.Node('o', night_flag=1, formation=4).add_next(self.node_q)
         self.node_a = self.node_chain([zrobot.Node('b'),
-                                       zrobot.Node('d'),
-                                       zrobot.Node('k', node_type='resource'),
-                                    #    zrobot.Node('o', node_type=zrobot.NODE_SKIP),
-                                       zrobot.Node('p'),
-                                       zrobot.Node('r', night_flag=1, formation=4),
+                                       zrobot.Node('d', node_type='skip'),
+                                       zrobot.Node('h'),
+                                       #    zrobot.Node('o', node_type=zrobot.NODE_SKIP),
+                                       zrobot.Node('k', node_type='skip'),
+                                       zrobot.Node('p', night_flag=1, formation=4),
+                                       [self.node_n, self.node_o],
                                        ])
         # self.node_a.skip_rate_limit = 0.8
         # zrobot.Node.DEFAULT_SLEEP_TIME = temp
@@ -790,10 +794,16 @@ class ChinaRobot(zrobot.Robot):
         self.ze.boat_formula = [200, 30, 200, 30]
         self.explore.explore_table = (
             ([11063, 329, 58584, 44607, 44538, 63100], '20002'),
-            ([7367, 13972, 11497, 8452, 3822, 53932], '10003'),
+            ([7367, 13972, 11497, 8452, 3822, 53932], '10004'),
             ([128, 14094, 113, 101, 52334, 7373], '40001'),
             ([123, 13973, 10800, 53659, 10706, 104], '20001')
         )
+        self.build_mission.plan = {
+            '乔治': [400, 80, 650, 101],
+            '莫斯科': [350, 130, 350, 130],
+            '斯维尔德洛夫': [200, 30, 200, 30],
+            '1405': [30, 30, 60, 30],
+        }
         # self.campaign.mission_code = 102
         # self.ze.unlocked_report()
         # for ship in self.ze.userShip:

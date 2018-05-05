@@ -9,7 +9,7 @@ import logging
 import math
 import os
 import time
-from typing import Iterator
+from typing import Iterator, Dict
 
 import requests
 import requests.exceptions
@@ -36,7 +36,7 @@ class InitData(object):
     def __init__(self):
         self._data = None
         self._data_j = None
-        self.ship_card = None
+        self.ship_card = None  # type: Dict{int, Dict}
         self.error_code = None
         self.equipment_card = None
         self.version = distutils.version.LooseVersion("0")
@@ -109,6 +109,13 @@ class InitData(object):
                 zlogger.info(girl["title"] + " ==> " + tb[girl["title"]])
                 girl["title"] = tb[girl["title"]]
 
+    def get_card_by_name(self, name):
+        cards = self.ship_card
+        for c in cards:
+            n = cards[c]['title'].replace(' ', '')
+            if name in n:
+                return cards[c]
+        return None
 
 _INIT_DATA_ = InitData()
 
@@ -217,6 +224,9 @@ class ZjsnApi(object):
         return self.host + '/dock/buildBoat/{}/{}/{}/{}/{}'.format(dock_id, oil, steel, ammo,
                                                                    aluminum)  # 1/400/500/130/400 第一项是船坞ID，后面是油，钢，弹，铝.format()
 
+    def instantBuildBoat(self, dock_id):
+        return self.host + '/dock/instantBuild/{}/'.format(dock_id)  # 第一项是船坞ID
+
     def buildEquipment(self, dock_id, oil, ammo, steel, aluminum):
         return self.host + '/dock/buildEquipment/{}/{}/{}/{}/{}'.format(dock_id, oil, steel, ammo,
                                                                         aluminum)  # 1/10/90/90/30 第一项是船坞ID，后面是油，钢，弹，铝.format()
@@ -275,7 +285,7 @@ class ZjsnUserShip(dict):
     def __iter__(self) -> Iterator['ZjsnShip']:
         return iter(self.values())
 
-    def level_order(self, reverse=True) -> 'ZjsnShip':
+    def level_order(self, reverse=True) -> Iterator['ZjsnShip']:
         """sorted ship objects from z to a"""
         return iter(sorted(self.values(), key=lambda x: x["level"], reverse=True))
 
@@ -1209,6 +1219,7 @@ class ZjsnEmulator(object):
                 dock_id = i['id']
                 self.build(dock_id, *self.boat_formula)
                 self.build_boat_remain -= 1
+        self.dismantle()
 
     def auto_build_equipment(self):
         for ex in filter(lambda d: 'endTime' in d, self.equipmentDock):
